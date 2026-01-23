@@ -4,6 +4,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Rect
@@ -101,7 +102,7 @@ class Login : AppCompatActivity() {
         // 🟡 Tamaños de texto
         // ===============================
         val titleNormal = 30f
-        val subtitleNormal = 35f
+        val subtitleNormal = 30f
         val titleMin = 20f
         val subtitleMin = 22f
 
@@ -127,7 +128,10 @@ class Login : AppCompatActivity() {
                         subtitleNormal - (subtitleNormal - subtitleMin) * slideOffset
                     val alpha = 1f - slideOffset // slideOffset va de 0 (cerrado) a 1 (abierto)
                     binding.imgTopSheet.alpha = alpha
-
+                    // 🔹 Nuevo: Texto sube al desplegar
+                    val textTranslation = -50f * slideOffset // -15px cuando está completamente desplegado
+                    binding.txtBienvenido.translationY = textTranslation
+                    binding.txtSubtitulo.translationY = textTranslation
                     // 🔹 Usuario tocando → detener brinco
                     if (idleAnimator.isRunning) {
 
@@ -143,7 +147,11 @@ class Login : AppCompatActivity() {
 
                         BottomSheetBehavior.STATE_COLLAPSED -> {
                             binding.txtTituloSheet.text = "Bienvenido"
-                            if (!idleAnimator.isRunning) idleAnimator.start()
+                            if (!idleAnimator.isRunning){
+                                idleAnimator.start()
+
+                            }
+
 
                         }
 
@@ -202,15 +210,12 @@ class Login : AppCompatActivity() {
 
         btnContinuar.setOnClickListener {
             dialog.dismiss()
-            continuarSinCuenta()
+            ocultarPaginaAnterior()
         }
 
         dialog.show()
     }
-    private fun continuarSinCuenta() {
-        // 1. OCULTAR PÁGINA ANTERIOR (con animación)
-        ocultarPaginaAnterior()
-    }
+
     private fun ocultarPaginaAnterior() {
         // Crear un conjunto de animaciones para ocultar todos los elementos
         val animatorSet = AnimatorSet()
@@ -265,8 +270,25 @@ class Login : AppCompatActivity() {
         ).apply {
             duration = 400
         }
-        animaciones.add(imgFondoAnim)
+        val tituloAnim = ObjectAnimator.ofFloat(
+            binding.txtTituloSheet,
+            "alpha",
+            1f, 0f
+        ).apply {
+            duration =400
+        }
 
+
+        val subtituloAnim = ObjectAnimator.ofFloat(
+            binding.txtSubtitulo,
+            "alpha",
+            1f, 0f
+        ).apply {
+            duration =400
+        }
+       //animaciones.add(subtituloAnim)
+      // animaciones.add(tituloAnim)
+        animaciones.add(imgFondoAnim)
         // Ejecutar todas las animaciones juntas
         animatorSet.playTogether(animaciones)
 
@@ -279,10 +301,13 @@ class Login : AppCompatActivity() {
                 binding.imgTopLeft.visibility = View.GONE
                 binding.imgTopRight.visibility = View.GONE
                 binding.imgFondo.visibility = View.GONE
+              //binding.txtTituloSheet.visibility= View.GONE
+              //binding.txtSubtitulo.visibility= View.GONE
+                iniciarTransicionDeCarga()
 
 
             }
-        })
+     })
 
         animatorSet.start()
     }
@@ -322,25 +347,21 @@ class Login : AppCompatActivity() {
         textView.movementMethod = LinkMovementMethod.getInstance()
         textView.highlightColor = Color.TRANSPARENT
     }
-    private fun mostrarNuevaInterfaz() {
-        // 1. Limpiar animaciones del sprite sheet
-        handler.removeCallbacksAndMessages(null)
 
-        // 2. Ocultar transición con fade out
-        transicionContainer.animate()
-            .alpha(0f)
-            .setDuration(400)
-            .withEndAction {
-                transicionContainer.visibility = View.GONE
-                transicionContainer.alpha = 1f
-                //paginaprincipalfree.mostrarNuevaInterfaz(nuevaInterfaz)
-                // 3. Mostrar nueva interfaz con animación
-                //animarEntradaNuevaInterfaz()
-            }
-            .start()
+
+    private fun iniciarTransicionDeCarga() {
+        // Crear intent para la nueva actividad
+        val intent = Intent(this, Trancicion_de_carga_para_menu_free::class.java)
+
+        // Iniciar la actividad
+        startActivity(intent)
+
+        // Transición suave entre actividades
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+
+        // Opcional: Cerrar esta actividad si ya no es necesaria
+        // finish()
     }
-
-
 
 
 

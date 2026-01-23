@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/transicionContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:visibility="gone">
+
+    <!-- Rectángulo blanco que sube -->
+    <FrameLayout
+        android:id="@+id/rectanguloBlanco"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#2196F3"
+        android:layout_gravity="center"
+        android:translationY="400dp">
+
+        <!-- Logo partido a la izquierda -->
+        <ImageView
+            android:id="@+id/logoPartido"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="100dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_logo_circular_mitad"
+            android:adjustViewBounds="true"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="30dp"/>
+
+        <!-- Contenedor del texto y botón (alineado a la derecha) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|end"
+            android:layout_marginEnd="40dp"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <!-- Texto principal -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Las recomendaciones
+                 del chef"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:fontFamily="@font/caviardreams"
+                android:gravity="center"
+                android:maxLines="2"/>
+
+            <!-- Espaciador -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="30dp"/>
+
+            <!-- Botón Continuar -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnContinuar"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:text="Continuar"
+                android:fontFamily="@font/caviardreams"
+                android:textColor="@android:color/black"
+                android:textSize="16sp"
+                app:cornerRadius="22dp"
+            app:backgroundTint="#FFFFFF"
+            android:paddingStart="30dp"
+            android:paddingEnd="30dp"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</FrameLayout>
