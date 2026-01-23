@@ -1,12 +1,14 @@
 package com.example.gourmeet2
 
 import android.animation.ObjectAnimator
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -40,10 +42,25 @@ class Trancicion_de_carga_para_menu_free : AppCompatActivity() {
         }, 500)
 
         // Configurar botón Continuar
+        // Configurar botón Continuar
         binding.btnContinuar.setOnClickListener {
-            finish()
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+            Log.e("TEST", "=== CLICK INICIADO ===")
+
+            Toast.makeText(this, "Botón clickeado", Toast.LENGTH_SHORT).show()
+            Log.e("TEST", "Toast mostrado")
+
+            Log.e("TEST", "Contexto: ${this::class.simpleName}")
+
+            try {
+                val intent = Intent(this, Menu_principal_free::class.java)
+                startActivity(intent)
+                Log.e("TEST", "Nueva interfaz abierta correctamente")
+            } catch (e: Exception) {
+                Log.e("TEST", "ERROR al abrir nueva interfaz: ${e.message}")
+            }
         }
+
+
     }
 
     private fun iniciarAnimacionSubida() {
