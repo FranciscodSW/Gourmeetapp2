@@ -21,10 +21,6 @@
         app:layout_constraintEnd_toEndOf="parent"/>
 
 
-    <!-- TextView para mostrar la opción seleccionada -->
-
-
-
     <!-- ViewPager2 para el carrusel -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPagerCarrusel"
@@ -39,59 +35,43 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-
-
-    <!-- Indicador de puntos (dots) -->
-    <com.tbuonomo.viewpagerdotsindicator.WormDotsIndicator
-        android:id="@+id/dotsIndicator"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/viewPagerCarrusel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="20dp"
-        app:dotsColor="#CCFFFFFF"
-        app:dotsStrokeColor="#FFFFFF"
-        app:dotsStrokeWidth="2dp"
-        app:dotsSize="12dp"
-        app:dotsSpacing="8dp"/>
-
     <!-- Guideline para separar áreas -->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline40"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_begin="293dp" />
+        app:layout_constraintGuide_end="438dp" />
 
     <!-- Contenedor para los detalles de la opción seleccionada -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@+id/dotsIndicator"
+        android:layout_marginTop="3dp"
+        android:padding="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="30dp"
-        android:padding="20dp">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewPagerCarrusel"
+        app:layout_constraintVertical_bias="1.0">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal">
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
             <!-- Aquí podrías agregar detalles específicos de cada opción -->
             <TextView
                 android:id="@+id/txtDescripcion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Elementos"
-                android:textSize="16sp"
-                android:textColor="#333333"
                 android:gravity="center"
                 android:lineSpacingExtra="4sp"
-                android:layout_marginBottom="30dp"/>
+                android:text="Elementos"
+                android:textColor="#333333"
+                android:textSize="16sp" />
 
             <!-- Grid para mostrar items de la categoría seleccionada -->
             <androidx.recyclerview.widget.RecyclerView
@@ -99,7 +79,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:visibility="gone"/>
+                android:visibility="gone" />
 
         </LinearLayout>
 
