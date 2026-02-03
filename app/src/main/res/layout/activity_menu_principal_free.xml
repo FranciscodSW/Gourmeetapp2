@@ -20,7 +20,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-
     <!-- ViewPager2 para el carrusel -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPagerCarrusel"
@@ -35,15 +34,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Guideline para separar áreas -->
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline40"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_end="438dp" />
-
-    <!-- Contenedor para los detalles de la opción seleccionada -->
+    <!-- Contenedor principal con scroll -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -62,27 +53,72 @@
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
-            <!-- Aquí podrías agregar detalles específicos de cada opción -->
+            <!-- Texto descriptivo -->
             <TextView
                 android:id="@+id/txtDescripcion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/caviardreams"
                 android:gravity="center"
                 android:lineSpacingExtra="4sp"
                 android:text="Elementos"
                 android:textColor="#333333"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:layout_marginTop="8dp" />
 
-            <!-- Grid para mostrar items de la categoría seleccionada -->
+            <!-- Cuadro de búsqueda -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardSearch"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Icono de búsqueda -->
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="12dp"
+                        android:src="@drawable/ic_lupa" />
+
+                    <!-- Campo de búsqueda -->
+                    <EditText
+                        android:id="@+id/editTextSearch"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="Buscar recetas..."
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:paddingVertical="0dp"
+                        android:textSize="16sp"/>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- RecyclerView para mostrar las recetas -->
+            <!-- Este RecyclerView usará el layout item_receta.xml que ya tienes -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerItems"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/caviardreams"
                 android:layout_marginTop="20dp"
-                android:visibility="gone" />
+                android:visibility="visible" />
 
         </LinearLayout>
-
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

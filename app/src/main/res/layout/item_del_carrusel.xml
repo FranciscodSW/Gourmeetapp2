@@ -15,6 +15,7 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:text="Categoria"
+        android:fontFamily="@font/caviardreams"
         android:textSize="22sp"
         android:textStyle="bold"
         android:textColor="@android:color/white"/>

@@ -19,6 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Nombre Receta"
+            android:fontFamily="@font/caviardreams"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#333333"
@@ -29,6 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Descripción..."
+            android:fontFamily="@font/caviardreams"
             android:textSize="14sp"
             android:textColor="#666666"
             android:maxLines="2"
@@ -48,6 +50,7 @@
                 android:layout_weight="1"
                 android:text="30 min"
                 android:textSize="12sp"
+                android:fontFamily="@font/caviardreams"
                 android:textColor="#4CAF50"/>
 
             <TextView
@@ -57,6 +60,7 @@
                 android:layout_weight="1"
                 android:text="4 porciones"
                 android:textSize="12sp"
+                android:fontFamily="@font/caviardreams"
                 android:textColor="#2196F3"
                 android:gravity="center"/>
 
@@ -66,6 +70,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Media"
+                android:fontFamily="@font/caviardreams"
                 android:textSize="12sp"
                 android:textColor="#FF9800"
                 android:gravity="end"/>
@@ -76,6 +81,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="250 cal"
+            android:fontFamily="@font/caviardreams"
             android:textSize="12sp"
             android:textColor="#F44336"
             android:gravity="end"/>

@@ -1,6 +1,8 @@
 package com.example.gourmeet2.data.api
 
 import com.example.gourmeet2.data.models.CategoriaResponse
+import com.example.gourmeet2.data.models.IngredienteRecetaResponse
+import com.example.gourmeet2.data.models.RecetaBuscarResponse
 import com.example.gourmeet2.data.models.RecetaResponse
 import com.example.gourmeet2.data.models.RecetaRecrcidResponse
 import retrofit2.http.GET
@@ -20,5 +22,15 @@ interface ApiService {
         @Query("categoria_id") categoriaId: Int // Sin valor por defecto
     ): RecetaRecrcidResponse
 
+    @GET("buscar_recetas_nombre.php") // Ajusta el endpoint según tu API
+    suspend fun buscarRecetas(
+        @Query("REC_NOMBRE") query: String,
+        @Query("REC_RC_ID") categoriaId: Int
+    ): RecetaBuscarResponse
+    // NUEVO ENDPOINT
+    @GET("listar_ingredientes_recetas.php")
+    suspend fun getRecetaConIngredientes(
+        @Query("REC_ID") recId: Int
+    ): IngredienteRecetaResponse
 
 }
