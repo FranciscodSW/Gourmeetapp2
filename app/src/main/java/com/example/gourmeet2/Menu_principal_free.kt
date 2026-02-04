@@ -9,16 +9,19 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.example.gourmeet2.data.api.ApiClient
 import com.example.gourmeet2.data.models.Categoria
+import com.example.gourmeet2.data.models.IngredienteRecetaResponse
 import com.example.gourmeet2.data.models.RecetaBuscar
 import com.example.gourmeet2.data.models.RecetaRecrcid
 import com.example.gourmeet2.databinding.ActivityMenuPrincipalFreeBinding
 import com.example.gourmeet2.databinding.ItemDelCarruselBinding
 import com.example.gourmeet2.databinding.ItemRecetaBinding
+import com.example.gourmeet2.DetalleRecetaBottomSheet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -31,11 +34,9 @@ class Menu_principal_free : AppCompatActivity() {
     private lateinit var binding: ActivityMenuPrincipalFreeBinding
     private lateinit var recetaAdapter: RecetaAdapter
     private val recetasList = mutableListOf<RecetaRecrcid>()
-    private val recetasBusquedaList = mutableListOf<RecetaBuscar>() // Lista separada para búsqueda
+    private val recetasBusquedaList = mutableListOf<RecetaBuscar>()
     private val categoriasList = mutableListOf<Categoria>()
     private var categoriaActualId: Int = -1
-
-    // Variables para controlar la búsqueda
     private var searchJob: Job? = null
     private var isSearching: Boolean = false
     private var lastQuery: String = ""
@@ -52,14 +53,13 @@ class Menu_principal_free : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        recetaAdapter = RecetaAdapter(recetasList)
+        recetaAdapter = RecetaAdapter(recetasList, this)
         binding.recyclerItems.layoutManager = LinearLayoutManager(this)
         binding.recyclerItems.adapter = recetaAdapter
         binding.recyclerItems.visibility = android.view.View.VISIBLE
     }
 
     private fun setupSearch() {
-        // Configurar TextWatcher para búsqueda en tiempo real
         binding.editTextSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -67,15 +67,12 @@ class Menu_principal_free : AppCompatActivity() {
 
             override fun afterTextChanged(s: Editable?) {
                 val query = s.toString().trim()
-
-                // Cancelar búsqueda anterior si existe
                 searchJob?.cancel()
 
                 if (query.isNotEmpty()) {
                     isSearching = true
-                    // Lanzar nueva búsqueda con retardo para evitar demasiadas llamadas
                     searchJob = CoroutineScope(Dispatchers.Main).launch {
-                        delay(500) // Esperar 500ms después de que el usuario deja de escribir
+                        delay(500)
                         if (categoriaActualId > 0) {
                             buscarRecetasPorNombre(query, categoriaActualId)
                         } else {
@@ -87,7 +84,6 @@ class Menu_principal_free : AppCompatActivity() {
                         }
                     }
                 } else {
-                    // Si el campo está vacío, volver a cargar recetas de la categoría actual
                     isSearching = false
                     if (categoriaActualId > 0) {
                         cargarRecetasPorCategoria(categoriaActualId)
@@ -96,7 +92,6 @@ class Menu_principal_free : AppCompatActivity() {
             }
         })
 
-        // Configurar acción del botón de búsqueda en el teclado
         binding.editTextSearch.setOnEditorActionListener { v, actionId, event ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
                 val query = binding.editTextSearch.text.toString().trim()
@@ -121,10 +116,6 @@ class Menu_principal_free : AppCompatActivity() {
                         categoriasList.addAll(response.categorias)
 
                         Log.d("CATEGORIAS", "Cargadas ${response.categorias.size} categorías")
-                        response.categorias.forEachIndexed { index, categoria ->
-                            Log.d("CATEGORIAS", "${index + 1}. ID: ${categoria.id} - ${categoria.descripcion}")
-                        }
-
                         setupCarrusel()
 
                         if (categoriasList.isNotEmpty()) {
@@ -184,20 +175,14 @@ class Menu_principal_free : AppCompatActivity() {
                 override fun onPageSelected(position: Int) {
                     if (position < categoriasList.size) {
                         val categoria = categoriasList[position]
-
-                        // Cambiar color de fondo
                         binding.fondoDinamico.setBackgroundColor(parseColorSeguro(categoria.color))
-
-                        // Actualizar categoría actual
                         categoriaActualId = categoria.id
 
-                        // Limpiar búsqueda si hay una activa
                         if (isSearching) {
                             binding.editTextSearch.text.clear()
                             isSearching = false
                         }
 
-                        // Cargar recetas según si hay búsqueda activa o no
                         val query = binding.editTextSearch.text.toString().trim()
                         if (query.isNotEmpty()) {
                             buscarRecetasPorNombre(query, categoria.id)
@@ -232,7 +217,7 @@ class Menu_principal_free : AppCompatActivity() {
                     if (response.success) {
                         recetasList.clear()
                         recetasList.addAll(response.recetas)
-                        recetaAdapter.updateList(recetasList) // Usar método updateList
+                        recetaAdapter.updateList(recetasList)
 
                         val categoriaActual = categoriasList.find { it.id == categoriaId }
                         val nombreCategoria = categoriaActual?.descripcion ?: "Categoría $categoriaId"
@@ -254,7 +239,6 @@ class Menu_principal_free : AppCompatActivity() {
     }
 
     private fun buscarRecetasPorNombre(query: String, categoriaId: Int) {
-        // Solo buscar si la consulta es diferente a la anterior
         if (lastQuery == query && isSearching) {
             return
         }
@@ -264,24 +248,22 @@ class Menu_principal_free : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // LLAMAR A LA API DE BÚSQUEDA
                 val response = ApiClient.apiService.buscarRecetas(query, categoriaId)
 
                 Log.d("BUSQUEDA", "Respuesta búsqueda - success: ${response.success}, count: ${response.count}")
 
                 withContext(Dispatchers.Main) {
                     if (response.success) {
-                        // Limpiar lista de búsqueda y convertir RecetaBuscar a RecetaRecrcid
                         recetasBusquedaList.clear()
                         recetasBusquedaList.addAll(response.recetas)
-                        // Convertir RecetaBuscar a RecetaRecrcid para el adapter
+
                         val recetasConvertidas = response.recetas.map { recetaBuscar ->
-                            RecetaRecrcid(  // ← NOTA: Usar el nombre correcto
+                            RecetaRecrcid(
                                 id = recetaBuscar.id,
                                 nombre = recetaBuscar.nombre ?: "Sin nombre",
                                 descripcion = recetaBuscar.descripcion ?: "Sin descripción",
                                 tiempoPreparacion = recetaBuscar.tiempoPreparacion ?: "No especificado",
-                                porciones = recetaBuscar.porciones ?: 0,  // ← Asegurar que sea Int
+                                porciones = recetaBuscar.porciones ?: 0,
                                 fechaCreacion = recetaBuscar.fechaCreacion ?: "",
                                 dificultad = recetaBuscar.dificultad,
                                 calorias = recetaBuscar.calorias,
@@ -290,7 +272,6 @@ class Menu_principal_free : AppCompatActivity() {
                             )
                         }
 
-                        // Actualizar lista principal
                         recetasList.clear()
                         recetasList.addAll(recetasConvertidas)
                         recetaAdapter.updateList(recetasList)
@@ -315,8 +296,6 @@ class Menu_principal_free : AppCompatActivity() {
                 Log.e("BUSQUEDA_ERROR", "Error en búsqueda: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     binding.txtDescripcion.text = "Error en búsqueda: ${e.localizedMessage}"
-
-                    // Si falla la búsqueda, volver a cargar recetas de la categoría
                     if (!isSearching) {
                         cargarRecetasPorCategoria(categoriaId)
                     }
@@ -338,7 +317,6 @@ class Menu_principal_free : AppCompatActivity() {
         }
     }
 
-    // Adapter del carrusel CON CALLBACK
     inner class CarruselAdapter(
         private val categorias: List<Categoria>,
         private val onCategoriaClick: (Int) -> Unit
@@ -389,9 +367,9 @@ class Menu_principal_free : AppCompatActivity() {
         override fun getItemCount(): Int = categorias.size
     }
 
-    // Adapter para mostrar recetas - MODIFICADO para aceptar actualizaciones
     inner class RecetaAdapter(
-        private var recetas: List<RecetaRecrcid>
+        private var recetas: List<RecetaRecrcid>,
+        private val fragmentActivity: FragmentActivity
     ) : RecyclerView.Adapter<RecetaAdapter.RecetaViewHolder>() {
 
         inner class RecetaViewHolder(
@@ -434,16 +412,50 @@ class Menu_principal_free : AppCompatActivity() {
 
                 holder.itemView.setOnClickListener {
                     Log.d("RECETA_CLICK", "Receta: ${receta.nombre} (ID: ${receta.id})")
-                    // Aquí puedes abrir el detalle de la receta
+
+                    // Abrir BottomSheet con el ID de la receta
+                    val bottomSheet = DetalleRecetaBottomSheet.newInstance(receta.id)
+                    bottomSheet.show(fragmentActivity.supportFragmentManager, "DetalleRecetaBottomSheet")
+
+                    // Opcional: Cargar datos de la receta antes de mostrar
+                    cargarDetallesReceta(receta.id, bottomSheet)
                 }
             } catch (e: Exception) {
                 Log.e("BIND_ERROR", "Error en posición $position: ${e.message}")
             }
         }
 
+        private fun cargarDetallesReceta(recetaId: Int, bottomSheet: DetalleRecetaBottomSheet) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val response = ApiClient.apiService.getRecetaConIngredientes(recetaId)
+
+                    withContext(Dispatchers.Main) {
+                        if (response.success && response.receta != null) {
+                            bottomSheet.actualizarDatos(response.receta)
+                        } else {
+                            Toast.makeText(
+                                fragmentActivity,
+                                "Error cargando detalles de la receta",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Log.e("DETALLE_ERROR", "Error cargando detalles: ${e.message}")
+                        Toast.makeText(
+                            fragmentActivity,
+                            "Error de conexión",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }
+
         override fun getItemCount(): Int = recetas.size
 
-        // Método para actualizar la lista
         fun updateList(newList: List<RecetaRecrcid>) {
             recetas = newList
             notifyDataSetChanged()

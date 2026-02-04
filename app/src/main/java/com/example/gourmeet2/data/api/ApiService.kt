@@ -5,6 +5,7 @@ import com.example.gourmeet2.data.models.IngredienteRecetaResponse
 import com.example.gourmeet2.data.models.RecetaBuscarResponse
 import com.example.gourmeet2.data.models.RecetaResponse
 import com.example.gourmeet2.data.models.RecetaRecrcidResponse
+import com.example.gourmeet2.data.models.PasosResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -32,5 +33,10 @@ interface ApiService {
     suspend fun getRecetaConIngredientes(
         @Query("REC_ID") recId: Int
     ): IngredienteRecetaResponse
+
+    @GET("listar_pasos_recetas.php")
+    suspend fun getPasosPreparacion(
+        @Query("REC_ID") recetaId: Int
+    ): PasosResponse
 
 }

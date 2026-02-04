@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:paddingBottom="200dp"
+    android:scrollbars="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -133,7 +136,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@android:drawable/ic_media_play"
-                        android:tint="#FF0000"/>
+                        />
 
                     <TextView
                         android:id="@+id/tvVideo"
@@ -183,13 +186,15 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Los ingredientes se agregarán dinámicamente aquí -->
-                    <!-- Ejemplo de un ingrediente:
+
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="12dp">
+                        android:layout_marginBottom="12dp"
+                        android:visibility="gone"
+                        >
 
                         <TextView
                             android:layout_width="0dp"
@@ -208,7 +213,7 @@
                             android:textSize="14sp"
                             android:textColor="#F44336"/>
                     </LinearLayout>
-                    -->
+
                 </LinearLayout>
 
                 <!-- Totales -->
@@ -271,6 +276,143 @@
                         android:textStyle="bold"
                         android:textColor="#4CAF50"/>
                 </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardPreparacion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="6dp"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- Cabecera con título y contador -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="👨‍🍳 Preparación"
+                        android:fontFamily="@font/caviardreams"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"/>
+
+                    <TextView
+                        android:id="@+id/tvContadorPasos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Paso 1/5"
+                        android:fontFamily="@font/caviardreams"
+                        android:textSize="14sp"
+                        android:textColor="#666666"
+                        android:background="@drawable/badge_paso"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="4dp"/>
+                </LinearLayout>
+
+                <!-- Instrucciones para deslizar -->
+                <TextView
+                    android:id="@+id/tvInstrucciones"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="← Desliza esta tarjeta para cambiar de paso →"
+                    android:fontFamily="@font/caviardreams"
+                    android:textSize="12sp"
+                    android:textColor="#666666"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="12dp"/>
+
+                <!-- Área para mostrar el paso actual -->
+                <LinearLayout
+                    android:id="@+id/containerPasoActual"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_paso"
+                    android:padding="20dp">
+
+                    <!-- Barra de progreso -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="16dp"
+                        android:layoutDirection="rtl">
+
+                        <View
+                            android:id="@+id/progressBarPaso"
+                            android:layout_width="0dp"
+                            android:layout_height="6dp"
+                            android:layout_weight="1"
+                            android:background="#E0E0E0"/>
+
+                        <View
+                            android:id="@+id/progressBarActual"
+                            android:layout_width="0dp"
+                            android:layout_height="6dp"
+                            android:layout_weight="0.2"
+                            android:background="#2196F3"/>
+                    </LinearLayout>
+
+                    <!-- Descripción del paso -->
+                    <TextView
+                        android:id="@+id/tvDescripcionPaso"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Mezclar azúcar glass con harina, fécula de maíz y polvo de almendra..."
+                        android:fontFamily="@font/caviardreams"
+                        android:textSize="16sp"
+                        android:textColor="#333333"
+                        android:lineSpacingExtra="4dp"/>
+
+                    <!-- Tiempo estimado del paso -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="16dp"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:id="@+id/tvTiempoPaso"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tiempo estimado: 10 min"
+                            android:fontFamily="@font/caviardreams"
+                            android:textSize="14sp"
+                            android:textColor="#4CAF50"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Indicadores de puntos -->
+                <LinearLayout
+                    android:id="@+id/containerPuntos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginTop="20dp"
+                    android:layout_gravity="center_horizontal"/>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

@@ -1,0 +1,465 @@
+package com.example.gourmeet2
+
+import android.content.Intent
+import android.graphics.drawable.GradientDrawable
+import android.net.Uri
+import android.os.Bundle
+import android.view.*
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.lifecycleScope
+import com.example.gourmeet2.data.api.ApiClient
+import com.example.gourmeet2.data.models.PasoPreparacion
+import com.example.gourmeet2.data.models.RecetaConIngredientes
+import com.example.gourmeet2.databinding.FragmentDetalleRecetaBinding
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.launch
+
+class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
+
+    private lateinit var binding: FragmentDetalleRecetaBinding
+    private var recetaId: Int = -1
+    private var listaPasos: List<PasoPreparacion> = emptyList()
+    private var pasoActual: Int = 0
+    private var totalPasos: Int = 0
+    private var initialX = 0f
+    private var initialY = 0f
+    private var isSwiping = false
+
+    private var recetaDetalle: RecetaConIngredientes? = null
+
+    companion object {
+        fun newInstance(recetaId: Int): DetalleRecetaBottomSheet {
+            return DetalleRecetaBottomSheet().apply {
+                arguments = Bundle().apply {
+                    putInt("recetaId", recetaId)
+                }
+            }
+        }
+    }
+    override fun onStart() {
+        super.onStart()
+
+        val bottomSheet =
+            dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                ?: return
+
+        val behavior = com.google.android.material.bottomsheet.BottomSheetBehavior.from(bottomSheet)
+
+        behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        behavior.peekHeight = (resources.displayMetrics.heightPixels * 0.9).toInt() // 90% de la pantalla
+        behavior.isFitToContents = true
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentDetalleRecetaBinding.inflate(inflater, container, false)
+
+        // Configurar el ScrollView para que no intercepte gestos horizontales
+        binding.root.findViewById<View>(R.id.scrollView)?.let { scrollView ->
+            scrollView.setOnTouchListener { v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        initialX = event.x
+                        initialY = event.y
+                        v.parent.requestDisallowInterceptTouchEvent(true)
+                        return@setOnTouchListener false
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val diffX = Math.abs(event.x - initialX)
+                        val diffY = Math.abs(event.y - initialY)
+
+                        // Si el movimiento es más horizontal que vertical, evitar que el ScrollView lo intercepte
+                        if (diffX > diffY * 1.5) {
+                            v.parent.requestDisallowInterceptTouchEvent(true)
+                            return@setOnTouchListener false
+                        }
+                    }
+                }
+                return@setOnTouchListener false
+            }
+        }
+
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        recetaId = arguments?.getInt("recetaId") ?: -1
+
+        if (recetaId != -1) {
+            setupSwipeGesture()
+            cargarPasosPreparacion()
+
+            if (recetaDetalle != null) {
+                mostrarDatosReceta()
+            }
+        }
+    }
+
+    private fun setupSwipeGesture() {
+        binding.cardPreparacion.setOnTouchListener { view, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    initialX = event.x
+                    initialY = event.y
+                    isSwiping = false
+
+                    // Impedir que el ScrollView intercepte
+                    view.parent.requestDisallowInterceptTouchEvent(true)
+                    return@setOnTouchListener true
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    val diffX = event.x - initialX
+                    val diffY = event.y - initialY
+
+                    // Solo procesar si es principalmente horizontal
+                    if (Math.abs(diffX) > Math.abs(diffY) * 2) {
+                        isSwiping = true
+
+                        // Mover la tarjeta mientras se desliza
+                        binding.cardPreparacion.translationX = diffX * 0.5f
+
+                        // Cambiar opacidad basado en la dirección
+                        if (diffX > 0) {
+                            binding.cardPreparacion.alpha = 1 - Math.min(diffX / 300, 0.3f)
+                        } else {
+                            binding.cardPreparacion.alpha = 1 - Math.min(-diffX / 300, 0.3f)
+                        }
+
+                        view.parent.requestDisallowInterceptTouchEvent(true)
+                        return@setOnTouchListener true
+                    } else if (Math.abs(diffY) > Math.abs(diffX) * 1.5) {
+                        // Es principalmente vertical, dejar que el ScrollView lo maneje
+                        view.parent.requestDisallowInterceptTouchEvent(false)
+                        return@setOnTouchListener false
+                    }
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    val diffX = event.x - initialX
+
+                    // Solo procesar si fue un deslizamiento horizontal
+                    if (isSwiping) {
+                        // Determinar si fue suficiente para cambiar de paso
+                        if (Math.abs(diffX) > 100) { // Umbral mínimo de 100px
+                            if (diffX > 0) {
+                                // Deslizó a la derecha - paso anterior
+                                cambiarPasoAnterior()
+                            } else {
+                                // Deslizó a la izquierda - paso siguiente
+                                cambiarPasoSiguiente()
+                            }
+                        } else {
+                            // No fue suficiente, animar de vuelta
+                            binding.cardPreparacion.animate()
+                                .translationX(0f)
+                                .alpha(1f)
+                                .setDuration(200)
+                                .start()
+                        }
+                        return@setOnTouchListener true
+                    }
+
+                    view.parent.requestDisallowInterceptTouchEvent(false)
+                }
+
+                MotionEvent.ACTION_CANCEL -> {
+                    binding.cardPreparacion.animate()
+                        .translationX(0f)
+                        .alpha(1f)
+                        .setDuration(200)
+                        .start()
+                    view.parent.requestDisallowInterceptTouchEvent(false)
+                }
+            }
+            return@setOnTouchListener false
+        }
+    }
+
+    private fun cambiarPasoAnterior() {
+        if (pasoActual > 0) {
+            val direccion = 1f // Derecha
+
+            // Animación de salida
+            binding.cardPreparacion.animate()
+                .translationX(direccion * 300)
+                .alpha(0f)
+                .setDuration(200)
+                .withEndAction {
+                    pasoActual--
+                    mostrarPaso(pasoActual)
+
+                    // Preparar para animación de entrada
+                    binding.cardPreparacion.translationX = -direccion * 300
+                    binding.cardPreparacion.alpha = 0f
+
+                    // Animación de entrada
+                    binding.cardPreparacion.animate()
+                        .translationX(0f)
+                        .alpha(1f)
+                        .setDuration(200)
+                        .start()
+                }
+                .start()
+        } else {
+            // Si es el primer paso, animar de vuelta
+            binding.cardPreparacion.animate()
+                .translationX(0f)
+                .alpha(1f)
+                .setDuration(200)
+                .start()
+        }
+    }
+
+    private fun cambiarPasoSiguiente() {
+        if (pasoActual < totalPasos - 1) {
+            val direccion = -1f // Izquierda
+
+            // Animación de salida
+            binding.cardPreparacion.animate()
+                .translationX(direccion * 300)
+                .alpha(0f)
+                .setDuration(200)
+                .withEndAction {
+                    pasoActual++
+                    mostrarPaso(pasoActual)
+
+                    // Preparar para animación de entrada
+                    binding.cardPreparacion.translationX = -direccion * 300
+                    binding.cardPreparacion.alpha = 0f
+
+                    // Animación de entrada
+                    binding.cardPreparacion.animate()
+                        .translationX(0f)
+                        .alpha(1f)
+                        .setDuration(200)
+                        .start()
+                }
+                .start()
+        } else {
+            // Si es el último paso, animar de vuelta
+            binding.cardPreparacion.animate()
+                .translationX(0f)
+                .alpha(1f)
+                .setDuration(200)
+                .start()
+        }
+    }
+
+    fun actualizarDatos(receta: RecetaConIngredientes) {
+        this.recetaDetalle = receta
+        if (isAdded) {
+            mostrarDatosReceta()
+        }
+    }
+
+    private fun mostrarDatosReceta() {
+        recetaDetalle?.let { receta ->
+            try {
+                binding.tvRecetaNombre.text = receta.recNombre ?: "Sin nombre"
+                binding.tvRecetaDescripcion.text = receta.recDescripcion ?: "Sin descripción"
+                binding.tvTiempo.text = "⏱ ${receta.recTiempoPreparacion ?: "No especificado"}"
+                binding.tvPorciones.text = "👥 ${receta.recPorciones ?: 0} porciones"
+                binding.tvDificultad.text = "📊 ${receta.recDificultad ?: "No especificada"}"
+
+                val caloriasTexto = if (receta.recCalorias != null) {
+                    "${receta.recCalorias.toInt()} cal"
+                } else {
+                    "N/A cal"
+                }
+                binding.tvCalorias.text = "🔥 $caloriasTexto"
+                binding.tvCategoria.text = "🍽 Categoría ${receta.recCategoriaId ?: "Sin categoría"}"
+
+                if (!receta.recEnlaceYoutube.isNullOrEmpty()) {
+                    binding.layoutVideo.visibility = View.VISIBLE
+                    binding.tvVideo.setOnClickListener {
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(receta.recEnlaceYoutube)))
+                    }
+                } else {
+                    binding.layoutVideo.visibility = View.GONE
+                }
+
+                mostrarIngredientes(receta.ingredientes)
+                calcularTotales(receta.ingredientes)
+                calcularCostoTotal(receta.ingredientes)
+
+
+            } catch (e: Exception) {
+                android.util.Log.e("RECETA_ERROR", "Error: ${e.message}")
+            }
+        }
+    }
+
+    private fun mostrarIngredientes(ingredientes: List<com.example.gourmeet2.data.models.Ingrediente>?) {
+        binding.containerIngredientes.removeAllViews()
+
+        ingredientes?.forEach { ingrediente ->
+            val layout = LinearLayout(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { bottomMargin = 12.dpToPx() }
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+            }
+
+            val tvIngrediente = TextView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                text = "• ${ingrediente.cantidad} ${ingrediente.nombreIngrediente}"
+                typeface = ResourcesCompat.getFont(requireContext(), R.font.caviardreams)
+                textSize = 16f
+                setTextColor(ContextCompat.getColor(requireContext(), android.R.color.tertiary_text_light))
+            }
+
+            val tvCaloriasIng = TextView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                val calorias = ingrediente.caloriasIngrediente ?: 0f
+                text = "${calorias.toInt()} cal"
+                typeface = ResourcesCompat.getFont(requireContext(), R.font.caviardreams)
+                textSize = 14f
+                setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark))
+            }
+            val tvPrecioIng = TextView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+
+
+            }
+
+            layout.addView(tvIngrediente)
+            layout.addView(tvCaloriasIng)
+
+            binding.containerIngredientes.addView(layout)
+        }
+    }
+    private fun calcularCostoTotal(
+        ingredientes: List<com.example.gourmeet2.data.models.Ingrediente>?
+    ) {
+        val total = ingredientes?.sumOf {
+            it.precioEstimado?.toDouble() ?: 0.0
+        } ?: 0.0
+
+        binding.tvTotalPrecio.text = "$${"%.2f".format(total)}"
+    }
+
+    private fun calcularTotales(ingredientes: List<com.example.gourmeet2.data.models.Ingrediente>?) {
+        val totalCalorias = ingredientes?.sumOf { it.caloriasIngrediente?.toDouble() ?: 0.0 } ?: 0.0
+        binding.tvTotalCalorias.text = "${totalCalorias.toInt()} cal"
+    }
+
+    private fun cargarPasosPreparacion() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val response = ApiClient.apiService.getPasosPreparacion(recetaId)
+
+                if (response.success) {
+                    listaPasos = response.pasos.sortedBy { it.paso }
+                    totalPasos = listaPasos.size
+
+                    if (listaPasos.isNotEmpty()) {
+                        mostrarPaso(pasoActual)
+                        crearIndicadoresPuntos()
+                    } else {
+                        binding.tvDescripcionPaso.text = "No hay pasos disponibles"
+                    }
+                } else {
+                    binding.tvDescripcionPaso.text = "Error cargando pasos"
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PASOS_ERROR", "Error: ${e.message}")
+                binding.tvDescripcionPaso.text = "Error de conexión"
+            }
+        }
+    }
+
+    private fun mostrarPaso(indice: Int) {
+        if (indice in listaPasos.indices) {
+            pasoActual = indice
+            val paso = listaPasos[indice]
+
+            binding.tvDescripcionPaso.text = paso.descripcion
+            binding.tvContadorPasos.text = "Paso ${indice + 1}/$totalPasos"
+
+            if (paso.tiempo != null && paso.tiempo > 0) {
+                binding.tvTiempoPaso.text = "⏱ ${formatearTiempo(paso.tiempo)}"
+                binding.tvTiempoPaso.visibility = View.VISIBLE
+            } else {
+                binding.tvTiempoPaso.visibility = View.GONE
+            }
+
+            actualizarBarraProgreso()
+            actualizarIndicadoresPuntos()
+
+            android.util.Log.d("PASOS", "Mostrando paso ${indice + 1}")
+        }
+    }
+
+    private fun formatearTiempo(minutosFloat: Float): String {
+        val minutos = minutosFloat.toInt()
+        val segundos = ((minutosFloat - minutos) * 60).toInt()
+        return if (segundos > 0) "$minutos min $segundos seg" else "$minutos min"
+    }
+
+    private fun crearIndicadoresPuntos() {
+        binding.containerPuntos.removeAllViews()
+
+        for (i in 0 until totalPasos) {
+            ImageView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { setMargins(8, 0, 8, 0) }
+                binding.containerPuntos.addView(this)
+            }
+        }
+        actualizarIndicadoresPuntos()
+    }
+
+    private fun actualizarIndicadoresPuntos() {
+        for (i in 0 until binding.containerPuntos.childCount) {
+            val imageView = binding.containerPuntos.getChildAt(i) as ImageView
+            val drawable = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                if (i == pasoActual) {
+                    setSize(40, 40)
+                    setColor(ContextCompat.getColor(requireContext(), R.color.black))
+                } else {
+                    setSize(24, 24)
+                    setColor(ContextCompat.getColor(requireContext(), android.R.color.darker_gray))
+                }
+            }
+            imageView.setImageDrawable(drawable)
+        }
+    }
+
+    private fun actualizarBarraProgreso() {
+        if (totalPasos > 0) {
+            val progressWeight = (pasoActual + 1).toFloat() / totalPasos
+            val weightRestante = 1 - progressWeight
+
+            (binding.progressBarActual.layoutParams as LinearLayout.LayoutParams).weight = progressWeight
+            (binding.progressBarPaso.layoutParams as LinearLayout.LayoutParams).weight = weightRestante
+
+            binding.progressBarActual.requestLayout()
+            binding.progressBarPaso.requestLayout()
+        }
+    }
+
+    private fun Int.dpToPx(): Int {
+        return (this * resources.displayMetrics.density).toInt()
+    }
+}
