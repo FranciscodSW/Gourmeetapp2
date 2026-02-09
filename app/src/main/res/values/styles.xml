@@ -1,0 +1,35 @@
+<resources>
+
+    <style name="BottomNavigationTheme" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="itemIconSize">25dp</item> <!-- Iconos más grandes -->
+        <item name="itemTextAppearanceActive">@style/BottomNavigationTextActive</item>
+        <item name="itemTextAppearanceInactive">@style/BottomNavigationTextInactive</item>
+        <item name="android:layout_height">90dp</item> <!-- Más alto -->
+        <item name="android:paddingTop">12dp</item> <!-- Menos padding arriba -->
+        <item name="android:paddingBottom">1dp</item>
+        <item name="itemPaddingTop">1dp</item> <!-- Mueve el icono hacia arriba -->
+        <item name="itemPaddingBottom">0.5dp</item>
+
+    </style>
+    <style name="BottomNavigationTextActive" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">10sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:paddingTop">4dp</item>
+        <!-- Especificar tu fuente personalizada -->
+        <item name="android:fontFamily">@font/caviardreams</item>
+        <item name="fontFamily">@font/caviardreams</item>
+    </style>
+
+    <style name="BottomNavigationTextInactive" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">9sp</item>
+        <item name="android:paddingTop">4dp</item>
+        <!-- Especificar tu fuente personalizada -->
+        <item name="android:fontFamily">@font/caviardreams</item>
+        <item name="fontFamily">@font/caviardreams</item>
+    </style>
+    <style name="BottomNavigationItemStyle" parent="Widget.Design.BottomNavigationView">
+
+
+        <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
+    </style>
+</resources>

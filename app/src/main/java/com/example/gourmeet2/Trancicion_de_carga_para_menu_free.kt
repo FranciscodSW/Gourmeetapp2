@@ -44,12 +44,7 @@ class Trancicion_de_carga_para_menu_free : AppCompatActivity() {
         // Configurar botón Continuar
         // Configurar botón Continuar
         binding.btnContinuar.setOnClickListener {
-            Log.e("TEST", "=== CLICK INICIADO ===")
 
-            Toast.makeText(this, "Botón clickeado", Toast.LENGTH_SHORT).show()
-            Log.e("TEST", "Toast mostrado")
-
-            Log.e("TEST", "Contexto: ${this::class.simpleName}")
 
             try {
                 val intent = Intent(this, Menu_principal_free::class.java)

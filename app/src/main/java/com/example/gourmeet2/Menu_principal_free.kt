@@ -6,9 +6,12 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,6 +25,7 @@ import com.example.gourmeet2.databinding.ActivityMenuPrincipalFreeBinding
 import com.example.gourmeet2.databinding.ItemDelCarruselBinding
 import com.example.gourmeet2.databinding.ItemRecetaBinding
 import com.example.gourmeet2.DetalleRecetaBottomSheet
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -30,7 +34,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class Menu_principal_free : AppCompatActivity() {
-
     private lateinit var binding: ActivityMenuPrincipalFreeBinding
     private lateinit var recetaAdapter: RecetaAdapter
     private val recetasList = mutableListOf<RecetaRecrcid>()
@@ -41,25 +44,230 @@ class Menu_principal_free : AppCompatActivity() {
     private var isSearching: Boolean = false
     private var lastQuery: String = ""
 
+
+    private lateinit var bottomNavigationView: BottomNavigationView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMenuPrincipalFreeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupRecyclerView()
-        setupSearch()
-        cargarCategorias()
+        bottomNavigationView = binding.bottomNavigation
+
+        // Configurar el listener para el BottomNavigationView
+        setupBottomNavigation()
+
+        // Mostrar la pantalla de Recetas por defecto (que es tu diseño actual)
+        mostrarPantallaRecetas()
     }
 
+    private fun setupBottomNavigation() {
+        bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_search_ingredients -> {
+                    // Cambiar a pantalla de buscar por ingredientes
+                    mostrarPantallaIngredientes()
+                    true
+                }
+                R.id.nav_shopping_planner -> {
+                    // Cambiar a pantalla del planeador de compras
+                    mostrarPantallaPlaneador()
+                    true
+                }
+                R.id.nav_search_recipes -> {
+                    // Cambiar a pantalla de buscar recetas (tu diseño actual)
+                    mostrarPantallaRecetas()
+                    true
+                }
+                else -> false
+            }
+        }
+
+        // Seleccionar "Recetas" por defecto
+        bottomNavigationView.selectedItemId = R.id.nav_search_recipes
+    }
+
+    private fun mostrarPantallaRecetas() {
+        // Mostrar el contenedor de recetas
+        binding.contentContainer.visibility = View.VISIBLE
+
+        // Inicializar componentes solo si no están inicializados
+        if (!::recetaAdapter.isInitialized) {
+            setupRecyclerView()
+        }
+
+        // Configurar búsqueda (esto se puede llamar múltiples veces)
+        setupSearch()
+
+        // Cargar categorías si no están cargadas
+        if (categoriasList.isEmpty()) {
+            cargarCategorias()
+        } else {
+            // Si ya tenemos categorías, solo actualizar la UI
+            setupCarrusel()
+            if (categoriaActualId > 0) {
+                cargarRecetasPorCategoria(categoriaActualId)
+            }
+        }
+
+        // Si hay un query activo, restaurarlo
+        val currentQuery = binding.editTextSearch.text.toString().trim()
+        if (currentQuery.isNotEmpty() && categoriaActualId > 0) {
+            buscarRecetasPorNombre(currentQuery, categoriaActualId)
+        }
+    }
+
+
+
+    private fun mostrarPantallaIngredientes() {
+        binding.contentContainer.visibility = View.GONE
+        mostrarLayoutIngredientes()
+
+    }
+
+    private fun mostrarPantallaPlaneador() {
+        // Ocultar el contenido actual de recetas
+        binding.contentContainer.visibility = View.GONE
+
+        // Aquí debes crear e inflar el layout para el planeador de compras
+        mostrarLayoutPlaneador()
+    }
+
+    private fun mostrarLayoutIngredientes() {
+        val mainLayout = binding.main as ConstraintLayout
+       // mainLayout.removeView(mainLayout.findViewById(R.id.ingredientes_container))
+
+        // 2. Inflar el layout de ingredientes
+        /*val ingredientesLayout = layoutInflater.inflate(
+            R.layout.layout_buscar_ingredientes,
+            mainLayout,
+            false
+        )
+
+        // 3. Configurar constraints para que esté sobre el BottomNavigationView
+        val params = ingredientesLayout.layoutParams as ConstraintLayout.LayoutParams
+        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+        params.bottomToTop = R.id.bottom_navigation
+        params.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+        params.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+
+        ingredientesLayout.id = R.id.ingredientes_container
+        mainLayout.addView(ingredientesLayout)
+
+        // 4. Configurar la lógica de búsqueda por ingredientes
+        setupBusquedaIngredientes(ingredientesLayout)
+
+         */
+    }
+
+    private fun mostrarLayoutPlaneador() {
+        /*
+        // Similar a mostrarLayoutIngredientes pero con el layout del planeador
+        val mainLayout = binding.main as ConstraintLayout
+        mainLayout.removeView(mainLayout.findViewById(R.id.planeador_container))
+
+        val planeadorLayout = layoutInflater.inflate(
+            R.layout.layout_planeador_compras,
+            mainLayout,
+            false
+        )
+
+        val params = planeadorLayout.layoutParams as ConstraintLayout.LayoutParams
+        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+        params.bottomToTop = R.id.bottom_navigation
+        params.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+        params.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+
+        planeadorLayout.id = R.id.planeador_container
+        mainLayout.addView(planeadorLayout)
+
+        setupPlaneadorCompras(planeadorLayout)
+
+         */
+    }
+
+    private fun setupBusquedaIngredientes(view: View) {
+        /*
+        // Aquí implementas la lógica para buscar por ingredientes
+        // Ejemplo básico:
+        val editTextIngredientes = view.findViewById<EditText>(R.id.editTextIngredientes)
+        val btnBuscar = view.findViewById<Button>(R.id.btnBuscarIngredientes)
+        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerIngredientes)
+
+        btnBuscar.setOnClickListener {
+            val ingredientes = editTextIngredientes.text.toString()
+            if (ingredientes.isNotEmpty()) {
+                buscarRecetasPorIngredientes(ingredientes)
+            }
+        }
+
+         */
+    }
+
+    private fun setupPlaneadorCompras(view: View) {
+        /*
+        // Aquí implementas la lógica del planeador de compras
+        // Ejemplo básico:
+        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerPlaneador)
+        val btnAgregar = view.findViewById<Button>(R.id.btnAgregarItem)
+        val editTextItem = view.findViewById<EditText>(R.id.editTextItem)
+
+        btnAgregar.setOnClickListener {
+            val item = editTextItem.text.toString()
+            if (item.isNotEmpty()) {
+                agregarItemPlaneador(item)
+            }
+        }
+
+         */
+    }
+
+    private fun buscarRecetasPorIngredientes(ingredientes: String) {
+        /*
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = ApiClient.apiService.buscarRecetasPorIngredientes(ingredientes)
+
+                withContext(Dispatchers.Main) {
+                    if (response.success) {
+                        // Mostrar resultados en el RecyclerView
+                        mostrarResultadosIngredientes(response.recetas)
+                    } else {
+                        Toast.makeText(
+                            this@Menu_principal_free,
+                            "Error buscando recetas",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        "Error de conexión: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+
+         */
+    }
+
+    private fun agregarItemPlaneador(item: String) {
+        // Lógica para agregar items al planeador
+        // Puedes usar Room, SharedPreferences o una lista en memoria
+    }
     private fun setupRecyclerView() {
         recetaAdapter = RecetaAdapter(recetasList, this)
         binding.recyclerItems.layoutManager = LinearLayoutManager(this)
         binding.recyclerItems.adapter = recetaAdapter
-        binding.recyclerItems.visibility = android.view.View.VISIBLE
+        binding.recyclerItems.visibility = View.VISIBLE
     }
 
     private fun setupSearch() {
+        // Configurar el TextWatcher para búsqueda en tiempo real
         binding.editTextSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -92,8 +300,9 @@ class Menu_principal_free : AppCompatActivity() {
             }
         })
 
+        // Configurar acción de búsqueda al presionar Enter
         binding.editTextSearch.setOnEditorActionListener { v, actionId, event ->
-            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 val query = binding.editTextSearch.text.toString().trim()
                 if (query.isNotEmpty() && categoriaActualId > 0) {
                     buscarRecetasPorNombre(query, categoriaActualId)
@@ -204,7 +413,7 @@ class Menu_principal_free : AppCompatActivity() {
         }
     }
 
-    private fun cargarRecetasPorCategoria(categoriaId: Int) {
+    public fun cargarRecetasPorCategoria(categoriaId: Int) {
         Log.d("API_DEBUG", "=== CARGANDO RECETAS POR CATEGORÍA $categoriaId ===")
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -372,6 +581,7 @@ class Menu_principal_free : AppCompatActivity() {
         private val fragmentActivity: FragmentActivity
     ) : RecyclerView.Adapter<RecetaAdapter.RecetaViewHolder>() {
 
+        // Clase interna RecetaViewHolder debe estar definida DENTRO de RecetaAdapter
         inner class RecetaViewHolder(
             val binding: ItemRecetaBinding
         ) : RecyclerView.ViewHolder(binding.root)

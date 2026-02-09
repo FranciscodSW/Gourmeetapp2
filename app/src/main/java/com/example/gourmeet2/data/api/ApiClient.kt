@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
     // ¡IMPORTANTE! Cambia TU_IP_LOCAL por tu IP real
-    private const val BASE_URL = "http://192.168.1.69/develoandroid/"
+    private const val BASE_URL = "http://192.168.1.81/develoandroid/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

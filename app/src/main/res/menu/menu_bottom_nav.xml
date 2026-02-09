@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_search_ingredients"
+        android:icon="@drawable/ic_icono_buscador"
+        android:title="Ingredientes" />
+
+    <item
+        android:id="@+id/nav_shopping_planner"
+        android:icon="@drawable/ic_icono_planificador"
+        android:title="Planeador" />
+
+    <item
+        android:id="@+id/nav_search_recipes"
+        android:icon="@drawable/ic_icono_recetario"
+        android:title="Recetas" />
+</menu>
