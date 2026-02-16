@@ -1,32 +1,21 @@
 package com.example.gourmeet2
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
-import android.animation.PropertyValuesHolder
+
+
+import android.animation.*
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.Matrix
-import android.graphics.Rect
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.View
-import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnimationUtils
-import android.view.animation.DecelerateInterpolator
 import android.widget.Button
 import android.widget.CheckBox
-import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -39,27 +28,13 @@ class Login : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
     private lateinit var behavior: BottomSheetBehavior<LinearLayout>
-    private lateinit var transicionContainer: FrameLayout
-    private lateinit var spriteSheet: ImageView
-    private lateinit var rectanguloBlanco: View
-    private lateinit var nuevaInterfaz: LinearLayout
-
-    private var currentFrame = 0
-    private val totalFrames = 100 // Ajusta según tu sprite sheet
-    private val handler = Handler(Looper.getMainLooper())
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ ViewBinding (SOLO UNA VEZ)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // ===============================
-        // 🔵 Animaciones XML
-        // ===============================
         val anim = AnimationUtils.loadAnimation(this, R.anim.mover)
         val animSubir = AnimationUtils.loadAnimation(this, R.anim.subir)
 
@@ -67,25 +42,16 @@ class Login : AppCompatActivity() {
         binding.imgTopRight.startAnimation(anim)
         binding.imgFondo.startAnimation(animSubir)
 
+        behavior = BottomSheetBehavior.from(binding.bottomSheet)
+
         // ===============================
-        // 🟢 BottomSheet
+        // 🔴 Animaciones dinámicas
         // ===============================
-        behavior = BottomSheetBehavior.from(binding.bottomSheet).apply {
-            peekHeight = 80
-            isHideable = false
-            state = BottomSheetBehavior.STATE_COLLAPSED
-        }
-
-
-// 🔴 Brinco MENÚ e IMAGEN JUNTOS
-// ===============================
-        val bounceDistance = 60 * resources.displayMetrics.density
-
-        val idleAnimator = ObjectAnimator.ofFloat(
+        val containerAnimator = ObjectAnimator.ofFloat(
             binding.bottomSheet,
             View.TRANSLATION_Y,
             0f,
-            -bounceDistance
+            -150f   // Ajusta la altura del brinco aquí
         ).apply {
             duration = 900
             repeatMode = ObjectAnimator.REVERSE
@@ -93,99 +59,72 @@ class Login : AppCompatActivity() {
             interpolator = AccelerateDecelerateInterpolator()
         }
 
+        containerAnimator.start()
 
 
 
-        idleAnimator.start()
 
-        // ===============================
-        // 🟡 Tamaños de texto
-        // ===============================
         val titleNormal = 30f
         val subtitleNormal = 30f
         val titleMin = 20f
         val subtitleMin = 22f
+        behavior.peekHeight = 100
 
-        // ===============================
-        // 🟠 Esperar layout para imagen
-        // ===============================
-        binding.bottomSheet.post {
-
-            val fixedOffset =
-                binding.imgTopSheet.y - binding.bottomSheet.y
-
-            behavior.addBottomSheetCallback(object :
-                BottomSheetBehavior.BottomSheetCallback() {
-
-                override fun onSlide(bottomSheet: View, slideOffset: Float) {
+        behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+              // altura visible cuando está cerrado
 
 
-                    // 🔹 Texto se reduce
-                    binding.txtBienvenido.textSize =
-                        titleNormal - (titleNormal - titleMin) * slideOffset
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
 
-                    binding.txtSubtitulo.textSize =
-                        subtitleNormal - (subtitleNormal - subtitleMin) * slideOffset
-                    val alpha = 1f - slideOffset // slideOffset va de 0 (cerrado) a 1 (abierto)
-                    binding.imgTopSheet.alpha = alpha
-                    // 🔹 Nuevo: Texto sube al desplegar
-                    val textTranslation = -50f * slideOffset // -15px cuando está completamente desplegado
-                    binding.txtBienvenido.translationY = textTranslation
-                    binding.txtSubtitulo.translationY = textTranslation
-                    // 🔹 Usuario tocando → detener brinco
-                    if (idleAnimator.isRunning) {
+                binding.txtBienvenido.textSize =
+                    titleNormal - (titleNormal - titleMin) * slideOffset
 
-                        idleAnimator.cancel()
-                        binding.bottomSheet.translationY = 0f
-                        binding.imgTopSheet.translationY = 0f
+                binding.txtSubtitulo.textSize =
+                    subtitleNormal - (subtitleNormal - subtitleMin) * slideOffset
+
+                binding.imgTopSheet.alpha = 1f - slideOffset
+
+                val textTranslation = -50f * slideOffset
+                binding.txtBienvenido.translationY = textTranslation
+                binding.txtSubtitulo.translationY = textTranslation
+
+                if (containerAnimator.isRunning) containerAnimator.cancel()
+
+
+                binding.sheetContent.translationY = 0f
+                binding.bottomSheet.scaleX = 1f
+                binding.bottomSheet.scaleY = 1f
+            }
+
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+
+                when (newState) {
+
+                    BottomSheetBehavior.STATE_COLLAPSED -> {
+
+                        binding.txtTituloSheet.text = "Bienvenido"
+
+                        if (!containerAnimator.isRunning) containerAnimator.start()
+
+                    }
+
+                    BottomSheetBehavior.STATE_EXPANDED -> {
+
+                        binding.txtTituloSheet.text = "Iniciar sesión"
+
+                        containerAnimator.cancel()
+
                     }
                 }
-
-                override fun onStateChanged(bottomSheet: View, newState: Int) {
-
-                    when (newState) {
-
-                        BottomSheetBehavior.STATE_COLLAPSED -> {
-                            binding.txtTituloSheet.text = "Bienvenido"
-                            if (!idleAnimator.isRunning){
-                                idleAnimator.start()
-
-                            }
-
-
-                        }
-
-                        BottomSheetBehavior.STATE_EXPANDED -> {
-                            binding.txtTituloSheet.text = "Iniciar sesión"
-                            if (idleAnimator.isRunning) {
-                                idleAnimator.cancel()
-
-                                binding.bottomSheet.translationY = 0f
-                            }
-                        }
-
-                        BottomSheetBehavior.STATE_DRAGGING,
-                        BottomSheetBehavior.STATE_SETTLING -> {
-                            if (idleAnimator.isRunning) {
-                                idleAnimator.cancel()
-                                binding.bottomSheet.translationY = 0f
-                            }
-                        }
-                    }
-                }
-            })
-        }
-        behavior = BottomSheetBehavior.from(binding.bottomSheet).apply {
-            peekHeight = 80
-            isHideable = false
-            state = BottomSheetBehavior.STATE_COLLAPSED
-        }
+            }
+        })
 
         binding.btnsinCuenta.setOnClickListener {
             mostrarDialogoPrivacidad()
         }
-
     }
+
+
     private fun mostrarDialogoPrivacidad() {
         val dialogView = layoutInflater.inflate(R.layout.aceptar_terminos, null)
 
@@ -286,8 +225,8 @@ class Login : AppCompatActivity() {
         ).apply {
             duration =400
         }
-       //animaciones.add(subtituloAnim)
-      // animaciones.add(tituloAnim)
+        //animaciones.add(subtituloAnim)
+        // animaciones.add(tituloAnim)
         animaciones.add(imgFondoAnim)
         // Ejecutar todas las animaciones juntas
         animatorSet.playTogether(animaciones)
@@ -301,13 +240,13 @@ class Login : AppCompatActivity() {
                 binding.imgTopLeft.visibility = View.GONE
                 binding.imgTopRight.visibility = View.GONE
                 binding.imgFondo.visibility = View.GONE
-              //binding.txtTituloSheet.visibility= View.GONE
-              //binding.txtSubtitulo.visibility= View.GONE
+                //binding.txtTituloSheet.visibility= View.GONE
+                //binding.txtSubtitulo.visibility= View.GONE
                 iniciarTransicionDeCarga()
 
 
             }
-     })
+        })
 
         animatorSet.start()
     }
@@ -362,9 +301,6 @@ class Login : AppCompatActivity() {
         // Opcional: Cerrar esta actividad si ya no es necesaria
         // finish()
     }
-
-
-
 
     private fun mostrarTerminosCompletos() {
         val dialogView = layoutInflater.inflate(R.layout.terminos_completos, null)

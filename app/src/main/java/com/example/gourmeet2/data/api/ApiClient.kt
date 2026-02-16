@@ -7,8 +7,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
-    // ¡IMPORTANTE! Cambia TU_IP_LOCAL por tu IP real
-    private const val BASE_URL = "http://192.168.1.81/develoandroid/"
+
+    private const val BASE_URL = "http://192.168.1.102/develoandroid/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

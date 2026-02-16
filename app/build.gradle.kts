@@ -47,6 +47,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
+    implementation(libs.common)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -65,5 +66,9 @@ dependencies {
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.google.android.material:material:1.9.0")
+
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+
+
 
 }

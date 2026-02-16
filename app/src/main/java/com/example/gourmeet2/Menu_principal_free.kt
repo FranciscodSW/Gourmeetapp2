@@ -1,67 +1,69 @@
 package com.example.gourmeet2
-
 import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.ArrayAdapter
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
 import com.example.gourmeet2.data.api.ApiClient
-import com.example.gourmeet2.data.models.Categoria
-import com.example.gourmeet2.data.models.IngredienteRecetaResponse
-import com.example.gourmeet2.data.models.RecetaBuscar
-import com.example.gourmeet2.data.models.RecetaRecrcid
+import com.example.gourmeet2.data.models.*
 import com.example.gourmeet2.databinding.ActivityMenuPrincipalFreeBinding
 import com.example.gourmeet2.databinding.ItemDelCarruselBinding
 import com.example.gourmeet2.databinding.ItemRecetaBinding
-import com.example.gourmeet2.DetalleRecetaBottomSheet
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.chip.ChipGroup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.collections.sorted
+
 
 class Menu_principal_free : AppCompatActivity() {
+
     private lateinit var binding: ActivityMenuPrincipalFreeBinding
     private lateinit var recetaAdapter: RecetaAdapter
     private val recetasList = mutableListOf<RecetaRecrcid>()
+
     private val recetasBusquedaList = mutableListOf<RecetaBuscar>()
     private val categoriasList = mutableListOf<Categoria>()
     private var categoriaActualId: Int = -1
     private var searchJob: Job? = null
     private var isSearching: Boolean = false
     private var lastQuery: String = ""
-
-
+    private var ingredientesSeleccionados = mutableListOf<BuscarIngredientes>()
+    private var autoCompleteAdapter: ArrayAdapter<BuscarIngredientes>? = null
     private lateinit var bottomNavigationView: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMenuPrincipalFreeBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         bottomNavigationView = binding.bottomNavigation
-
         // Configurar el listener para el BottomNavigationView
         setupBottomNavigation()
-
+        setupDraggableIngredientes()
+        setupBusquedaIngredientes()
         // Mostrar la pantalla de Recetas por defecto (que es tu diseño actual)
         mostrarPantallaRecetas()
     }
-
     private fun setupBottomNavigation() {
         bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
@@ -87,178 +89,499 @@ class Menu_principal_free : AppCompatActivity() {
         // Seleccionar "Recetas" por defecto
         bottomNavigationView.selectedItemId = R.id.nav_search_recipes
     }
+    enum class PantallaActual {
+        RECETAS,
+        INGREDIENTES,
+        PLANEADOR
+    }
+    private fun mostrarPantallaPlaneador() {
+        // Ocultar el contenido actual de recetas
+        binding.contentContainer.visibility = View.GONE
+        // ❌ Ingredientes fuera
+        binding.chipGroupIngredientes.visibility = View.GONE
+        binding.containerIngredientes.visibility = View.GONE
 
+    }
     private fun mostrarPantallaRecetas() {
-        // Mostrar el contenedor de recetas
+        pantallaActual = PantallaActual.RECETAS
         binding.contentContainer.visibility = View.VISIBLE
+        // ✅ MOSTRAR CONTENEDOR COMPLETO
+        binding.cardSearch.visibility = View.VISIBLE
+        binding.editTextSearch.visibility = View.VISIBLE
+        binding.editTextSearch.hint = "Ingresar receta"
+        binding.txtDescripcion.text = "Explora recetas"
+        // ❌ Ingredientes fuera
+        binding.chipGroupIngredientes.visibility = View.GONE
+        binding.containerIngredientes.visibility = View.GONE
 
-        // Inicializar componentes solo si no están inicializados
         if (!::recetaAdapter.isInitialized) {
             setupRecyclerView()
         }
-
-        // Configurar búsqueda (esto se puede llamar múltiples veces)
         setupSearch()
-
-        // Cargar categorías si no están cargadas
         if (categoriasList.isEmpty()) {
             cargarCategorias()
         } else {
-            // Si ya tenemos categorías, solo actualizar la UI
             setupCarrusel()
             if (categoriaActualId > 0) {
                 cargarRecetasPorCategoria(categoriaActualId)
             }
         }
-
-        // Si hay un query activo, restaurarlo
         val currentQuery = binding.editTextSearch.text.toString().trim()
         if (currentQuery.isNotEmpty() && categoriaActualId > 0) {
             buscarRecetasPorNombre(currentQuery, categoriaActualId)
         }
     }
+    // ============================================================
+// VARIABLES DE CLASE (agrega estas al inicio de tu activity)
+// ============================================================
+
+    private var carruselCallback: ViewPager2.OnPageChangeCallback? = null
+    private var ultimaCategoriaCargada = -1
+    private var ultimaCategoriaIngredientes = -1
+    private var cargandoEnProgreso = false
+    private var lastIngredientesQuery = ""
+    private var lastCategoriaBusqueda = -1
+    private var modoActual = ModoBusqueda.CATEGORIA
+    private var pantallaActual = PantallaActual.RECETAS
+    private var carruselInicializado = false
+    private var primeraSeleccionCarrusel = true
+    private var categoriaPendiente = -1
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+    enum class ModoBusqueda {
+        CATEGORIA,
+        INGREDIENTES
+    }
 
 
+
+// ============================================================
+// MOSTRAR PANTALLA DE INGREDIENTES
+// ============================================================
 
     private fun mostrarPantallaIngredientes() {
-        binding.contentContainer.visibility = View.GONE
-        mostrarLayoutIngredientes()
+        pantallaActual = PantallaActual.INGREDIENTES
 
-    }
+        // Mostrar vistas necesarias
+        binding.contentContainer.visibility = View.VISIBLE
+        binding.containerIngredientes.visibility = View.VISIBLE
+        binding.chipGroupIngredientes.visibility = View.VISIBLE
+        binding.viewPagerCarrusel.visibility = View.VISIBLE
 
-    private fun mostrarPantallaPlaneador() {
-        // Ocultar el contenido actual de recetas
-        binding.contentContainer.visibility = View.GONE
-
-        // Aquí debes crear e inflar el layout para el planeador de compras
-        mostrarLayoutPlaneador()
-    }
-
-    private fun mostrarLayoutIngredientes() {
-        val mainLayout = binding.main as ConstraintLayout
-       // mainLayout.removeView(mainLayout.findViewById(R.id.ingredientes_container))
-
-        // 2. Inflar el layout de ingredientes
-        /*val ingredientesLayout = layoutInflater.inflate(
-            R.layout.layout_buscar_ingredientes,
-            mainLayout,
-            false
+        // Ajustar posición del panel
+        binding.containerIngredientes.post {
+            val panel = binding.containerIngredientes
+            val rawMaxUp = -panel.height.toFloat() + 120.dpToPx()
+            val maxUp = minOf(rawMaxUp, 0f)
+            panel.translationY = maxUp
+        }
+        Log.d("FLOW_TRACE",
+            "mostrarModoIngredientes() ← llamada desde mostrarPantallaIngredientes()"
         )
+        mostrarModoIngredientes()
 
-        // 3. Configurar constraints para que esté sobre el BottomNavigationView
-        val params = ingredientesLayout.layoutParams as ConstraintLayout.LayoutParams
-        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-        params.bottomToTop = R.id.bottom_navigation
-        params.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-        params.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+        // Ocultar búsqueda principal
+        binding.editTextSearch.visibility = View.GONE
+        binding.cardSearch.visibility = View.GONE
+        binding.editTextSearch.text.clear()
 
-        ingredientesLayout.id = R.id.ingredientes_container
-        mainLayout.addView(ingredientesLayout)
-
-        // 4. Configurar la lógica de búsqueda por ingredientes
-        setupBusquedaIngredientes(ingredientesLayout)
-
-         */
+        // Limpiar ingredientes
+        binding.chipGroupIngredientes.removeAllViews()
+        ingredientesSeleccionados.clear()
+        // Cargar categorías si es necesario
+        if (categoriasList.isEmpty()) {
+            Log.d("FLOW_TRACE",
+                "cargarCategoriasingredientes() ← llamada desde mostrarPantallaIngredientes()"
+            )
+            cargarCategoriasingredientes()
+        } else {
+            Log.d("FLOW_TRACE",
+                "setupCarruselIngredientes() ← llamada desde mostrarPantallaIngredientes()"
+            )
+            setupCarruselIngredientes()
+            categoriaActualId = categoriasList[0].id
+        }
     }
 
-    private fun mostrarLayoutPlaneador() {
-        /*
-        // Similar a mostrarLayoutIngredientes pero con el layout del planeador
-        val mainLayout = binding.main as ConstraintLayout
-        mainLayout.removeView(mainLayout.findViewById(R.id.planeador_container))
+// ============================================================
+// SETUP CARRUSEL DE INGREDIENTES (CORREGIDO)
+// ============================================================
 
-        val planeadorLayout = layoutInflater.inflate(
-            R.layout.layout_planeador_compras,
-            mainLayout,
-            false
-        )
+    private fun setupCarruselIngredientes() {
 
-        val params = planeadorLayout.layoutParams as ConstraintLayout.LayoutParams
-        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-        params.bottomToTop = R.id.bottom_navigation
-        params.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-        params.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+        if (categoriasList.isEmpty()) return
 
-        planeadorLayout.id = R.id.planeador_container
-        mainLayout.addView(planeadorLayout)
+        val adapter = CarruselAdapter(categoriasList) { position ->
+            binding.viewPagerCarrusel.currentItem = position
+        }
 
-        setupPlaneadorCompras(planeadorLayout)
+        binding.viewPagerCarrusel.adapter = adapter
 
-         */
-    }
+        carruselCallback?.let {
+            binding.viewPagerCarrusel.unregisterOnPageChangeCallback(it)
+        }
 
-    private fun setupBusquedaIngredientes(view: View) {
-        /*
-        // Aquí implementas la lógica para buscar por ingredientes
-        // Ejemplo básico:
-        val editTextIngredientes = view.findViewById<EditText>(R.id.editTextIngredientes)
-        val btnBuscar = view.findViewById<Button>(R.id.btnBuscarIngredientes)
-        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerIngredientes)
+        carruselCallback = object : ViewPager2.OnPageChangeCallback() {
 
-        btnBuscar.setOnClickListener {
-            val ingredientes = editTextIngredientes.text.toString()
-            if (ingredientes.isNotEmpty()) {
-                buscarRecetasPorIngredientes(ingredientes)
+            override fun onPageSelected(position: Int) {
+
+                if (pantallaActual != PantallaActual.INGREDIENTES) return
+
+                val categoria = categoriasList[position]
+
+                categoriaActualId = categoria.id
+
+                Log.d("FLOW_TRACE", "INGREDIENTES → Categoria ${categoria.descripcion}")
+
+                val ingredientes = obtenerIngredientesSeleccionados()
+
+                // ✅ FIX CLAVE
+                if (ingredientes.isEmpty()) {
+
+                    Log.d("FLOW_TRACE", "Sin ingredientes → cargar normal")
+
+                    cargarRecetasPorCategoria(categoria.id)   // 🔥 ESTA ES LA SOLUCIÓN
+                    binding.txtDescripcion.text = "Mostrando ${categoria.descripcion}"
+
+                    return
+                }
+
+                Log.d("FLOW_TRACE", "Con ingredientes → búsqueda")
+
+                buscarRecetasPorIngredientes(ingredientes, categoria.id)
+                binding.txtDescripcion.text = "Filtrando ${categoria.descripcion}"
             }
         }
 
-         */
+        binding.viewPagerCarrusel.registerOnPageChangeCallback(carruselCallback!!)
     }
 
-    private fun setupPlaneadorCompras(view: View) {
-        /*
-        // Aquí implementas la lógica del planeador de compras
-        // Ejemplo básico:
-        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerPlaneador)
-        val btnAgregar = view.findViewById<Button>(R.id.btnAgregarItem)
-        val editTextItem = view.findViewById<EditText>(R.id.editTextItem)
 
-        btnAgregar.setOnClickListener {
-            val item = editTextItem.text.toString()
-            if (item.isNotEmpty()) {
-                agregarItemPlaneador(item)
-            }
+
+
+    private fun obtenerIngredientesSeleccionados(): List<String> {
+        return ingredientesSeleccionados.map { it.descripcion }
+    }
+
+    // ============================================================
+// CARGAR RECETAS POR CATEGORÍA (RENOMBRADO)
+// ============================================================
+private fun ejecutarBusqueda() {
+
+    if (categoriaActualId <= 0) return
+    if (cargandoEnProgreso) return
+
+    cargandoEnProgreso = true
+
+    if (ingredientesSeleccionados.isNotEmpty()) {
+
+        Log.d("FLOW", "→ BUSQUEDA POR INGREDIENTES")
+        Log.d("FLOW_TRACE",
+            "buscarRecetasPorIngredientes() ← ejecutarBusqueda()"
+        )
+        buscarRecetasPorIngredientes(
+            obtenerIngredientesTexto(),
+            categoriaActualId
+        )
+
+    } else {
+
+        Log.d("FLOW", "→ CARGA POR CATEGORIA")
+        Log.d("FLOW_TRACE",
+            "cargarRecetasPorCategoriaIngredientes() ← ejecutarBusqueda()"
+        )
+        cargarRecetasPorCategoriaIngredientes(categoriaActualId)
+    }
+}
+
+    private fun cargarRecetasPorCategoriaIngredientes(categoriaId: Int) {
+        // 🔥 PREVENIR LLAMADAS DUPLICADAS
+        if (categoriaId == ultimaCategoriaCargada && !cargandoEnProgreso) {
+            Log.d("API_DEBUG", "🛑 Categoría $categoriaId ya cargada, ignorando")
+            return
         }
 
-         */
-    }
+        if (cargandoEnProgreso) {
+            Log.d("API_DEBUG", "⏳ Carga en progreso para categoría $categoriaId, ignorando")
+            return
+        }
 
-    private fun buscarRecetasPorIngredientes(ingredientes: String) {
-        /*
+        Log.d("API_DEBUG", "=== CARGANDO RECETAS POR CATEGORÍA $categoriaId (INGREDIENTES) ===")
+        ultimaCategoriaCargada = categoriaId
+        cargandoEnProgreso = true
+        modoActual = ModoBusqueda.CATEGORIA
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.buscarRecetasPorIngredientes(ingredientes)
+                val response = ApiClient.apiService.getRecetasPorCategoria(categoriaId)
 
                 withContext(Dispatchers.Main) {
+                    if (modoActual != ModoBusqueda.CATEGORIA) {
+                        Log.d("API_DEBUG", "Modo cambiado, ignorando respuesta")
+                        cargandoEnProgreso = false
+
+                        // Si hay categoría pendiente, cargarla
+                        if (categoriaPendiente != -1) {
+                            val pendiente = categoriaPendiente
+                            categoriaPendiente = -1
+                            if (ingredientesSeleccionados.isEmpty()) {
+                                Log.d("FLOW_TRACE",
+                                    " cargarRecetasPorCategoriaIngredientes ← cargarRecetasPorCategoriaIngredientes()"
+                                )
+                                cargarRecetasPorCategoriaIngredientes(pendiente)
+                            } else {
+                                Log.d("FLOW_TRACE",
+                                    " buscarRecetasPorIngredientes ← cargarRecetasPorCategoriaIngredientes()"
+                                )
+                                buscarRecetasPorIngredientes(obtenerIngredientesTexto(), pendiente)
+                            }
+                        }
+                        return@withContext
+                    }
+
                     if (response.success) {
-                        // Mostrar resultados en el RecyclerView
-                        mostrarResultadosIngredientes(response.recetas)
-                    } else {
-                        Toast.makeText(
-                            this@Menu_principal_free,
-                            "Error buscando recetas",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        val recetasConvertidas = response.recetas.map { receta ->
+                            RecetaRecrcid(
+                                id = receta.id,
+                                nombre = receta.nombre ?: "Sin nombre",
+                                descripcion = receta.descripcion ?: "Sin descripción",
+                                tiempoPreparacion = receta.tiempoPreparacion ?: "No especificado",
+                                porciones = receta.porciones ?: 0,
+                                fechaCreacion = receta.fechaCreacion ?: "",
+                                dificultad = receta.dificultad,
+                                calorias = receta.calorias,
+                                enlaceYoutube = receta.enlaceYoutube,
+                                recrcid = receta.recrcid
+                            )
+                        }
+
+                        recetasList.clear()
+                        recetasList.addAll(recetasConvertidas)
+                        recetaAdapter.updateList(recetasList)
+
+                        binding.txtDescripcion.text = when {
+                            response.count > 0 -> "${response.count} recetas encontradas"
+                            else -> "No se encontraron recetas"
+                        }
+
+                        Log.d("API_DEBUG", "Mostrando ${response.count} recetas en UI")
+                    }
+                    cargandoEnProgreso = false
+
+                    // Si hay categoría pendiente, cargarla
+                    if (categoriaPendiente != -1) {
+                        val pendiente = categoriaPendiente
+                        categoriaPendiente = -1
+                        if (ingredientesSeleccionados.isEmpty()) {
+                            cargarRecetasPorCategoriaIngredientes(pendiente)
+                        } else {
+                            buscarRecetasPorIngredientes(obtenerIngredientesTexto(), pendiente)
+                        }
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@Menu_principal_free,
-                        "Error de conexión: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Log.e("API_ERROR", "Error cargando categoría: ${e.message}")
+                    binding.txtDescripcion.text = "Error al cargar recetas"
+                    cargandoEnProgreso = false
+
+                    // Si hay categoría pendiente, cargarla
+                    if (categoriaPendiente != -1) {
+                        val pendiente = categoriaPendiente
+                        categoriaPendiente = -1
+                        if (ingredientesSeleccionados.isEmpty()) {
+                            Log.d("FLOW_TRACE",
+                                " cargarRecetasPorCategoriaIngredientes ← cargarRecetasPorCategoriaIngredientes()"
+                            )
+                            cargarRecetasPorCategoriaIngredientes(pendiente)
+                        } else {
+                            Log.d("FLOW_TRACE",
+                                " buscarRecetasPorIngredientes( ← cargarRecetasPorCategoriaIngredientes()"
+                            )
+                            buscarRecetasPorIngredientes(obtenerIngredientesTexto(), pendiente)
+                        }
+                    }
                 }
             }
         }
-
-         */
     }
 
-    private fun agregarItemPlaneador(item: String) {
-        // Lógica para agregar items al planeador
-        // Puedes usar Room, SharedPreferences o una lista en memoria
+// ============================================================
+// BUSCAR RECETAS POR INGREDIENTES (CORREGIDO)
+// ============================================================
+
+    private fun buscarRecetasPorIngredientes(
+        ingredientes: List<String>,
+        categoriaId: Int
+    ) {
+
+        if (ingredientes.isEmpty()) return   // 🔥 Protección extra
+
+        val termino = ingredientes.joinToString(",")
+
+        modoActual = ModoBusqueda.INGREDIENTES
+        cargandoEnProgreso = true
+
+        Log.d("INGREDIENTES", "Buscando → $termino en categoría $categoriaId")
+
+        CoroutineScope(Dispatchers.IO).launch {
+
+            try {
+
+                val response = ApiClient.apiService
+                    .getRecetasPorIngredientes(termino, categoriaId)
+
+                withContext(Dispatchers.Main) {
+
+                    val recetasConvertidas = response.recetas.map { receta ->
+
+                        RecetaRecrcid(
+                            id = receta.id,
+                            nombre = receta.nombre,
+                            descripcion = receta.descripcion,
+                            tiempoPreparacion = receta.tiempoPreparacion,
+                            porciones = receta.porciones.toIntOrNull() ?: 0, // 🔥 FIX CRÍTICO
+                            fechaCreacion = receta.fechaCreacion,
+                            dificultad = receta.dificultad,
+                            calorias = receta.calorias,
+                            enlaceYoutube = receta.youtube,
+                            recrcid = receta.categoriaId
+                        )
+                    }
+
+                    recetasList.clear()
+                    recetasList.addAll(recetasConvertidas)
+
+                    recetaAdapter.updateList(recetasList)
+
+                    binding.txtDescripcion.text = when {
+                        response.count > 0 ->
+                            "${response.count} recetas encontradas"
+                        else ->
+                            "No se encontraron recetas"
+                    }
+
+                    Log.d("INGREDIENTES", "Mostrando ${response.count} recetas")
+                }
+
+            } catch (e: Exception) {
+
+                withContext(Dispatchers.Main) {
+
+                    Log.e("API_ERROR", "Error ingredientes → ${e.message}")
+
+                    binding.txtDescripcion.text = "Error al buscar recetas"
+                }
+
+            } finally {
+
+                withContext(Dispatchers.Main) {
+                    cargandoEnProgreso = false   // 🔥 FIX IMPORTANTE
+                }
+            }
+        }
     }
+
+
+
+    private fun buscarSiHayIngredientes() {
+        if (categoriaActualId <= 0) return
+
+        if (ingredientesSeleccionados.isNotEmpty()) {
+            Log.d("FLOW_TRACE",
+                " buscarRecetasPorIngredientes( ← buscarSiHayIngredientes()"
+            )
+            buscarRecetasPorIngredientes(
+                obtenerIngredientesTexto(),
+                categoriaActualId
+            )
+
+        } else {
+            Log.d("FLOW_TRACE",
+                " cargarRecetasPorCategoriaIngredientes( ← buscarSiHayIngredientes()"
+            )
+            cargarRecetasPorCategoriaIngredientes(categoriaActualId)
+        }
+    }
+
+    private fun cargarCategoriasingredientes() {
+        Log.d("DEBUG_FLOW", "cargarCategoriasingredientes()")
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = ApiClient.apiService.getCategorias()
+
+                withContext(Dispatchers.Main) {
+                    if (response.success) {
+                        categoriasList.clear()
+                        categoriasList.addAll(response.categorias)
+                        Log.d("CATEGORIAS", "Cargadas ${response.categorias.size} categorías")
+                        Log.d("FLOW_TRACE",
+                            " setupCarruselIngredientes() ← cargarCategoriasingredientes()"
+                        )
+                        setupCarruselIngredientes()
+
+                        if (categoriasList.isNotEmpty()) {
+                            categoriaActualId = categoriasList[0].id
+                            binding.txtDescripcion.text = "Ingredientes • ${categoriasList[0].descripcion}"
+                            Log.d("FLOW_TRACE",
+                                " buscarSiHayIngredientes()← cargarCategoriasingredientes()"
+                            )
+                            buscarSiHayIngredientes()
+                        }
+                    } else {
+                        Log.e("CATEGORIAS", "Error en respuesta de API")
+                        usarCategoriasPorDefecto()
+                    }
+
+                }
+            } catch (e: Exception) {
+                Log.e("CATEGORIAS", "Error cargando categorías: ${e.message}")
+                withContext(Dispatchers.Main) {
+                    usarCategoriasPorDefecto()
+                }
+            }
+        }
+    }
+
+
+
+    private fun agregarIngredienteSeleccionado(ingrediente: BuscarIngredientes) {
+
+        if (ingredientesSeleccionados.any { it.id == ingrediente.id }) return
+
+        ingredientesSeleccionados.add(ingrediente)
+
+        val view = crearIngredienteView(ingrediente)
+        binding.chipGroupIngredientesBottom.addView(view)
+        Log.d("FLOW_TRACE",
+            " actualizarUI()← agregarIngredienteSeleccionado()"
+        )
+        actualizarUI()
+        Log.d("FLOW_TRACE",
+            " ejecutarBusqueda()← agregarIngredienteSeleccionado()"
+        )
+        ejecutarBusqueda()
+    }
+
+
+// ============================================================
+// ON DESTROY - LIMPIAR CALLBACKS
+// ============================================================
+
+    override fun onDestroy() {
+        super.onDestroy()
+        carruselCallback?.let {
+            binding.viewPagerCarrusel.unregisterOnPageChangeCallback(it)
+        }
+    }
+
+// ============================================================
+// MÉTODOS EXISTENTES QUE SE MANTIENEN IGUAL
+// ============================================================
+
     private fun setupRecyclerView() {
         recetaAdapter = RecetaAdapter(recetasList, this)
         binding.recyclerItems.layoutManager = LinearLayoutManager(this)
@@ -266,6 +589,194 @@ class Menu_principal_free : AppCompatActivity() {
         binding.recyclerItems.visibility = View.VISIBLE
     }
 
+    private fun setupDraggableIngredientes() {
+
+        binding.containerIngredientes.post {
+
+            val panel = binding.containerIngredientes
+            val handle = binding.cardSearchBottom
+
+            // ✅ POSICIÓN INICIAL (CLAVE)
+            panel.translationY = -200f
+
+            var initialY = 0f
+            var initialTranslation = 0f
+
+            handle.setOnTouchListener { _, event ->
+
+                when (event.action) {
+
+                    MotionEvent.ACTION_DOWN -> {
+                        initialY = event.rawY
+                        initialTranslation = panel.translationY
+                        true
+                    }
+
+                    MotionEvent.ACTION_MOVE -> {
+
+                        val deltaY = event.rawY - initialY
+                        val newTranslation = initialTranslation + deltaY
+
+                        val minY = -panel.height.toFloat() + 100
+                        val maxY = 200f
+
+                        panel.translationY = newTranslation.coerceIn(minY, maxY)
+
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }
+    }
+
+
+    private fun crearIngredienteView(ingrediente: BuscarIngredientes): View {
+        val view = layoutInflater.inflate(
+            R.layout.item_ingrediente_card,
+            binding.chipGroupIngredientesBottom,
+            false
+        )
+        val imgEmoji = view.findViewById<ImageView>(R.id.imgEmoji)
+        val txtNombre = view.findViewById<TextView>(R.id.txtNombre)
+        val btnClose = view.findViewById<ImageView>(R.id.btnEliminar)
+        txtNombre.text = ingrediente.descripcion
+        if (!ingrediente.foto.isNullOrEmpty() && ingrediente.foto != "null") {
+            Glide.with(this)
+                .load(construirUrlCompleta(ingrediente.foto))
+                .override(96, 96)
+                .centerCrop()
+                .into(imgEmoji)
+        }
+        // Cálculo para 4 columnas
+        val screenWidth = resources.displayMetrics.widthPixels
+        val paddingContainer = 48.dpToPx()
+        val paddingChipGroup = 16.dpToPx()
+        val chipSpacing = 12.dpToPx()
+        val availableWidth = screenWidth - paddingContainer - paddingChipGroup
+        val itemWidth = (availableWidth - (2 * chipSpacing)) / 4
+        val params = ChipGroup.LayoutParams(itemWidth, ChipGroup.LayoutParams.WRAP_CONTENT)
+        view.layoutParams = params
+        Log.d("FLOW_TRACE",
+            " actualizarUI() ← crearIngredienteView"
+        )
+        actualizarUI()
+        btnClose.setOnClickListener {
+            Log.d("INGREDIENTE", "Eliminando: ${ingrediente.descripcion}")
+            ingredientesSeleccionados.removeAll { it.id == ingrediente.id }
+            binding.chipGroupIngredientesBottom.removeView(view)
+            Log.d("FLOW_TRACE",
+                " actualizarUI() ← crearIngredienteView"
+            )
+            actualizarUI()
+            Log.d("FLOW_TRACE",
+                " buscarSiHayIngredientes() ← crearIngredienteView"
+            )
+            buscarSiHayIngredientes()
+        }
+        return view
+    }
+
+    private fun actualizarUI() {
+        if (ingredientesSeleccionados.isEmpty()) {
+            binding.chipGroupIngredientesBottom.removeAllViews()
+            val textView = TextView(this).apply {
+                text = ""
+                gravity = Gravity.CENTER
+                setTextColor(Color.GRAY)
+                setPadding(0, 32.dpToPx(), 0, 0)
+            }
+            binding.chipGroupIngredientesBottom.addView(textView)
+        }
+    }
+
+    private fun buscarIngredientes(query: String) {
+        Log.d("DEBUG_FLOW", "buscarIngredientes()")
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = ApiClient.apiService.getBuscarIngredientes(query)
+                withContext(Dispatchers.Main) {
+                    if (response.success) {
+                        autoCompleteAdapter = ArrayAdapter(
+                            this@Menu_principal_free,
+                            android.R.layout.simple_dropdown_item_1line,
+                            response.ingredientes
+                        )
+                        binding.editTextSearchBottom.setAdapter(autoCompleteAdapter)
+                        autoCompleteAdapter?.filter?.filter(query) { count ->
+                            if (count > 0) {
+                                binding.editTextSearchBottom.showDropDown()
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("INGREDIENTES", "Error: ${e.message}")
+            }
+        }
+    }
+
+    fun mostrarModoIngredientes() {
+        binding.containerIngredientes.visibility = View.VISIBLE
+        binding.editTextSearchBottom.requestFocus()
+        Log.d("FLOW_TRACE",
+            " actualizarUI() ← mostrarModoIngredientes()"
+        )
+        actualizarUI()
+    }
+
+    private fun setupBusquedaIngredientes() {
+        Log.d("DEBUG_FLOW", "setupBusquedaIngredientes()")
+        binding.editTextSearchBottom.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val query = s.toString().trim()
+                if (query.length >= 1) {
+                    Log.d("FLOW_TRACE",
+                        " buscarIngredientes(query)← setupBusquedaIngredientes()"
+                    )
+
+                    buscarIngredientes(query)
+                }
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+        binding.editTextSearchBottom.setOnItemClickListener { _, _, position, _ ->
+            val ingrediente = autoCompleteAdapter?.getItem(position) ?: return@setOnItemClickListener
+            Log.d("FLOW_TRACE",
+                " agregarIngredienteSeleccionado(ingrediente)← binding.editTextSearchBottom"
+            )
+            agregarIngredienteSeleccionado(ingrediente)
+            binding.editTextSearchBottom.text.clear()
+        }
+    }
+
+    private fun construirUrlCompleta(rutaRelativa: String): String {
+        val rutaLimpia = rutaRelativa.trim()
+        if (rutaLimpia.startsWith("http://") || rutaLimpia.startsWith("https://")) {
+            return rutaLimpia
+        }
+        val rutaFinal = if (rutaLimpia.startsWith("/")) rutaLimpia.substring(1) else rutaLimpia
+        return "http://192.168.1.102/develoandroid/$rutaFinal"
+    }
+
+    private fun obtenerIngredientesTexto(): List<String> {
+        return ingredientesSeleccionados.map { it.descripcion }
+    }
+
+    private fun Int.dpToPx(): Int {
+        return (this * resources.displayMetrics.density).toInt()
+    }
+
+
+
+
+
+    // ============================================================
+// Para buscar desde la parte de recetasn
+// ============================================================
     private fun setupSearch() {
         // Configurar el TextWatcher para búsqueda en tiempo real
         binding.editTextSearch.addTextChangedListener(object : TextWatcher {
@@ -282,6 +793,9 @@ class Menu_principal_free : AppCompatActivity() {
                     searchJob = CoroutineScope(Dispatchers.Main).launch {
                         delay(500)
                         if (categoriaActualId > 0) {
+                            Log.d("FLOW_TRACE",
+                                " buscarRecetasPorNombre← setupSearch()"
+                            )
                             buscarRecetasPorNombre(query, categoriaActualId)
                         } else {
                             Toast.makeText(
@@ -294,6 +808,9 @@ class Menu_principal_free : AppCompatActivity() {
                 } else {
                     isSearching = false
                     if (categoriaActualId > 0) {
+                        Log.d("FLOW_TRACE",
+                            " para buscar por alimentos  cargarRecetasPorCategoria(← setupSearch()"
+                        )
                         cargarRecetasPorCategoria(categoriaActualId)
                     }
                 }
@@ -305,6 +822,9 @@ class Menu_principal_free : AppCompatActivity() {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 val query = binding.editTextSearch.text.toString().trim()
                 if (query.isNotEmpty() && categoriaActualId > 0) {
+                    Log.d("FLOW_TRACE",
+                        " buscarRecetasPorNombre ← binding.editTextSearch"
+                    )
                     buscarRecetasPorNombre(query, categoriaActualId)
                 }
                 true
@@ -313,7 +833,6 @@ class Menu_principal_free : AppCompatActivity() {
             }
         }
     }
-
     private fun cargarCategorias() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -323,29 +842,39 @@ class Menu_principal_free : AppCompatActivity() {
                     if (response.success) {
                         categoriasList.clear()
                         categoriasList.addAll(response.categorias)
-
+                        Log.d("FLOW_TRACE",
+                            "setupCarrusel() ← cargarCategorias()"
+                        )
                         Log.d("CATEGORIAS", "Cargadas ${response.categorias.size} categorías")
                         setupCarrusel()
 
                         if (categoriasList.isNotEmpty()) {
                             categoriaActualId = categoriasList[0].id
+                            Log.d("FLOW_TRACE",
+                                "cargarRecetasPorCategoria(← cargarCategorias()"
+                            )
                             cargarRecetasPorCategoria(categoriaActualId)
                             binding.txtDescripcion.text = "Categoría: ${categoriasList[0].descripcion}"
                         }
                     } else {
                         Log.e("CATEGORIAS", "Error en respuesta de API")
+                        Log.d("FLOW_TRACE",
+                            "usarCategoriasPorDefecto()(← cargarCategorias()"
+                        )
                         usarCategoriasPorDefecto()
                     }
                 }
             } catch (e: Exception) {
                 Log.e("CATEGORIAS", "Error cargando categorías: ${e.message}")
                 withContext(Dispatchers.Main) {
+                    Log.d("FLOW_TRACE",
+                        "usarCategoriasPorDefecto()(← cargarCategorias()"
+                    )
                     usarCategoriasPorDefecto()
                 }
             }
         }
     }
-
     private fun usarCategoriasPorDefecto() {
         categoriasList.clear()
         categoriasList.addAll(listOf(
@@ -357,71 +886,65 @@ class Menu_principal_free : AppCompatActivity() {
             Categoria(6, "Ensalada", "#4CAF50"),
             Categoria(7, "Especialidad", "#FF9800")
         ))
-
+        Log.d("FLOW_TRACE",
+            "setupCarrusel()← usarCategoriasPorDefecto()"
+        )
         setupCarrusel()
-
         if (categoriasList.isNotEmpty()) {
             categoriaActualId = categoriasList[0].id
+            Log.d("FLOW_TRACE",
+                "cargarRecetasPorCategoria← usarCategoriasPorDefecto()"
+            )
             cargarRecetasPorCategoria(categoriaActualId)
             binding.txtDescripcion.text = "Categorías por defecto"
         }
     }
-
     private fun setupCarrusel() {
-        if (categoriasList.isEmpty()) {
-            Log.e("CARRUSEL", "No hay categorías para mostrar")
-            return
-        }
+
+        if (categoriasList.isEmpty()) return
 
         val adapter = CarruselAdapter(categoriasList) { position ->
             binding.viewPagerCarrusel.currentItem = position
         }
 
-        binding.viewPagerCarrusel.adapter = adapter
+        binding.viewPagerCarrusel.adapter = adapter   // 🔥 SIEMPRE
 
-        binding.viewPagerCarrusel.registerOnPageChangeCallback(
-            object : ViewPager2.OnPageChangeCallback() {
-                override fun onPageSelected(position: Int) {
-                    if (position < categoriasList.size) {
-                        val categoria = categoriasList[position]
-                        binding.fondoDinamico.setBackgroundColor(parseColorSeguro(categoria.color))
-                        categoriaActualId = categoria.id
+        carruselCallback?.let {
+            binding.viewPagerCarrusel.unregisterOnPageChangeCallback(it)
+        }
 
-                        if (isSearching) {
-                            binding.editTextSearch.text.clear()
-                            isSearching = false
-                        }
+        carruselCallback = object : ViewPager2.OnPageChangeCallback() {
 
-                        val query = binding.editTextSearch.text.toString().trim()
-                        if (query.isNotEmpty()) {
-                            buscarRecetasPorNombre(query, categoria.id)
-                            binding.txtDescripcion.text = "Buscando en ${categoria.descripcion}: '$query'"
-                        } else {
-                            cargarRecetasPorCategoria(categoria.id)
-                            binding.txtDescripcion.text = "Categoría: ${categoria.descripcion}"
-                        }
+            override fun onPageSelected(position: Int) {
 
-                        Log.d("CARRUSEL", "Categoría seleccionada: ${categoria.descripcion} (ID: ${categoria.id})")
-                    }
+                if (pantallaActual != PantallaActual.RECETAS) return
+
+                val categoria = categoriasList[position]
+
+                categoriaActualId = categoria.id
+
+                Log.d("FLOW_TRACE", "RECETAS → Categoria ${categoria.descripcion}")
+
+                val query = binding.editTextSearch.text.toString().trim()
+
+                if (query.isNotEmpty()) {
+                    buscarRecetasPorNombre(query, categoria.id)
+                } else {
+                    cargarRecetasPorCategoria(categoria.id)
                 }
             }
-        )
-
-        if (categoriasList.isNotEmpty()) {
-            val primeraCategoria = categoriasList[0]
-            binding.fondoDinamico.setBackgroundColor(parseColorSeguro(primeraCategoria.color))
         }
+
+        binding.viewPagerCarrusel.registerOnPageChangeCallback(carruselCallback!!)
     }
+
 
     public fun cargarRecetasPorCategoria(categoriaId: Int) {
         Log.d("API_DEBUG", "=== CARGANDO RECETAS POR CATEGORÍA $categoriaId ===")
-
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = ApiClient.apiService.getRecetasPorCategoria(categoriaId)
-
                 Log.d("API_DEBUG", "Respuesta recibida - success: ${response.success}, count: ${response.count}")
-
                 withContext(Dispatchers.Main) {
                     if (response.success) {
                         recetasList.clear()
@@ -437,7 +960,6 @@ class Menu_principal_free : AppCompatActivity() {
                         binding.txtDescripcion.text = "❌ Error cargando recetas"
                     }
                 }
-
             } catch (e: Exception) {
                 Log.e("API_ERROR", "Error cargando recetas: ${e.message}", e)
                 withContext(Dispatchers.Main) {
@@ -446,7 +968,6 @@ class Menu_principal_free : AppCompatActivity() {
             }
         }
     }
-
     private fun buscarRecetasPorNombre(query: String, categoriaId: Int) {
         if (lastQuery == query && isSearching) {
             return
@@ -506,13 +1027,15 @@ class Menu_principal_free : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     binding.txtDescripcion.text = "Error en búsqueda: ${e.localizedMessage}"
                     if (!isSearching) {
+                        Log.d("FLOW_TRACE",
+                            "cargarRecetasPorCategoria(categoriaId) ← setupCarrusel()"
+                        )
                         cargarRecetasPorCategoria(categoriaId)
                     }
                 }
             }
         }
     }
-
     private fun parseColorSeguro(colorHex: String): Int {
         return try {
             if (colorHex.startsWith("#")) {
@@ -525,12 +1048,10 @@ class Menu_principal_free : AppCompatActivity() {
             Color.parseColor("#4CAF50")
         }
     }
-
     inner class CarruselAdapter(
         private val categorias: List<Categoria>,
         private val onCategoriaClick: (Int) -> Unit
     ) : RecyclerView.Adapter<CarruselAdapter.CarruselViewHolder>() {
-
         inner class CarruselViewHolder(
             val binding: ItemDelCarruselBinding
         ) : RecyclerView.ViewHolder(binding.root) {
@@ -543,7 +1064,6 @@ class Menu_principal_free : AppCompatActivity() {
                 }
             }
         }
-
         override fun onCreateViewHolder(
             parent: ViewGroup,
             viewType: Int
@@ -555,7 +1075,6 @@ class Menu_principal_free : AppCompatActivity() {
             )
             return CarruselViewHolder(binding)
         }
-
         override fun onBindViewHolder(holder: CarruselViewHolder, position: Int) {
             val categoria = categorias[position]
 
@@ -572,16 +1091,12 @@ class Menu_principal_free : AppCompatActivity() {
                 holder.binding.cardCategoria.alpha = 0.8f
             }
         }
-
         override fun getItemCount(): Int = categorias.size
     }
-
     inner class RecetaAdapter(
         private var recetas: List<RecetaRecrcid>,
         private val fragmentActivity: FragmentActivity
     ) : RecyclerView.Adapter<RecetaAdapter.RecetaViewHolder>() {
-
-        // Clase interna RecetaViewHolder debe estar definida DENTRO de RecetaAdapter
         inner class RecetaViewHolder(
             val binding: ItemRecetaBinding
         ) : RecyclerView.ViewHolder(binding.root)

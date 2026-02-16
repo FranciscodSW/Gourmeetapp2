@@ -1,11 +1,6 @@
 package com.example.gourmeet2.data.api
 
-import com.example.gourmeet2.data.models.CategoriaResponse
-import com.example.gourmeet2.data.models.IngredienteRecetaResponse
-import com.example.gourmeet2.data.models.RecetaBuscarResponse
-import com.example.gourmeet2.data.models.RecetaResponse
-import com.example.gourmeet2.data.models.RecetaRecrcidResponse
-import com.example.gourmeet2.data.models.PasosResponse
+import  com.example.gourmeet2.data.models.*
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -38,5 +33,18 @@ interface ApiService {
     suspend fun getPasosPreparacion(
         @Query("REC_ID") recetaId: Int
     ): PasosResponse
+    @GET("buscar_ingredientes.php")
+    suspend fun getBuscarIngredientes(
+        @Query("q") termino: String
+    ): BuscarIngredientesResponse
+
+    @GET("buscar_recetas_ingrediente.php")
+    suspend fun getRecetasPorIngredientes(
+        @Query("ingredientes") termino: String,
+        @Query("categoria") categoria: Int
+    ): RecetasPorIngredientesResponse
+
+
+
 
 }

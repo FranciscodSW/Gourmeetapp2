@@ -21,5 +21,7 @@
     <color name="divider_color">#BDBDBD</color>
 
     <color name="ripple_blue">#402196F3</color> <!-- Azul con 25% de opacidad -->
+    <color name="chip_color">#03A9F4</color>
+    <color name="chip_stroke">#03A9F4</color>
 
 </resources>

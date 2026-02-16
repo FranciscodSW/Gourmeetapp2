@@ -85,6 +85,16 @@
             android:textSize="12sp"
             android:textColor="#F44336"
             android:gravity="end"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerImagenes"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:overScrollMode="never"
+            android:clipToPadding="false"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"/>
+
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>
