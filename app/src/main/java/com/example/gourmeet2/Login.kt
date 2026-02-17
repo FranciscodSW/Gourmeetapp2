@@ -69,6 +69,17 @@ class Login : AppCompatActivity() {
         val titleMin = 20f
         val subtitleMin = 22f
         behavior.peekHeight = 100
+        binding.btnRegistrar.setOnClickListener {
+
+            val intent = Intent(this, Registro::class.java)
+            startActivity(intent)
+
+            overridePendingTransition(
+                android.R.anim.fade_in,
+                android.R.anim.fade_out
+            )
+        }
+
 
         behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
               // altura visible cuando está cerrado

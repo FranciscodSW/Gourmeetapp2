@@ -1,7 +1,9 @@
 package com.example.gourmeet2.data.api
 
 import  com.example.gourmeet2.data.models.*
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface ApiService {
@@ -43,6 +45,17 @@ interface ApiService {
         @Query("ingredientes") termino: String,
         @Query("categoria") categoria: Int
     ): RecetasPorIngredientesResponse
+
+    @GET("buscar_imagenes_recetas.php")
+    suspend fun getImagenesIngredientes(
+        @Query("RI_REC_ID") recetaId: Int
+    ): ImagenesIngredientesResponse
+
+    @POST("RegistroUsuario.php")
+    suspend fun registrarUsuario(
+        @Body usuario: UsuarioRegistro
+    ): UsuarioRegistroResponse
+
 
 
 

@@ -3,4 +3,4 @@
     android:layout_height="44dp"
     android:layout_marginEnd="8dp"
     android:scaleType="centerCrop"
-    android:background="@drawable/ic_logo_circular"/>
+    android:background="@drawable/ic_circular"/>

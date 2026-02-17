@@ -1111,44 +1111,40 @@ private fun ejecutarBusqueda() {
         }
 
         override fun onBindViewHolder(holder: RecetaViewHolder, position: Int) {
-            try {
-                val receta = recetas[position]
 
-                with(holder.binding) {
-                    tvRecetaNombre.text = receta.nombre ?: "Sin nombre"
-                    tvRecetaDescripcion.text = receta.descripcion ?: "Sin descripción"
-                    tvTiempo.text = receta.tiempoPreparacion ?: "Tiempo no especificado"
+            val receta = recetas[position]
 
-                    val porcionesTexto = try {
-                        receta.porciones?.toString() ?: "0"
-                    } catch (e: Exception) {
-                        "0"
-                    }
-                    tvPorciones.text = "$porcionesTexto porciones"
+            with(holder.binding) {
 
-                    tvDificultad.text = "Nivel: ${receta.dificultad ?: "No especificado"}"
+                tvRecetaNombre.text = receta.nombre ?: "Sin nombre"
+                tvRecetaDescripcion.text = receta.descripcion ?: "Sin descripción"
+                tvTiempo.text = receta.tiempoPreparacion ?: "Tiempo no especificado"
 
-                    tvCalorias.text = if (!receta.calorias.isNullOrEmpty() && receta.calorias != "") {
-                        "${receta.calorias} cal"
-                    } else {
-                        "Calorías: N/A"
-                    }
+                tvPorciones.text = "${receta.porciones ?: 0} porciones"
+                tvDificultad.text = "Nivel: ${receta.dificultad ?: "No especificado"}"
+
+                tvCalorias.text = if (!receta.calorias.isNullOrEmpty()) {
+                    "${receta.calorias} cal"
+                } else {
+                    "Calorías: N/A"
                 }
 
-                holder.itemView.setOnClickListener {
-                    Log.d("RECETA_CLICK", "Receta: ${receta.nombre} (ID: ${receta.id})")
+                // 🔥 Cargar imágenes
+                cargarImagenesReceta(receta.id, recyclerImagenes)
+            }
 
-                    // Abrir BottomSheet con el ID de la receta
-                    val bottomSheet = DetalleRecetaBottomSheet.newInstance(receta.id)
-                    bottomSheet.show(fragmentActivity.supportFragmentManager, "DetalleRecetaBottomSheet")
+            // 🔥 CLICK DEL ITEM COMPLETO
+            holder.itemView.setOnClickListener {
 
-                    // Opcional: Cargar datos de la receta antes de mostrar
-                    cargarDetallesReceta(receta.id, bottomSheet)
-                }
-            } catch (e: Exception) {
-                Log.e("BIND_ERROR", "Error en posición $position: ${e.message}")
+                Log.d("RECETA_CLICK", "Receta: ${receta.nombre} (ID: ${receta.id})")
+
+                val bottomSheet = DetalleRecetaBottomSheet.newInstance(receta.id)
+                bottomSheet.show(fragmentActivity.supportFragmentManager, "DetalleRecetaBottomSheet")
+
+                cargarDetallesReceta(receta.id, bottomSheet)
             }
         }
+
 
         private fun cargarDetallesReceta(recetaId: Int, bottomSheet: DetalleRecetaBottomSheet) {
             CoroutineScope(Dispatchers.IO).launch {
@@ -1186,4 +1182,63 @@ private fun ejecutarBusqueda() {
             notifyDataSetChanged()
         }
     }
+// ============================================================
+// Para poner las imagenes
+// ============================================================
+private fun cargarImagenesReceta(recetaId: Int, recyclerView: RecyclerView) {
+
+    recyclerView.layoutManager =
+        LinearLayoutManager(recyclerView.context, LinearLayoutManager.HORIZONTAL, false)
+
+    CoroutineScope(Dispatchers.IO).launch {
+
+        try {
+
+            val response = ApiClient.apiService.getImagenesIngredientes(recetaId)
+
+            withContext(Dispatchers.Main) {
+
+                if (response.success) {
+
+                    val imagenesValidas = response.imagenes.filterNotNull()
+
+                    recyclerView.adapter = ImagenAdapter(imagenesValidas)
+                }
+            }
+
+        } catch (e: Exception) {
+
+            Log.e("IMG_API", "Error → ${e.message}")
+        }
+    }
+}
+    class ImagenAdapter(
+        private val imagenes: List<String>
+    ) : RecyclerView.Adapter<ImagenAdapter.ImagenViewHolder>() {
+
+        inner class ImagenViewHolder(val imageView: ImageView)
+            : RecyclerView.ViewHolder(imageView)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImagenViewHolder {
+
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_imagen_receta, parent, false) as ImageView
+
+            return ImagenViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ImagenViewHolder, position: Int) {
+
+            val ruta = imagenes[position]
+
+            Glide.with(holder.itemView.context)
+                .load("http://192.168.1.102/develoandroid/${ruta.trimStart('/')}")
+                .centerCrop()
+                .into(holder.imageView)
+        }
+
+        override fun getItemCount() = imagenes.size
+    }
+
+
 }
