@@ -1129,36 +1129,6 @@ class Menu_principal_free : AppCompatActivity() {
                     "No especificado"
                 }
                 // 🔹 Gorritos según dificultad
-                llGorritos.removeAllViews() // Limpiar gorritos anteriores
-                val context = holder.itemView.context
-                with(holder.binding) {
-                    llGorritos.removeAllViews()
-
-                    val numGorritos = when (receta.dificultad) {
-                        "Baja" -> 1
-                        "Media" -> 2
-                        "Alto" -> 3
-                        else -> 0
-                    }
-                    val context = holder.itemView.context
-
-                    for (i in 1..numGorritos) {
-                        val iv = ImageView(context)
-                        iv.setImageResource(R.drawable.ic_gorrito)
-
-                        val params = LinearLayout.LayoutParams(
-                            40.dpToPx(context),
-                            40.dpToPx(context)
-                        )
-
-                        params.setMargins(2, 0, 2, 0)
-                        iv.layoutParams = params
-                        iv.scaleType = ImageView.ScaleType.FIT_CENTER
-
-                        llGorritos.addView(iv)
-                    }
-
-                }
                 // ✅ FOTO DESDE API
                 cargarImagenFondo(receta, holder)
                 // ✅ ESTRELLAS DESDE API

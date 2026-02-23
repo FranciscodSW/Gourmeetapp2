@@ -52,11 +52,11 @@
                     <ImageView
                         android:layout_width="30dp"
                         android:layout_height="30dp"
-
+                        android:src="@drawable/ic_star"
                         android:alpha="0.9"
                         android:scaleType="centerInside"/>
 
-                    <!-- 🔥 Número encima android:src="@drawable/ic_star" -->
+                    <!-- 🔥 Número encima  -->
                     <TextView
                         android:id="@+id/tvRating"
                         android:layout_width="wrap_content"
@@ -83,12 +83,11 @@
                 <ImageView
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-
-
+                    android:src="@drawable/ic_clock_bg"
                     android:alpha="1"
                     android:scaleType="centerInside"/>
 
-                <!-- 🔥 Tiempo android:src="@drawable/ic_clock_bg" -->
+                <!-- 🔥 Tiempo  -->
                 <TextView
                     android:id="@+id/tvTiempo"
                     android:layout_width="wrap_content"
@@ -96,7 +95,7 @@
                     android:text="30min"
                     android:textSize="12sp"
                     android:fontFamily="@font/caviardreams"
-                    android:textColor="#4CAF50"
+                    android:textColor="#FFFF"
                     android:padding="6dp"/>
             </FrameLayout>
 
@@ -133,13 +132,7 @@
                         android:textColor="#FF9800"/>
                 </LinearLayout>
 
-                <!-- Fila de gorritos -->
-                <LinearLayout
-                    android:id="@+id/llGorritos"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingTop="2dp"/>
+
 
                 <!-- Aquí se agregan ImageView dinámicamente según dificultad -->
 

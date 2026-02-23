@@ -23,40 +23,97 @@
             app:cardElevation="4dp"
             app:cardUseCompatPadding="true">
 
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">>
+
+            <!-- 🔥 Imagen de fondo -->
+            <ImageView
+                android:id="@+id/imgFondo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+               />
+
+            <!-- 🔥 Contenido -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <TextView
-                    android:id="@+id/tvRecetaNombre"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Nombre de la Receta"
-                    android:fontFamily="@font/caviardreams"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textColor="#333333"
-                    android:layout_marginBottom="12dp"/>
-
-
+                <!-- 🔥 Nombre + Rating -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="8dp">
+                    android:gravity="center_vertical">
 
                     <TextView
-                        android:id="@+id/tvTiempo"
+                        android:id="@+id/tvRecetaNombre"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="⏱ 30 min"
-                        android:textSize="14sp"
+                        android:text="Nombre de la Receta"
                         android:fontFamily="@font/caviardreams"
-                        android:textColor="#4CAF50"
-                        android:drawablePadding="4dp"/>
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:maxLines="1"
+                        android:ellipsize="end"/>
+
+                    <!-- ⭐ Rating -->
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <ImageView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:src="@drawable/ic_star"
+                            android:scaleType="centerInside"/>
+
+                        <TextView
+                            android:id="@+id/tvRating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="2.5"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="#FFFFFF"
+                            android:layout_gravity="center"/>
+                    </FrameLayout>
+
+                </LinearLayout>
+
+                <!-- 🔥 Tiempo -->
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="6dp">
+
+                    <ImageView
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:src="@drawable/ic_clock_bg"/>
+
+                    <TextView
+                        android:id="@+id/tvTiempo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="30 min"
+                        android:textSize="12sp"
+                        android:textColor="#FFFFFF"
+                        android:padding="6dp"/>
+                </FrameLayout>
+
+                <!-- 🔥 Datos fila 1 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp">
 
                     <TextView
                         android:id="@+id/tvPorciones"
@@ -65,57 +122,42 @@
                         android:layout_weight="1"
                         android:text="👥 4 porciones"
                         android:textSize="14sp"
-                        android:fontFamily="@font/caviardreams"
-                        android:textColor="#2196F3"
-                        android:gravity="center"
-                        android:drawablePadding="4dp"/>
+                        android:textColor="#FFFFFF"
+                        android:fontFamily="@font/caviardreams"/>
 
                     <TextView
                         android:id="@+id/tvDificultad"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="📊 Media"
-                        android:fontFamily="@font/caviardreams"
+                        android:text="📊(poner gorito) Media"
                         android:textSize="14sp"
                         android:textColor="#FF9800"
-                        android:gravity="end"
-                        android:drawablePadding="4dp"/>
+                        android:fontFamily="@font/caviardreams"/>
                 </LinearLayout>
 
+                <!-- 🔥 Datos fila 2 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="8dp">
-
-                    <TextView
-                        android:id="@+id/tvCalorias"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="🔥 250 cal"
-                        android:fontFamily="@font/caviardreams"
-                        android:textSize="14sp"
-                        android:textColor="#F44336"
-                        android:drawablePadding="4dp"/>
-
+                    android:layout_marginTop="4dp">
                     <TextView
                         android:id="@+id/tvCategoria"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:text="🍽 Postres"
-                        android:fontFamily="@font/caviardreams"
                         android:textSize="14sp"
-                        android:textColor="#9C27B0"
-                        android:gravity="end"
-                        android:drawablePadding="4dp"/>
+                        android:textColor="#FFFFFF"
+                        android:fontFamily="@font/caviardreams"/>
                 </LinearLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
 
                 <!-- Video de YouTube -->
 
-            </LinearLayout>
+
         </androidx.cardview.widget.CardView>
 
         <LinearLayout
@@ -408,6 +450,11 @@
                 </LinearLayout>
 
                 <!-- Indicadores de puntos -->
+                <RatingBar
+                    android:id="@+id/ratingBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
                 <LinearLayout
                     android:id="@+id/containerPuntos"
                     android:layout_width="wrap_content"
@@ -447,7 +494,7 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_gravity="center"
-
+                    android:src="@drawable/ic_youtube"
                     android:alpha="0.9"/>
 
             </FrameLayout>

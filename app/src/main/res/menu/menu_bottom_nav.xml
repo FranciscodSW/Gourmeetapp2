@@ -14,4 +14,8 @@
         android:id="@+id/nav_search_recipes"
         android:icon="@drawable/ic_icono_recetario"
         android:title="Recetas" />
+    <item
+        android:id="@+id/nav_usuario"
+        android:icon="@drawable/ic_icono_usuario"
+        android:title="Perfil"/>
 </menu>

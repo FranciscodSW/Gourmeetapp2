@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -11,9 +12,11 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.example.gourmeet2.data.api.ApiClient
 import com.example.gourmeet2.data.models.PasoPreparacion
 import com.example.gourmeet2.data.models.RecetaConIngredientes
+import com.example.gourmeet2.data.models.RecetaRecrcid
 import com.example.gourmeet2.databinding.FragmentDetalleRecetaBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
@@ -85,19 +88,15 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
                 return@setOnTouchListener false
             }
         }
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         recetaId = arguments?.getInt("recetaId") ?: -1
-
         if (recetaId != -1) {
             setupSwipeGesture()
             cargarPasosPreparacion()
-
             if (recetaDetalle != null) {
                 mostrarDatosReceta()
             }
@@ -188,7 +187,6 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
     private fun cambiarPasoAnterior() {
         if (pasoActual > 0) {
             val direccion = 1f // Derecha
-
             // Animación de salida
             binding.cardPreparacion.animate()
                 .translationX(direccion * 300)
@@ -197,7 +195,6 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
                 .withEndAction {
                     pasoActual--
                     mostrarPaso(pasoActual)
-
                     // Preparar para animación de entrada
                     binding.cardPreparacion.translationX = -direccion * 300
                     binding.cardPreparacion.alpha = 0f
@@ -271,27 +268,74 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
                 binding.tvPorciones.text = "👥 ${receta.recPorciones ?: 0} porciones"
                 binding.tvDificultad.text = "📊 ${receta.recDificultad ?: "No especificada"}"
 
-                val caloriasTexto = if (receta.recCalorias != null) {
-                    "${receta.recCalorias.toInt()} cal"
+
+                val ratingTexto = if (receta.promedio != null) {
+                    String.format("%.1f", receta.promedio)   // 🔥 4.3 → 4.3
                 } else {
-                    "N/A cal"
+                    "N/A"
                 }
-                binding.tvCalorias.text = "🔥 $caloriasTexto"
-                binding.tvCategoria.text = "🍽 Categoría ${receta.recCategoriaId ?: "Sin categoría"}"
+                val enlaceYoutube = receta.recEnlaceYoutube
+
+                if (!enlaceYoutube.isNullOrEmpty()) {
+
+                    binding.cardVideo.visibility = View.VISIBLE
+
+                    val videoId = extraerVideoId(enlaceYoutube)
+
+                    val thumbnailUrl = "https://img.youtube.com/vi/$videoId/0.jpg"
+
+                    Log.d("YOUTUBE_DEBUG", thumbnailUrl)
+
+                    Glide.with(this)
+                        .load(thumbnailUrl)
+                        .into(binding.imgPreviewVideo)
+
+                } else {
+                    binding.cardVideo.visibility = View.GONE
+                }
+                binding.cardVideo.setOnClickListener {
+
+                    receta.recEnlaceYoutube?.let { url ->
+
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        startActivity(intent)
+                    }
+                }
+                binding.tvRating.text = ratingTexto
 
 
+                binding.tvCategoria.text = "🍽 Categoría ${receta.tipo ?: "Sin categoría"}"
 
+                val url = "http://192.168.1.102/develoandroid/recetas/${receta.recId}/${receta.fotoReceta}"
+
+                Log.d("IMG_DEBUG", url)
+
+                Glide.with(this)
+                    .load(url)
+                    .into(binding.imgFondo)
                 mostrarIngredientes(receta.ingredientes)
                 calcularTotales(receta.ingredientes)
                 calcularCostoTotal(receta.ingredientes)
 
-
             } catch (e: Exception) {
-                android.util.Log.e("RECETA_ERROR", "Error: ${e.message}")
+                Log.e("RECETA_ERROR", "Error: ${e.message}")
             }
         }
     }
+    private fun extraerVideoId(url: String): String {
 
+        return when {
+            url.contains("embed/") -> {
+                url.substringAfter("embed/")
+            }
+            url.contains("watch?v=") -> {
+                url.substringAfter("watch?v=")
+            }
+            else -> {
+                url // fallback por si solo mandas ID
+            }
+        }
+    }
     private fun mostrarIngredientes(ingredientes: List<com.example.gourmeet2.data.models.Ingrediente>?) {
         binding.containerIngredientes.removeAllViews()
 

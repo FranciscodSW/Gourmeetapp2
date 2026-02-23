@@ -23,6 +23,10 @@ data class RecetaConIngredientes(
     @SerializedName("Calorias") val recCalorias: Float?,
     @SerializedName("REC_ENLACEYOUTUBE") val recEnlaceYoutube: String?,
     @SerializedName("REC_RC_ID") val recCategoriaId: Int,
+    @SerializedName("FotoReceta") val fotoReceta: String?,
+    @SerializedName("promedio") val promedio: Float,
+    @SerializedName("votos") val votos: Int,
+    @SerializedName("tipo") val tipo: String,
     @SerializedName("ingredientes") val ingredientes: List<Ingrediente>
 )
 
