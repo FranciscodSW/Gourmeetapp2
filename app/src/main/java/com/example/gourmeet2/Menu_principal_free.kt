@@ -1,4 +1,5 @@
 package com.example.gourmeet2
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
@@ -12,6 +13,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -137,14 +139,10 @@ class Menu_principal_free : AppCompatActivity() {
 
     private var carruselCallback: ViewPager2.OnPageChangeCallback? = null
     private var ultimaCategoriaCargada = -1
-    private var ultimaCategoriaIngredientes = -1
     private var cargandoEnProgreso = false
-    private var lastIngredientesQuery = ""
-    private var lastCategoriaBusqueda = -1
     private var modoActual = ModoBusqueda.CATEGORIA
     private var pantallaActual = PantallaActual.RECETAS
-    private var carruselInicializado = false
-    private var primeraSeleccionCarrusel = true
+
     private var categoriaPendiente = -1
 
 // ============================================================
@@ -269,33 +267,33 @@ class Menu_principal_free : AppCompatActivity() {
     // ============================================================
 // CARGAR RECETAS POR CATEGORÍA (RENOMBRADO)
 // ============================================================
-private fun ejecutarBusqueda() {
+    private fun ejecutarBusqueda() {
 
-    if (categoriaActualId <= 0) return
-    if (cargandoEnProgreso) return
+        if (categoriaActualId <= 0) return
+        if (cargandoEnProgreso) return
 
-    cargandoEnProgreso = true
+        cargandoEnProgreso = true
 
-    if (ingredientesSeleccionados.isNotEmpty()) {
+        if (ingredientesSeleccionados.isNotEmpty()) {
 
-        Log.d("FLOW", "→ BUSQUEDA POR INGREDIENTES")
-        Log.d("FLOW_TRACE",
-            "buscarRecetasPorIngredientes() ← ejecutarBusqueda()"
-        )
-        buscarRecetasPorIngredientes(
-            obtenerIngredientesTexto(),
-            categoriaActualId
-        )
+            Log.d("FLOW", "→ BUSQUEDA POR INGREDIENTES")
+            Log.d("FLOW_TRACE",
+                "buscarRecetasPorIngredientes() ← ejecutarBusqueda()"
+            )
+            buscarRecetasPorIngredientes(
+                obtenerIngredientesTexto(),
+                categoriaActualId
+            )
 
-    } else {
+        } else {
 
-        Log.d("FLOW", "→ CARGA POR CATEGORIA")
-        Log.d("FLOW_TRACE",
-            "cargarRecetasPorCategoriaIngredientes() ← ejecutarBusqueda()"
-        )
-        cargarRecetasPorCategoriaIngredientes(categoriaActualId)
+            Log.d("FLOW", "→ CARGA POR CATEGORIA")
+            Log.d("FLOW_TRACE",
+                "cargarRecetasPorCategoriaIngredientes() ← ejecutarBusqueda()"
+            )
+            cargarRecetasPorCategoriaIngredientes(categoriaActualId)
+        }
     }
-}
 
     private fun cargarRecetasPorCategoriaIngredientes(categoriaId: Int) {
         // 🔥 PREVENIR LLAMADAS DUPLICADAS
@@ -354,7 +352,10 @@ private fun ejecutarBusqueda() {
                                 dificultad = receta.dificultad,
                                 calorias = receta.calorias,
                                 enlaceYoutube = receta.enlaceYoutube,
-                                recrcid = receta.recrcid
+                                recrcid = receta.recrcid,
+                                fotoReceta = receta.fotoReceta,
+                                promedio = receta.promedio,
+                                votos = receta.votos
                             )
                         }
 
@@ -448,7 +449,10 @@ private fun ejecutarBusqueda() {
                             dificultad = receta.dificultad,
                             calorias = receta.calorias,
                             enlaceYoutube = receta.youtube,
-                            recrcid = receta.categoriaId
+                            recrcid = receta.categoriaId,
+                            fotoReceta = receta.fotoReceta,
+                            promedio = receta.promedio,
+                            votos = receta.votos
                         )
                     }
 
@@ -998,7 +1002,11 @@ private fun ejecutarBusqueda() {
                                 dificultad = recetaBuscar.dificultad,
                                 calorias = recetaBuscar.calorias,
                                 enlaceYoutube = recetaBuscar.enlaceYoutube,
-                                recrcid = recetaBuscar.categoriaId
+                                recrcid = recetaBuscar.categoriaId,
+                                fotoReceta = recetaBuscar.fotoReceta,
+                                promedio = recetaBuscar.promedio,
+                                votos = recetaBuscar.votos
+
                             )
                         }
 
@@ -1109,34 +1117,55 @@ private fun ejecutarBusqueda() {
             )
             return RecetaViewHolder(binding)
         }
-
         override fun onBindViewHolder(holder: RecetaViewHolder, position: Int) {
-
             val receta = recetas[position]
-
             with(holder.binding) {
-
                 tvRecetaNombre.text = receta.nombre ?: "Sin nombre"
-                tvRecetaDescripcion.text = receta.descripcion ?: "Sin descripción"
                 tvTiempo.text = receta.tiempoPreparacion ?: "Tiempo no especificado"
-
-                tvPorciones.text = "${receta.porciones ?: 0} porciones"
-                tvDificultad.text = "Nivel: ${receta.dificultad ?: "No especificado"}"
-
-                tvCalorias.text = if (!receta.calorias.isNullOrEmpty()) {
-                    "${receta.calorias} cal"
+                // Dificultad
+                tvDificultad.text = if (!receta.dificultad.isNullOrEmpty()) {
+                    receta.dificultad
                 } else {
-                    "Calorías: N/A"
+                    "No especificado"
                 }
+                // 🔹 Gorritos según dificultad
+                llGorritos.removeAllViews() // Limpiar gorritos anteriores
+                val context = holder.itemView.context
+                with(holder.binding) {
+                    llGorritos.removeAllViews()
 
-                // 🔥 Cargar imágenes
+                    val numGorritos = when (receta.dificultad) {
+                        "Baja" -> 1
+                        "Media" -> 2
+                        "Alto" -> 3
+                        else -> 0
+                    }
+                    val context = holder.itemView.context
+
+                    for (i in 1..numGorritos) {
+                        val iv = ImageView(context)
+                        iv.setImageResource(R.drawable.ic_gorrito)
+
+                        val params = LinearLayout.LayoutParams(
+                            40.dpToPx(context),
+                            40.dpToPx(context)
+                        )
+
+                        params.setMargins(2, 0, 2, 0)
+                        iv.layoutParams = params
+                        iv.scaleType = ImageView.ScaleType.FIT_CENTER
+
+                        llGorritos.addView(iv)
+                    }
+
+                }
+                // ✅ FOTO DESDE API
+                cargarImagenFondo(receta, holder)
+                // ✅ ESTRELLAS DESDE API
+                pintarCalificacion(receta, holder)
                 cargarImagenesReceta(receta.id, recyclerImagenes)
             }
-
-            // 🔥 CLICK DEL ITEM COMPLETO
             holder.itemView.setOnClickListener {
-
-                Log.d("RECETA_CLICK", "Receta: ${receta.nombre} (ID: ${receta.id})")
 
                 val bottomSheet = DetalleRecetaBottomSheet.newInstance(receta.id)
                 bottomSheet.show(fragmentActivity.supportFragmentManager, "DetalleRecetaBottomSheet")
@@ -1144,6 +1173,7 @@ private fun ejecutarBusqueda() {
                 cargarDetallesReceta(receta.id, bottomSheet)
             }
         }
+
 
 
         private fun cargarDetallesReceta(recetaId: Int, bottomSheet: DetalleRecetaBottomSheet) {
@@ -1182,36 +1212,39 @@ private fun ejecutarBusqueda() {
             notifyDataSetChanged()
         }
     }
-// ============================================================
+    fun Int.dpToPx(context: Context): Int {
+        return (this * context.resources.displayMetrics.density).toInt()
+    }
+    // ============================================================
 // Para poner las imagenes
 // ============================================================
-private fun cargarImagenesReceta(recetaId: Int, recyclerView: RecyclerView) {
+    private fun cargarImagenesReceta(recetaId: Int, recyclerView: RecyclerView) {
 
-    recyclerView.layoutManager =
-        LinearLayoutManager(recyclerView.context, LinearLayoutManager.HORIZONTAL, false)
+        recyclerView.layoutManager =
+            LinearLayoutManager(recyclerView.context, LinearLayoutManager.HORIZONTAL, false)
 
-    CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO).launch {
 
-        try {
+            try {
 
-            val response = ApiClient.apiService.getImagenesIngredientes(recetaId)
+                val response = ApiClient.apiService.getImagenesIngredientes(recetaId)
 
-            withContext(Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
 
-                if (response.success) {
+                    if (response.success) {
 
-                    val imagenesValidas = response.imagenes.filterNotNull()
+                        val imagenesValidas = response.imagenes.filterNotNull()
 
-                    recyclerView.adapter = ImagenAdapter(imagenesValidas)
+                        recyclerView.adapter = ImagenAdapter(imagenesValidas)
+                    }
                 }
+
+            } catch (e: Exception) {
+
+                Log.e("IMG_API", "Error → ${e.message}")
             }
-
-        } catch (e: Exception) {
-
-            Log.e("IMG_API", "Error → ${e.message}")
         }
     }
-}
     class ImagenAdapter(
         private val imagenes: List<String>
     ) : RecyclerView.Adapter<ImagenAdapter.ImagenViewHolder>() {
@@ -1241,4 +1274,37 @@ private fun cargarImagenesReceta(recetaId: Int, recyclerView: RecyclerView) {
     }
 
 
+
+
+}
+private fun pintarCalificacion(
+    receta: RecetaRecrcid,
+    holder: Menu_principal_free.RecetaAdapter.RecetaViewHolder
+) {
+
+    with(holder.binding) {
+
+        val rating = receta.promedio ?: 0f
+
+        if (rating > 0f) {
+
+            tvRating.visibility = View.VISIBLE
+
+            // 🔥 Formato bonito (2.5 / 4.0 / 3.8)
+            tvRating.text = String.format("%.1f", rating)
+
+        } else {
+            tvRating.visibility = View.GONE
+        }
+    }
+}
+
+
+private fun cargarImagenFondo(receta: RecetaRecrcid, holder: Menu_principal_free.RecetaAdapter.RecetaViewHolder) {
+
+    val url = "http://192.168.1.102/develoandroid/recetas/${receta.id}/${receta.fotoReceta}"
+
+    Glide.with(holder.itemView.context)
+        .load(url)
+        .into(holder.binding.imgFondo)
 }

@@ -1,100 +1,165 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="1dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp"
     app:cardUseCompatPadding="true">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/tvRecetaNombre"
+        <!-- 🔥 Imagen de fondo -->
+        <ImageView
+            android:id="@+id/imgFondo"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Nombre Receta"
-            android:fontFamily="@font/caviardreams"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#333333"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:id="@+id/tvRecetaDescripcion"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Descripción..."
-            android:fontFamily="@font/caviardreams"
-            android:textSize="14sp"
-            android:textColor="#666666"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:layout_marginBottom="12dp"/>
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="4dp">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <TextView
-                android:id="@+id/tvTiempo"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="30 min"
-                android:textSize="12sp"
-                android:fontFamily="@font/caviardreams"
-                android:textColor="#4CAF50"/>
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/tvPorciones"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="4 porciones"
-                android:textSize="12sp"
-                android:fontFamily="@font/caviardreams"
-                android:textColor="#2196F3"
-                android:gravity="center"/>
+                <!-- 🔥 Nombre -->
+                <TextView
+                    android:id="@+id/tvRecetaNombre"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Nombre Receta"
+                    android:fontFamily="@font/caviardreams"
+                    android:textSize="30sp"
+                    android:textColor="#040404"
+                    android:maxLines="1"
+                    android:ellipsize="end"/>
 
-            <TextView
-                android:id="@+id/tvDificultad"
-                android:layout_width="0dp"
+                <!-- ⭐ Rating -->
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <!-- ⭐ Estrella de fondo -->
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+
+                        android:alpha="0.9"
+                        android:scaleType="centerInside"/>
+
+                    <!-- 🔥 Número encima android:src="@drawable/ic_star" -->
+                    <TextView
+                        android:id="@+id/tvRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2.5"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:layout_gravity="center"/>
+                </FrameLayout>
+
+
+            </LinearLayout>
+
+
+            <!-- 🔥 Tiempo -->
+            <FrameLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Media"
-                android:fontFamily="@font/caviardreams"
-                android:textSize="12sp"
-                android:textColor="#FF9800"
-                android:gravity="end"/>
+                android:layout_gravity="end"
+                android:layout_marginTop="4dp">
+
+                <!-- 🔥 Reloj de fondo -->
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+
+
+                    android:alpha="1"
+                    android:scaleType="centerInside"/>
+
+                <!-- 🔥 Tiempo android:src="@drawable/ic_clock_bg" -->
+                <TextView
+                    android:id="@+id/tvTiempo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="30min"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/caviardreams"
+                    android:textColor="#4CAF50"
+                    android:padding="6dp"/>
+            </FrameLayout>
+
+
+            <!-- 🔥 Dificultad -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="start"
+                android:padding="4dp">
+
+                <!-- Fila de texto "Dificultad:" y el valor -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dificultad: "
+                        android:textSize="15sp"
+                        android:fontFamily="@font/caviardreams"
+                        android:textColor="#FFFF"/>
+
+                    <TextView
+                        android:id="@+id/tvDificultad"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Media"
+                        android:textSize="15sp"
+                        android:fontFamily="@font/caviardreams"
+                        android:textColor="#FF9800"/>
+                </LinearLayout>
+
+                <!-- Fila de gorritos -->
+                <LinearLayout
+                    android:id="@+id/llGorritos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingTop="2dp"/>
+
+                <!-- Aquí se agregan ImageView dinámicamente según dificultad -->
+
+
+            </LinearLayout>
+
+
+            <!-- 🔥 Recycler -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerImagenes"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="8dp"
+                android:overScrollMode="never"
+                android:clipToPadding="false"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"/>
+
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvCalorias"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="250 cal"
-            android:fontFamily="@font/caviardreams"
-            android:textSize="12sp"
-            android:textColor="#F44336"
-            android:gravity="end"/>
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerImagenes"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="8dp"
-            android:overScrollMode="never"
-            android:clipToPadding="false"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp"/>
+    </FrameLayout>
 
-
-    </LinearLayout>
 </androidx.cardview.widget.CardView>

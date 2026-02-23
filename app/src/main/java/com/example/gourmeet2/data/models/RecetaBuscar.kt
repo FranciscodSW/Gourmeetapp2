@@ -11,5 +11,8 @@ data class RecetaBuscar(
     @SerializedName("Dificultad") val dificultad: String?,
     @SerializedName("Calorias") val calorias: String?,
     @SerializedName("REC_ENLACEYOUTUBE") val enlaceYoutube: String?,
-    @SerializedName("REC_RC_ID") val categoriaId: Int
+    @SerializedName("REC_RC_ID") val categoriaId: Int,
+    @SerializedName("FotoReceta") val fotoReceta: String?,
+    @SerializedName("promedio") val promedio: Float,
+    @SerializedName("votos") val votos: Int
 )

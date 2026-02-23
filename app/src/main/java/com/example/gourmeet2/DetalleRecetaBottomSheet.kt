@@ -279,14 +279,7 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
                 binding.tvCalorias.text = "🔥 $caloriasTexto"
                 binding.tvCategoria.text = "🍽 Categoría ${receta.recCategoriaId ?: "Sin categoría"}"
 
-                if (!receta.recEnlaceYoutube.isNullOrEmpty()) {
-                    binding.layoutVideo.visibility = View.VISIBLE
-                    binding.tvVideo.setOnClickListener {
-                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(receta.recEnlaceYoutube)))
-                    }
-                } else {
-                    binding.layoutVideo.visibility = View.GONE
-                }
+
 
                 mostrarIngredientes(receta.ingredientes)
                 calcularTotales(receta.ingredientes)

@@ -13,5 +13,8 @@ data class RecetaRecrcid(
     @SerializedName("Dificultad") val dificultad: String?, // Nullable
     @SerializedName("Calorias") val calorias: String?, // String, no Float (viene vacío "")
     @SerializedName("REC_ENLACEYOUTUBE") val enlaceYoutube: String?, // Nullable
-    @SerializedName("REC_RC_ID") val recrcid: Int
+    @SerializedName("REC_RC_ID") val recrcid: Int,
+    @SerializedName("FotoReceta") val fotoReceta: String?,
+    @SerializedName("promedio") val promedio: Float,
+    @SerializedName("votos") val votos: Int
 )
