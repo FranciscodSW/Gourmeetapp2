@@ -1,0 +1,24 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Estrellas vacías -->
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <solid android:color="#CCCCCC"/>
+        </shape>
+    </item>
+
+    <!-- Estrellas parcialmente llenas -->
+    <item android:id="@android:id/secondaryProgress">
+        <shape android:shape="rectangle">
+            <solid android:color="#CCCCCC"/>
+        </shape>
+    </item>
+
+    <!-- Estrellas llenas -->
+    <item android:id="@android:id/progress">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFC107"/> <!-- Amarillo Material -->
+        </shape>
+    </item>
+
+</layer-list>

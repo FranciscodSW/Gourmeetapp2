@@ -763,7 +763,7 @@ class Menu_principal_free : AppCompatActivity() {
             return rutaLimpia
         }
         val rutaFinal = if (rutaLimpia.startsWith("/")) rutaLimpia.substring(1) else rutaLimpia
-        return "http://192.168.1.102/develoandroid/$rutaFinal"
+        return "http://192.168.1.80/develoandroid/$rutaFinal"
     }
 
     private fun obtenerIngredientesTexto(): List<String> {
@@ -1235,7 +1235,7 @@ class Menu_principal_free : AppCompatActivity() {
             val ruta = imagenes[position]
 
             Glide.with(holder.itemView.context)
-                .load("http://192.168.1.102/develoandroid/${ruta.trimStart('/')}")
+                .load("http://192.168.1.80/develoandroid/${ruta.trimStart('/')}")
                 .centerCrop()
                 .into(holder.imageView)
         }
@@ -1272,7 +1272,7 @@ private fun pintarCalificacion(
 
 private fun cargarImagenFondo(receta: RecetaRecrcid, holder: Menu_principal_free.RecetaAdapter.RecetaViewHolder) {
 
-    val url = "http://192.168.1.102/develoandroid/recetas/${receta.id}/${receta.fotoReceta}"
+    val url = "http://192.168.1.80/develoandroid/recetas/${receta.id}/${receta.fotoReceta}"
 
     Glide.with(holder.itemView.context)
         .load(url)

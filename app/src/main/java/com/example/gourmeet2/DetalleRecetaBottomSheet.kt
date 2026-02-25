@@ -12,11 +12,16 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.gourmeet2.data.api.ApiClient
+import com.example.gourmeet2.data.models.Comentario
+import com.example.gourmeet2.data.models.IngredienteRecetaResponse
 import com.example.gourmeet2.data.models.PasoPreparacion
 import com.example.gourmeet2.data.models.RecetaConIngredientes
 import com.example.gourmeet2.data.models.RecetaRecrcid
+import com.example.gourmeet2.data.models.Respuesta
 import com.example.gourmeet2.databinding.FragmentDetalleRecetaBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
@@ -99,8 +104,111 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
             cargarPasosPreparacion()
             if (recetaDetalle != null) {
                 mostrarDatosReceta()
+                mostrarComentarios()
             }
         }
+    }
+    class ComentariosAdapter(
+        private val lista: List<Comentario>
+    ) : RecyclerView.Adapter<ComentariosAdapter.ViewHolder>() {
+
+        class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+
+            val nombre = view.findViewById<TextView>(R.id.tvNombreUsuario)
+            val comentario = view.findViewById<TextView>(R.id.tvComentario)
+            val rating = view.findViewById<TextView>(R.id.tvRating)
+            val imagen = view.findViewById<ImageView>(R.id.imgUser)
+            val recyclerRespuestas = view.findViewById<RecyclerView>(R.id.recyclerRespuestas)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_comentario, parent, false)
+
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+
+            val item = lista[position]
+
+            holder.nombre.text = item.cliNombre
+            holder.comentario.text = item.comentario
+
+            holder.rating.text = "⭐"   // si luego agregas COM_RATING lo ponemos
+
+            // ✅ Imagen usuario
+            val urlImagen = item.fotoUsuario?.let {
+                "http://192.168.1.80/develoandroid/usuarios/$it"
+            }
+
+            Glide.with(holder.itemView.context)
+                .load(urlImagen ?: R.drawable.ic_user)
+                .into(holder.imagen)
+
+            // ✅ Respuestas
+            if (item.respuestas.isNotEmpty()) {
+
+                holder.recyclerRespuestas.visibility = View.VISIBLE
+                holder.recyclerRespuestas.layoutManager =
+                    LinearLayoutManager(holder.itemView.context)
+
+                holder.recyclerRespuestas.adapter =
+                    RespuestasAdapter(item.respuestas)
+
+            } else {
+                holder.recyclerRespuestas.visibility = View.GONE
+            }
+        }
+
+        override fun getItemCount(): Int = lista.size
+    }
+    class RespuestasAdapter(
+        private val lista: List<Respuesta>
+    ) : RecyclerView.Adapter<RespuestasAdapter.ViewHolder>() {
+
+        class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val nombre = view.findViewById<TextView>(R.id.tvNombreUsuario)
+            val respuesta = view.findViewById<TextView>(R.id.tvComentario)
+            val imagen = view.findViewById<ImageView>(R.id.imgUser)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_respuesta, parent, false)
+
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+
+            val item = lista[position]
+
+            holder.nombre.text = item.cliNombre
+            holder.respuesta.text = item.respuesta
+
+            val urlImagen = item.fotoUsuario?.let {
+                "http://192.168.1.80/develoandroid/usuarios/$it"
+            }
+
+            Glide.with(holder.itemView.context)
+                .load(urlImagen ?: R.drawable.ic_user)
+                .into(holder.imagen)
+        }
+
+        override fun getItemCount(): Int = lista.size
+    }
+    private fun mostrarComentarios(lista: List<Comentario>?) {
+
+        if (lista.isNullOrEmpty()) {
+            binding.recyclerComentarios.visibility = View.GONE
+            return
+        }
+
+        binding.recyclerComentarios.visibility = View.VISIBLE
+
+        binding.recyclerComentarios.layoutManager = LinearLayoutManager(this)
+        binding.recyclerComentarios.adapter = ComentariosAdapter(lista)
     }
 
     private fun setupSwipeGesture() {
@@ -267,6 +375,7 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
                 binding.tvTiempo.text = "⏱ ${receta.recTiempoPreparacion ?: "No especificado"}"
                 binding.tvPorciones.text = "👥 ${receta.recPorciones ?: 0} porciones"
                 binding.tvDificultad.text = "📊 ${receta.recDificultad ?: "No especificada"}"
+                binding.tvDatoGourmet.text = "${receta.datoval ?: "Sin descripción"}"
 
 
                 val ratingTexto = if (receta.promedio != null) {
@@ -306,7 +415,7 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
 
                 binding.tvCategoria.text = "🍽 Categoría ${receta.tipo ?: "Sin categoría"}"
 
-                val url = "http://192.168.1.102/develoandroid/recetas/${receta.recId}/${receta.fotoReceta}"
+                val url = "http://192.168.1.80/develoandroid/recetas/${receta.recId}/${receta.fotoReceta}"
 
                 Log.d("IMG_DEBUG", url)
 

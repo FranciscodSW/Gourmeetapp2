@@ -1,5 +1,4 @@
 package com.example.gourmeet2.data.models
-
 import com.google.gson.annotations.SerializedName
 
 // Modelo para ingrediente individual
@@ -27,6 +26,23 @@ data class RecetaConIngredientes(
     @SerializedName("promedio") val promedio: Float,
     @SerializedName("votos") val votos: Int,
     @SerializedName("tipo") val tipo: String,
+    @SerializedName("REC_DATOGOUMEET") val datoval: String,
     @SerializedName("ingredientes") val ingredientes: List<Ingrediente>
+
+)
+data class Respuesta(
+    @SerializedName("RESP_ID") val respId: Int,
+    @SerializedName("RESPUESTA") val respuesta: String,
+    @SerializedName("RESP_FECHA") val respFecha: String,
+    @SerializedName("CLI_NOMBRE") val cliNombre: String,
+    @SerializedName("FotoUsuario") val fotoUsuario: String?
+)
+data class Comentario(
+    @SerializedName("COM_ID") val comId: Int,
+    @SerializedName("COM_COMENTARIO") val comentario: String,
+    @SerializedName("COM_FECHA") val comFecha: String,
+    @SerializedName("CLI_NOMBRE") val cliNombre: String,
+    @SerializedName("FotoUsuario") val fotoUsuario: String?,
+    @SerializedName("respuestas") val respuestas: List<Respuesta>
 )
 

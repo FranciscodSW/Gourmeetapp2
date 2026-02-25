@@ -1,0 +1,106 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginBottom="14dp">
+
+    <!-- 🔥 Usuario + Rating -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/imgUser"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:src="@drawable/ic_user"
+            android:layout_marginEnd="10dp"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvNombreUsuario"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nombre"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#333333"
+                android:fontFamily="@font/caviardreams"/>
+
+            <!-- ⭐ Rating -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_star"/>
+                <TextView
+                    android:id="@+id/tvRating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="4.5"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:layout_gravity="center"/>
+            </FrameLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 🔥 Comentario -->
+    <TextView
+        android:id="@+id/tvComentario"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Muy buena receta!"
+        android:textSize="15sp"
+        android:textColor="#555555"
+        android:fontFamily="@font/caviardreams"
+        android:layout_marginTop="6dp"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerRespuestas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="false"
+        android:layout_marginStart="52dp"
+        android:layout_marginTop="6dp"/>
+
+    <!-- 🔥 Botones -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <ImageView
+            android:id="@+id/btnLike"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@drawable/ic_like"
+            android:layout_marginEnd="18dp"/>
+
+        <ImageView
+            android:id="@+id/btnDislike"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@drawable/ic_dislike"
+            android:layout_marginEnd="18dp"/>
+
+        <ImageView
+            android:id="@+id/btnReportar"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_warning"/>
+    </LinearLayout>
+
+</LinearLayout>
