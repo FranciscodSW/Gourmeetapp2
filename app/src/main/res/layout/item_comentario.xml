@@ -57,23 +57,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 🔥 Comentario -->
-    <TextView
-        android:id="@+id/tvComentario"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Muy buena receta!"
-        android:textSize="15sp"
-        android:textColor="#555555"
-        android:fontFamily="@font/caviardreams"
-        android:layout_marginTop="6dp"/>
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerRespuestas"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:nestedScrollingEnabled="false"
-        android:layout_marginStart="52dp"
-        android:layout_marginTop="6dp"/>
+
 
     <!-- 🔥 Botones -->
     <LinearLayout
@@ -102,5 +86,22 @@
             android:layout_height="24dp"
             android:src="@drawable/ic_warning"/>
     </LinearLayout>
+    <!-- 🔥 Comentario -->
+    <TextView
+        android:id="@+id/tvComentario"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Muy buena receta!"
+        android:textSize="15sp"
+        android:textColor="#555555"
+        android:fontFamily="@font/caviardreams"
+        android:layout_marginTop="6dp"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerRespuestas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="false"
+        android:layout_marginStart="52dp"
+        android:layout_marginTop="6dp"/>
 
 </LinearLayout>

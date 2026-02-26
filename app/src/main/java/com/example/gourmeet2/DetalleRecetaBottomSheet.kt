@@ -36,6 +36,7 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
     private var initialX = 0f
     private var initialY = 0f
     private var isSwiping = false
+    private var listaComentarios: List<Comentario> = emptyList()
 
     private var recetaDetalle: RecetaConIngredientes? = null
 
@@ -102,9 +103,12 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
         if (recetaId != -1) {
             setupSwipeGesture()
             cargarPasosPreparacion()
+            cargarReceta()
+
             if (recetaDetalle != null) {
                 mostrarDatosReceta()
-                mostrarComentarios()
+                Log.d("COMENTARIOS_DEBUG", listaComentarios.toString())
+                mostrarComentarios(listaComentarios)
             }
         }
     }
@@ -139,7 +143,7 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
 
             // ✅ Imagen usuario
             val urlImagen = item.fotoUsuario?.let {
-                "http://192.168.1.80/develoandroid/usuarios/$it"
+                "http://192.168.1.80/develoandroid/Img_usuarios/$it"
             }
 
             Glide.with(holder.itemView.context)
@@ -168,9 +172,11 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
     ) : RecyclerView.Adapter<RespuestasAdapter.ViewHolder>() {
 
         class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val nombre = view.findViewById<TextView>(R.id.tvNombreUsuario)
-            val respuesta = view.findViewById<TextView>(R.id.tvComentario)
-            val imagen = view.findViewById<ImageView>(R.id.imgUser)
+
+            val nombre = view.findViewById<TextView>(R.id.tvNombreUsuarioRespuesta)
+            val respuesta = view.findViewById<TextView>(R.id.tvTextoRespuesta)
+            val fecha = view.findViewById<TextView>(R.id.tvFechaRespuesta)
+            val imagen = view.findViewById<ImageView>(R.id.imgUserRespuesta)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -186,13 +192,16 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
 
             holder.nombre.text = item.cliNombre
             holder.respuesta.text = item.respuesta
+            holder.fecha.text = item.respFecha   // si la tienes
 
             val urlImagen = item.fotoUsuario?.let {
-                "http://192.168.1.80/develoandroid/usuarios/$it"
+                "http://192.168.1.80/develoandroid/Img_usuarios/$it"
             }
 
             Glide.with(holder.itemView.context)
                 .load(urlImagen ?: R.drawable.ic_user)
+                .placeholder(R.drawable.ic_user)
+                .error(R.drawable.ic_user)
                 .into(holder.imagen)
         }
 
@@ -207,10 +216,34 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
 
         binding.recyclerComentarios.visibility = View.VISIBLE
 
-        binding.recyclerComentarios.layoutManager = LinearLayoutManager(this)
+        binding.recyclerComentarios.layoutManager =
+            LinearLayoutManager(requireContext())
         binding.recyclerComentarios.adapter = ComentariosAdapter(lista)
     }
+    private fun cargarReceta() {
 
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            try {
+                val response = ApiClient.apiService.getRecetaConIngredientes(recetaId)
+
+                if (response.success) {
+
+                    recetaDetalle = response.receta
+                    listaComentarios = response.comentarios ?: emptyList()
+                    Log.d("COMENTARIOS_DEBUG", listaComentarios.toString())
+                    mostrarDatosReceta()
+                    mostrarComentarios(listaComentarios)
+
+                } else {
+                    Log.e("API", "Error: ${response.error}")
+                }
+
+            } catch (e: Exception) {
+                Log.e("API", "Error conexión: ${e.message}")
+            }
+        }
+    }
     private fun setupSwipeGesture() {
         binding.cardPreparacion.setOnTouchListener { view, event ->
             when (event.action) {
@@ -291,7 +324,6 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
             return@setOnTouchListener false
         }
     }
-
     private fun cambiarPasoAnterior() {
         if (pasoActual > 0) {
             val direccion = 1f // Derecha
@@ -324,7 +356,6 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
                 .start()
         }
     }
-
     private fun cambiarPasoSiguiente() {
         if (pasoActual < totalPasos - 1) {
             val direccion = -1f // Izquierda
@@ -359,14 +390,15 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
                 .start()
         }
     }
-
     fun actualizarDatos(receta: RecetaConIngredientes) {
         this.recetaDetalle = receta
         if (isAdded) {
             mostrarDatosReceta()
+            mostrarComentarios(listaComentarios)
+            Log.d("COMENTARIOS_DEBUG", listaComentarios.toString())
+
         }
     }
-
     private fun mostrarDatosReceta() {
         recetaDetalle?.let { receta ->
             try {
@@ -376,15 +408,12 @@ class DetalleRecetaBottomSheet : BottomSheetDialogFragment() {
                 binding.tvPorciones.text = "👥 ${receta.recPorciones ?: 0} porciones"
                 binding.tvDificultad.text = "📊 ${receta.recDificultad ?: "No especificada"}"
                 binding.tvDatoGourmet.text = "${receta.datoval ?: "Sin descripción"}"
-
-
                 val ratingTexto = if (receta.promedio != null) {
                     String.format("%.1f", receta.promedio)   // 🔥 4.3 → 4.3
                 } else {
                     "N/A"
                 }
                 val enlaceYoutube = receta.recEnlaceYoutube
-
                 if (!enlaceYoutube.isNullOrEmpty()) {
 
                     binding.cardVideo.visibility = View.VISIBLE

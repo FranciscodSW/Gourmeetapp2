@@ -45,11 +45,9 @@ class Registro : AppCompatActivity() {
             val correo = binding.editCorreo.text.toString().trim()
             val pass = binding.editPassword.text.toString()
             val confirmPass = binding.editConfirmPassword.text.toString()
-
             if (!validarNombre(nombre)) return@setOnClickListener
             if (!validarCorreo(correo)) return@setOnClickListener
             if (!validarPassword(pass)) return@setOnClickListener
-
             if (pass != confirmPass) {
                 mostrarError("Las contraseñas no coinciden")
                 return@setOnClickListener
