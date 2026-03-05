@@ -1,23 +1,34 @@
 package com.example.gourmeet2
 
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.location.Geocoder
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.transition.Transition
 import android.util.Log
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.RadioGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 
@@ -35,15 +46,50 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.target.Target
+import kotlin.collections.emptyList
 
 class Registro : AppCompatActivity() {
+    // Variables para controlar el estado del contenedor
+    private enum class EstadoContenedor {
+        EXPANDIDO,      // Altura máxima
+        MINIMIZADO,     // Altura mínima (solo se ve la barra)
+        CERRADO         // Completamente oculto
+    }
+    data class NivelCocina(
+        val nombre: String,
+        val descripcion: String,
+        val imagen: Int
+    )
+    private var estadoActual = EstadoContenedor.CERRADO
+    private var alturaExpandida = 0
+    private var alturaMinimizada = 0
+
+    private var lastY = 0f
+    private var contenedorExpandido = false
+    private val alturaMinima = 400 // Altura mínima en píxeles
+    private val alturaMaxima = 2000 // Altura máxima en píxeles
     private val MAP_REQUEST = 100
+    private val ALTURA_BARRA = 80
     private var avatarSeleccionadoUrl: String = ""
+    private val mapaLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+
+            if (result.resultCode == RESULT_OK) {
+
+                val lat = result.data?.getDoubleExtra("lat", 0.0)
+                val lng = result.data?.getDoubleExtra("lng", 0.0)
+                val direccion = result.data?.getStringExtra("direccion")
+
+                //binding.editUbicacion.setText(direccion)
+
+            }
+        }
 
     private lateinit var binding: ActivityRegistroBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
 
         enableEdgeToEdge()
 
@@ -55,16 +101,32 @@ class Registro : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        binding.btnUbicacion.setOnClickListener {
-            val intent = Intent(this, MapaSeleccionActivity::class.java)
-            startActivityForResult(intent, MAP_REQUEST)
+        //*binding.editUbicacion.setOnClickListener {
+
+          //  val intent = Intent(this, MapaSeleccionActivity::class.java)
+            //mapaLauncher.launch(intent)
+        //}
+        setupContenedor()
+
+
+        binding.btnSeleccionAvatar.setOnClickListener {
+            mostrarSelectorAvatarEnContenedor()
+            setupBarraArrastre()
         }
-        binding.imgUsuario.setOnClickListener {
-            mostrarSelectorAvatar()
+
+        binding.btnSeleccionNivel.setOnClickListener {
+          mostrarSelectorNivel()
+            setupBarraArrastre()
         }
+        binding.btneditSeleccionEdad.setOnClickListener {
+            mostrarSelectorEdad()
+            setupBarraArrastre()
+        }
+
 
         setupValidaciones()
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -77,13 +139,117 @@ class Registro : AppCompatActivity() {
             val addresses = geocoder.getFromLocation(lat!!, lng!!, 1)
 
             if (!addresses.isNullOrEmpty()) {
-                val direccion = addresses[0].getAddressLine(0)
 
-                binding.layoutDireccion.visibility = View.VISIBLE
-                binding.txtDireccion.text = direccion
+
             }
         }
     }
+    private fun setupContenedor() {
+        // Convertir dp a píxeles
+        val barraHeight = (ALTURA_BARRA * resources.displayMetrics.density).toInt()
+
+        // Calcular alturas basadas en la pantalla
+        val displayMetrics = resources.displayMetrics
+        val screenHeight = displayMetrics.heightPixels
+
+        // Altura expandida: 70% de la pantalla
+        alturaExpandida = (screenHeight * 0.9).toInt()
+
+        // Altura minimizada: solo la barra + padding
+        alturaMinimizada = barraHeight + 32 // 16dp padding top + 16dp padding bottom
+
+        // Estado inicial: minimizado
+        estadoActual = EstadoContenedor.MINIMIZADO
+        actualizarAlturaContenedor(alturaMinimizada)
+        actualizarTextoBarra()
+
+        // Configurar click en la barra
+        binding.barraArrastre.setOnClickListener {
+            toggleContenedor()
+        }
+
+        // Opcional: doble click para cerrar completamente
+        binding.barraArrastre.setOnLongClickListener {
+            ocultarContenedorInferior()
+            true
+        }
+    }
+    private fun actualizarAlturaContenedor(altura: Int) {
+        val params = binding.contenedorInferior.layoutParams
+        params.height = altura
+        binding.contenedorInferior.layoutParams = params
+    }
+
+
+    private fun setupBarraArrastre() {
+        // Configurar click en la barra para expandir/contraer
+        binding.barraArrastre.setOnClickListener {
+            toggleContenedor()
+        }
+
+        // Opcional: Configurar gesto de arrastre
+        binding.barraArrastre.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // Guardar posición inicial del toque
+                    // Aquí podrías implementar arrastre continuo
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val deltaY = event.rawY - lastY
+                    val newHeight = (binding.contenedorInferior.height - deltaY).toInt()
+                    if (newHeight in alturaMinimizada..alturaExpandida) {
+                        val params = binding.contenedorInferior.layoutParams
+                        params.height = newHeight
+                        binding.contenedorInferior.layoutParams = params
+                    }
+                    lastY = event.rawY
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    // Determinar si debe expandirse o contraerse basado en la altura final
+                    val params = binding.contenedorInferior.layoutParams
+                    contenedorExpandido = params.height > (alturaMinima + alturaMaxima) / 2
+                    actualizarTextoBarra()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun toggleContenedor() {
+        contenedorExpandido = !contenedorExpandido
+
+        val params = binding.contenedorInferior.layoutParams
+        params.height = if (contenedorExpandido) alturaMaxima else alturaMinima
+        binding.contenedorInferior.layoutParams = params
+
+        // Animar el cambio
+        binding.contenedorInferior.animate()
+            .setDuration(300)
+            .start()
+
+        actualizarTextoBarra()
+    }
+
+    private fun actualizarTextoBarra() {
+        binding.tvExpandirContraer.text = if (contenedorExpandido) {
+            "Desliza para contraer"
+        } else {
+            "Desliza para expandir"
+        }
+    }
+
+    // También necesitas configurar el contenedor con altura fija inicial
+    private fun configurarContenedor() {
+        val params = binding.contenedorInferior.layoutParams
+        params.height = alturaMinima
+        binding.contenedorInferior.layoutParams = params
+        contenedorExpandido = false
+        actualizarTextoBarra()
+    }
+
 
     private fun setupValidaciones() {
 
@@ -101,9 +267,10 @@ class Registro : AppCompatActivity() {
                 return@setOnClickListener
             }
             mostrarExito(nombre)
-           // registrarUsuario(nombre, correo, pass)
+            // registrarUsuario(nombre, correo, pass)
         }
     }
+
     private fun registrarUsuario(nombre: String, correo: String, pass: String) {
 
         val ip = obtenerIP()   // 🔥 AQUÍ
@@ -142,8 +309,6 @@ class Registro : AppCompatActivity() {
             }
         }
     }
-
-
 
 
     // =========================
@@ -218,12 +383,10 @@ class Registro : AppCompatActivity() {
     }
 
     private fun mostrarExito(nombre: String) {
-
         binding.layoutRegistro.visibility = View.GONE
-        binding.layoutPersonalizar.visibility = View.VISIBLE
-
-        binding.txtNombreUsuario.text = nombre
+        binding.scrollPersonalizar.visibility = View.VISIBLE
     }
+
     private fun obtenerIP(): String {
         return try {
             val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
@@ -240,37 +403,26 @@ class Registro : AppCompatActivity() {
             "0.0.0.0"
         }
     }
-    private fun mostrarSelectorAvatar() {
-        Log.d("AVATAR_DEBUG", "Se abrió el selector")
 
-        val dialogView = layoutInflater.inflate(R.layout.dialog_avatar, null)
-        val radioGroup = dialogView.findViewById<RadioGroup>(R.id.radioGroupGenero)
-        val grid = dialogView.findViewById<GridLayout>(R.id.gridAvatares)
+    private fun mostrarSelectorAvatarEnContenedor() {
+        binding.tvTituloContenedor.text = "Selecciona tu avatar"
 
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .create()
+        // Inflar el layout de avatares
+        val avatarView = layoutInflater.inflate(R.layout.dialog_avatar, null)
+        val radioGroup = avatarView.findViewById<RadioGroup>(R.id.radiogroupgenero)
+        val grid = avatarView.findViewById<GridLayout>(R.id.gridavatares)
 
         fun cargarAvatares(genero: String) {
-            Log.d("AVATAR_DEBUG", "Cargando avatares género: $genero")
-
             grid.removeAllViews()
-
             for (i in 1..5) {
-
                 val imageView = ImageView(this)
-
                 val params = GridLayout.LayoutParams()
                 params.width = 250
                 params.height = 250
                 params.setMargins(16, 16, 16, 16)
-
-
-
                 imageView.layoutParams = params
                 imageView.scaleType = ImageView.ScaleType.CENTER_CROP
 
-                // 🔥 Obtener nombre dinámico del recurso
                 val nombreImagen = if (genero == "M") {
                     "ic_usuario_$i"
                 } else {
@@ -283,41 +435,192 @@ class Registro : AppCompatActivity() {
                     packageName
                 )
 
-                imageView.setImageResource(resourceId)
-
-                imageView.setOnClickListener {
-
-                    avatarSeleccionadoUrl = nombreImagen
-
-                    val resourceId = resources.getIdentifier(
-                        nombreImagen,
-                        "drawable",
-                        packageName
-                    )
-
-                    binding.imgUsuario.setImageResource(resourceId)
-
-                    dialog.dismiss()
+                if (resourceId != 0) {
+                    imageView.setImageResource(resourceId)
                 }
 
+                imageView.setOnClickListener {
+                    avatarSeleccionadoUrl = nombreImagen
+                    binding.btnSeleccionAvatar.text = "Avatar seleccionado"
+                    ocultarContenedorInferior()
+                    Toast.makeText(this, "Avatar seleccionado", Toast.LENGTH_SHORT).show()
+                }
                 grid.addView(imageView)
             }
-
-            Log.d("AVATAR_DEBUG", "Total hijos en Grid: ${grid.childCount}")
         }
 
-        // Carga inicial masculino
+        // Cargar avatares masculinos por defecto
         cargarAvatares("M")
 
+        // Configurar cambio de género
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            if (checkedId == R.id.rbMasculino) {
+            if (checkedId == R.id.rbmasculino) {
                 cargarAvatares("M")
             } else {
                 cargarAvatares("F")
             }
         }
 
-        dialog.show()
+        // 🔥 SOLUCIÓN: En lugar de usar RecyclerView, usamos un contenedor lineal
+        // para mostrar el contenido del avatar
+        val contenedorAvatar = LinearLayout(this)
+        contenedorAvatar.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        contenedorAvatar.orientation = LinearLayout.VERTICAL
+        contenedorAvatar.addView(avatarView)
+
+        // Reemplazar el contenido del contenedor inferior
+        val parent = binding.recyclerOpciones.parent as? ViewGroup
+        val index = (parent?.indexOfChild(binding.recyclerOpciones) ?: 0) + 1
+
+        // Ocultar RecyclerView y mostrar el contenedor personalizado
+        binding.recyclerOpciones.visibility = View.GONE
+
+        // Buscar si ya existe un contenedor personalizado y eliminarlo
+        val existingContainer = binding.contenedorInferior.findViewWithTag<View>("avatar_container")
+        existingContainer?.let { binding.contenedorInferior.removeView(it) }
+
+        // Agregar el nuevo contenedor con tag para identificarlo
+        contenedorAvatar.tag = "avatar_container"
+        binding.contenedorInferior.addView(contenedorAvatar, binding.contenedorInferior.childCount - 1)
+
+        mostrarContenedorInferior()
+    }
+    private fun mostrarSelectorNivel() {
+
+        binding.tvTituloContenedor.text = "Selecciona tu nivel"
+
+        val listaNiveles = listOf(
+            NivelCocina(
+                "Ayudante de cocina (Commis)",
+                "Apoya en tareas básicas: lavar, cortar, preparar ingredientes.",
+                R.drawable.ic_gorrito_1
+            ),
+            NivelCocina(
+                "Cocinero (Chef de partida)",
+                "Encargado de una estación específica (carnes, pastas, postres, etc.).",
+                R.drawable.ic_gorrito_2
+            ),
+            NivelCocina(
+                "Subchef (Sous Chef)",
+                "Segundo al mando. Supervisa al equipo y reemplaza al chef cuando no está.",
+                R.drawable.ic_gorrito_3
+            ),
+            NivelCocina(
+                "Chef Ejecutivo",
+                "Responsable del menú, calidad, costos y organización de la cocina.",
+                R.drawable.ic_gorrito_4
+            ),
+            NivelCocina(
+                "Chef Corporativo",
+                "Supervisa varias cocinas o restaurantes dentro de una empresa.",
+                R.drawable.ic_gorrito_5
+            )
+        )
+
+        val contenedor = LinearLayout(this)
+        contenedor.orientation = LinearLayout.VERTICAL
+        contenedor.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+
+        listaNiveles.forEach { nivel ->
+
+            val item = layoutInflater.inflate(R.layout.dialog_nivel, null)
+            val img = item.findViewById<ImageView>(R.id.imggorrito)
+            val txtNombre = item.findViewById<TextView>(R.id.txtnivel)
+            val txtDescripcion = item.findViewById<TextView>(R.id.txtdescripcion)
+            img.setImageResource(nivel.imagen)
+            txtNombre.text = nivel.nombre
+            txtDescripcion.text = nivel.descripcion
+            item.setOnClickListener {
+                binding.btnSeleccionNivel.setText(nivel.nombre)
+                ocultarContenedorInferior()
+                Toast.makeText(this, "Nivel seleccionado", Toast.LENGTH_SHORT).show()
+            }
+            contenedor.addView(item)
+        }
+
+        // Ocultar RecyclerView
+        binding.recyclerOpciones.visibility = View.GONE
+
+        // Eliminar contenedor anterior si existe
+        val existing = binding.contenedorInferior.findViewWithTag<View>("nivel_container")
+        existing?.let { binding.contenedorInferior.removeView(it) }
+
+        contenedor.tag = "nivel_container"
+        binding.contenedorInferior.addView(contenedor, binding.contenedorInferior.childCount - 1)
+
+        mostrarContenedorInferior()
+    }
+    private fun ocultarContenedorInferior() {
+        binding.contenedorInferior.animate()
+            .alpha(0f)
+            .setDuration(300)
+            .withEndAction {
+                binding.contenedorInferior.visibility = View.GONE
+                // Limpiar vistas personalizadas
+                val viewsToRemove = mutableListOf<View>()
+                for (i in 0 until binding.contenedorInferior.childCount) {
+                    val child = binding.contenedorInferior.getChildAt(i)
+                    if (child.tag != null && child != binding.tvTituloContenedor &&
+                        child != binding.btnCerrarContenedor) {
+                        viewsToRemove.add(child)
+                    }
+                }
+                viewsToRemove.forEach { binding.contenedorInferior.removeView(it) }
+                // Mostrar RecyclerView nuevamente
+                binding.recyclerOpciones.visibility = View.VISIBLE
+            }
+    }
+    private fun mostrarContenedorInferior() {
+
+        binding.contenedorInferior.visibility = View.VISIBLE
+
+        // 🔥 Forzar expansión
+        val params = binding.contenedorInferior.layoutParams
+        params.height = alturaExpandida
+        binding.contenedorInferior.layoutParams = params
+
+        contenedorExpandido = true
+        actualizarTextoBarra()
+
+        binding.contenedorInferior.alpha = 0f
+        binding.contenedorInferior.animate()
+            .alpha(1f)
+            .setDuration(300)
+            .setListener(null)
     }
 
+
+
+
+    class NivelAdapter(private val lista: List<NivelCocina>) :
+        RecyclerView.Adapter<NivelAdapter.ViewHolder>() {
+
+        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val img = view.findViewById<ImageView>(R.id.imgGorrito)
+            val txt = view.findViewById<TextView>(R.id.txtNivel)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_nivel, parent, false)
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val item = lista[position]
+            holder.img.setImageResource(item.imagen)
+            holder.txt.text = item.nombre
+        }
+
+        override fun getItemCount() = lista.size
+    }
+
+
 }
+

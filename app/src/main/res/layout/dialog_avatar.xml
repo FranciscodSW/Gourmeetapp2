@@ -1,35 +1,43 @@
-<?xml version="1.0" encoding="utf-8"?>
+<!-- layout/item_avatar_container.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="16dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
+    <!-- RadioGroup para seleccionar género -->
     <RadioGroup
-        android:id="@+id/radioGroupGenero"
+        android:id="@+id/radiogroupgenero"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
 
         <RadioButton
-            android:id="@+id/rbMasculino"
+            android:id="@+id/rbmasculino"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Masculino"
-            android:checked="true"/>
+            android:textSize="16sp"
+            android:checked="true"
+            android:layout_marginEnd="24dp"/>
 
         <RadioButton
-            android:id="@+id/rbFemenino"
+            android:id="@+id/rbfemenino"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Femenino"/>
+            android:text="Femenino"
+            android:textSize="16sp"/>
     </RadioGroup>
 
+    <!-- GridLayout para avatares -->
     <GridLayout
-        android:id="@+id/gridAvatares"
+        android:id="@+id/gridavatares"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:columnCount="3"
-        android:layout_marginTop="16dp"/>
-
+        android:rowCount="3"
+        android:alignmentMode="alignMargins"
+        android:padding="8dp"/>
 </LinearLayout>
