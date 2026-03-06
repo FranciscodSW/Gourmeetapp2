@@ -56,8 +56,6 @@ interface ApiService {
         @Body usuario: UsuarioRegistro
     ): UsuarioRegistroResponse
 
-
-
-
-
+    @GET("obtener_restricciones.php")
+    suspend fun obtenerRestricciones(): RestriccionesResponse
 }

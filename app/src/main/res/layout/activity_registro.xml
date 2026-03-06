@@ -311,7 +311,7 @@
             android:layout_marginTop="16dp"
             android:text="Ubicacion"
             android:textAllCaps="false"
-            android:textSize="16sp"
+            android:textSize="14sp"
             app:cornerRadius="20dp"
             app:strokeColor="#000000"
             app:strokeWidth="2dp"
@@ -339,6 +339,7 @@
         android:background="@android:color/white"
         android:elevation="10dp"
         android:padding="16dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -393,6 +394,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false"/>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerEdad"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:clipToPadding="false"
+                    android:paddingHorizontal="40dp"
+                    android:overScrollMode="never"
+                    android:visibility="gone"/>
                 <!-- Botón cerrar -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCerrarContenedor"

@@ -2,14 +2,9 @@ package com.example.gourmeet2
 
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.location.Geocoder
 import android.net.wifi.WifiManager
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.transition.Transition
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -23,38 +18,33 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-
 import com.example.gourmeet2.data.api.ApiClient
 import com.example.gourmeet2.data.models.UsuarioRegistro
 import com.example.gourmeet2.databinding.ActivityRegistroBinding
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
-import javax.sql.DataSource
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.target.Target
-import kotlin.collections.emptyList
 
 class Registro : AppCompatActivity() {
     // Variables para controlar el estado del contenedor
+    lateinit var btnEdad: MaterialButton
+    lateinit var contenedor: LinearLayout
     private enum class EstadoContenedor {
         EXPANDIDO,      // Altura máxima
         MINIMIZADO,     // Altura mínima (solo se ve la barra)
         CERRADO         // Completamente oculto
     }
+    private var edadSeleccionada: Int = 0
     data class NivelCocina(
         val nombre: String,
         val descripcion: String,
@@ -70,20 +60,27 @@ class Registro : AppCompatActivity() {
     private val alturaMaxima = 2000 // Altura máxima en píxeles
     private val MAP_REQUEST = 100
     private val ALTURA_BARRA = 80
+    private var ubicacionSeleccionada: String = ""
+    private var latitudSeleccionada: Double = 0.0
+    private var longitudSeleccionada: Double = 0.0
+
+
     private var avatarSeleccionadoUrl: String = ""
-    private val mapaLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    private val mapaLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            result.data?.let { data ->
+                latitudSeleccionada = data.getDoubleExtra("lat", 0.0)
+                longitudSeleccionada = data.getDoubleExtra("lng", 0.0)
+                val direccion = data.getStringExtra("direccion") ?: ""
 
-            if (result.resultCode == RESULT_OK) {
+                // Actualizar el texto del botón con la ubicación seleccionada
+                binding.btneditUbicacion.text = direccion
+                ubicacionSeleccionada = direccion
 
-                val lat = result.data?.getDoubleExtra("lat", 0.0)
-                val lng = result.data?.getDoubleExtra("lng", 0.0)
-                val direccion = result.data?.getStringExtra("direccion")
-
-                //binding.editUbicacion.setText(direccion)
-
+                // Mostrar un toast de confirmación
+                Toast.makeText(this, "Ubicación seleccionada", Toast.LENGTH_SHORT).show()
             }
-        }
+        }}
 
     private lateinit var binding: ActivityRegistroBinding
 
@@ -95,17 +92,17 @@ class Registro : AppCompatActivity() {
 
         binding = ActivityRegistroBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        btnEdad = binding.btneditSeleccionEdad
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        //*binding.editUbicacion.setOnClickListener {
+        binding.btneditUbicacion.setOnClickListener {
 
-          //  val intent = Intent(this, MapaSeleccionActivity::class.java)
-            //mapaLauncher.launch(intent)
-        //}
+            val intent = Intent(this, MapaSeleccionActivity::class.java)
+            mapaLauncher.launch(intent)
+        }
         setupContenedor()
 
 
@@ -121,6 +118,8 @@ class Registro : AppCompatActivity() {
         binding.btneditSeleccionEdad.setOnClickListener {
             mostrarSelectorEdad()
             setupBarraArrastre()
+
+
         }
 
 
@@ -252,9 +251,7 @@ class Registro : AppCompatActivity() {
 
 
     private fun setupValidaciones() {
-
         binding.btnRegistrar.setOnClickListener {
-
             val nombre = binding.editNombre.text.toString().trim()
             val correo = binding.editCorreo.text.toString().trim()
             val pass = binding.editPassword.text.toString()
@@ -594,10 +591,6 @@ class Registro : AppCompatActivity() {
             .setDuration(300)
             .setListener(null)
     }
-
-
-
-
     class NivelAdapter(private val lista: List<NivelCocina>) :
         RecyclerView.Adapter<NivelAdapter.ViewHolder>() {
 
@@ -620,6 +613,199 @@ class Registro : AppCompatActivity() {
 
         override fun getItemCount() = lista.size
     }
+    private fun mostrarSelectorEdad() {
+        binding.tvTituloContenedor.text = "Selecciona tu edad"
+
+        // Crear contenedor principal
+        val contenedorEdad = LinearLayout(this)
+        contenedorEdad.orientation = LinearLayout.VERTICAL
+        contenedorEdad.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+
+        // Crear TextView para mostrar la edad seleccionada
+        val txtEdadSeleccionada = TextView(this).apply {
+            text = "18 años"
+            textSize = 24f
+            gravity = Gravity.CENTER
+            setTextColor(Color.BLACK)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = 32
+                bottomMargin = 32
+            }
+        }
+
+        // Crear RecyclerView para el carrusel
+        val recyclerView = RecyclerView(this)
+        recyclerView.layoutParams = RecyclerView.LayoutParams(
+            RecyclerView.LayoutParams.MATCH_PARENT,
+            400 // Altura fija para el carrusel
+        )
+
+        // Configurar LayoutManager horizontal con centrado
+        val layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        recyclerView.layoutManager = layoutManager
+
+        // Agregar SnapHelper para efecto de centrado
+        val snapHelper = LinearSnapHelper()
+        snapHelper.attachToRecyclerView(recyclerView)
+
+        // Crear lista de edades (18 a 100 años)
+        val edades = (18..100).toList()
+
+        // Crear y configurar el adaptador
+        val adapter = EdadAdapter(edades) { edad ->
+            txtEdadSeleccionada.text = "$edad años"
+            edadSeleccionada = edad
+        }
+        recyclerView.adapter = adapter
+
+        // Scroll a la edad por defecto (18)
+        recyclerView.post {
+            layoutManager.scrollToPosition(0)
+        }
+
+        // Agregar vistas al contenedor
+        contenedorEdad.addView(txtEdadSeleccionada)
+        contenedorEdad.addView(recyclerView)
+
+        // Botón para confirmar selección
+        val btnConfirmar = MaterialButton(this).apply {
+            text = "CONFIRMAR EDAD"
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = 32
+                leftMargin = 32
+                rightMargin = 32
+                bottomMargin = 32
+            }
+            cornerRadius = 20
+            setOnClickListener {
+                if (edadSeleccionada > 0) {
+                    btnEdad.text = "$edadSeleccionada años"
+                    ocultarContenedorInferior()
+                    Toast.makeText(this@Registro, "Edad seleccionada: $edadSeleccionada", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@Registro, "Selecciona una edad", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        contenedorEdad.addView(btnConfirmar)
+
+        // Ocultar RecyclerView principal
+        binding.recyclerOpciones.visibility = View.GONE
+
+        // Eliminar contenedor anterior si existe
+        val existing = binding.contenedorInferior.findViewWithTag<View>("edad_container")
+        existing?.let { binding.contenedorInferior.removeView(it) }
+
+        contenedorEdad.tag = "edad_container"
+        binding.contenedorInferior.addView(contenedorEdad, binding.contenedorInferior.childCount - 1)
+
+        mostrarContenedorInferior()
+    }
+    inner class EdadAdapter(
+        private val edades: List<Int>,
+        private val onItemClick: (Int) -> Unit
+    ) : RecyclerView.Adapter<EdadAdapter.EdadViewHolder>() {
+
+        private var selectedPosition = 0
+
+        inner class EdadViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            private val txtEdad: TextView = itemView.findViewById(R.id.txtEdad)
+            private val cardView: androidx.cardview.widget.CardView = itemView.findViewById(R.id.cardView)
+
+            fun bind(edad: Int, isSelected: Boolean) {
+                txtEdad.text = edad.toString()
+
+                // Cambiar estilo según si está seleccionado
+                if (isSelected) {
+                    cardView.setCardBackgroundColor(Color.parseColor("#0E90E4"))
+                    txtEdad.setTextColor(Color.WHITE)
+                    cardView.cardElevation = 8f
+                } else {
+                    cardView.setCardBackgroundColor(Color.WHITE)
+                    txtEdad.setTextColor(Color.BLACK)
+                    cardView.cardElevation = 2f
+                }
+
+                itemView.setOnClickListener {
+                    val previousPosition = selectedPosition
+                    selectedPosition = adapterPosition
+                    notifyItemChanged(previousPosition)
+                    notifyItemChanged(selectedPosition)
+                    onItemClick(edad)
+                }
+            }
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EdadViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_edad, parent, false)
+            return EdadViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: EdadViewHolder, position: Int) {
+            holder.bind(edades[position], position == selectedPosition)
+        }
+
+        override fun getItemCount() = edades.size
+    }
+
+    data class Restriccion(
+        val Id_Restricciones: Int,
+        val Res_Nombre: String,
+        val Res_Descripcion: String,
+        var seleccionada: Boolean = false
+    )
+    class RestriccionAdapter(
+        private val lista: MutableList<Restriccion>
+    ) : RecyclerView.Adapter<RestriccionAdapter.ViewHolder>() {
+
+        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            //val card: MaterialCardView = view.findViewById(R.id.cardRestriccion)
+            val nombre: TextView = view.findViewById(R.id.tvNombre)
+            val descripcion: TextView = view.findViewById(R.id.tvDescripcion)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_restriccion, parent, false)
+
+            return ViewHolder(view)
+        }
+
+        override fun getItemCount() = lista.size
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+
+            val item = lista[position]
+
+            holder.nombre.text = item.Res_Nombre
+            holder.descripcion.text = item.Res_Descripcion
+
+            // COLOR
+            if (item.seleccionada) {
+                //holder.card.setCardBackgroundColor(Color.parseColor("#0E90E4"))
+                holder.nombre.setTextColor(Color.WHITE)
+                holder.descripcion.setTextColor(Color.WHITE)
+            } else {
+               // holder.card.setCardBackgroundColor(Color.WHITE)
+                holder.nombre.setTextColor(Color.BLACK)
+                holder.descripcion.setTextColor(Color.GRAY)
+
+            }
+
+
+        }
+    }
+
 
 
 }
