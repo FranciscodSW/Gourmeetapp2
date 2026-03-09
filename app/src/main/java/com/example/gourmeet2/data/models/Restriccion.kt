@@ -12,5 +12,4 @@ data class Restriccion(
 
     @SerializedName("Res_Descripcion")
     val descripcion: String
-
 )

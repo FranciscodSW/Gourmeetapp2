@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
+        android:buttonTint="@color/azulgourmeet"
         android:layout_marginBottom="16dp">
 
         <RadioButton
@@ -19,12 +20,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Masculino"
+            android:fontFamily="@font/caviardreams"
             android:textSize="16sp"
             android:checked="true"
             android:layout_marginEnd="24dp"/>
 
         <RadioButton
             android:id="@+id/rbfemenino"
+            android:fontFamily="@font/caviardreams"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Femenino"
