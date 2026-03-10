@@ -3,14 +3,14 @@ package com.example.gourmeet2.data.models
 
 import com.google.gson.annotations.SerializedName
 
-data class UsuarioRegistroResponse(
+data class RegistroResponse(
 
     @SerializedName("success")
     val success: Boolean,
 
-    @SerializedName("message")
-    val message: String?,
+    @SerializedName("usuario_id")
+    val usuarioId: Int?,
 
-    @SerializedName("error")
-    val error: String?
+    @SerializedName("message")
+    val message: String?
 )

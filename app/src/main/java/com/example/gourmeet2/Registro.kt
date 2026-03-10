@@ -1,12 +1,10 @@
 package com.example.gourmeet2
-
-import android.R.attr.data
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.Typeface
 import android.location.Geocoder
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -39,23 +37,32 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Collections.addAll
 import java.util.Locale
 import kotlin.collections.emptyList
 
 class Registro : AppCompatActivity() {
-    // Variables para controlar el estado del contenedor
     lateinit var btnEdad: MaterialButton
     private enum class EstadoContenedor {
         EXPANDIDO,      // Altura máxima
         MINIMIZADO,     // Altura mínima (solo se ve la barra)
         CERRADO         // Completamente oculto
     }
-    private var edadSeleccionada: Int = 0
     data class NivelCocina(
+        val id: Int,
         val nombre: String,
         val descripcion: String,
         val imagen: Int
     )
+    var edadSeleccionada = 0
+    var nivelSeleccionado: Int = 0
+    var avatarSeleccionado = "avatar1.png"
+    var latitudSeleccionada = 0.0
+    var longitudSeleccionada = 0.0
+    var nombreSeleccionado = ""
+    var correoSeleccionado = ""
+    var passSeleccionado = ""
+    var restriccionesSeleccionadas = mutableListOf<Restriccion>()
     private var estadoActual = EstadoContenedor.CERRADO
     private var alturaExpandida = 0
     private var alturaMinimizada = 0
@@ -66,32 +73,27 @@ class Registro : AppCompatActivity() {
     private val MAP_REQUEST = 100
     private val ALTURA_BARRA = 80
     private var ubicacionSeleccionada: String = ""
-    private var latitudSeleccionada: Double = 0.0
-    private var longitudSeleccionada: Double = 0.0
     private var restricciones = RestriccionesData(
         alergia = emptyList(),
         alimento = emptyList(),
         cultural = emptyList(),
         intolerancia = emptyList()
     )
-
-    private var avatarSeleccionadoUrl: String = ""
+    private val TAG = "RegistroDebug"
+    private var avatar: String = ""
     private val mapaLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             result.data?.let { data ->
                 latitudSeleccionada = data.getDoubleExtra("lat", 0.0)
                 longitudSeleccionada = data.getDoubleExtra("lng", 0.0)
                 val direccion = data.getStringExtra("direccion") ?: ""
-
                 // Actualizar el texto del botón con la ubicación seleccionada
                 binding.btneditUbicacion.text = direccion
                 ubicacionSeleccionada = direccion
-
                 // Mostrar un toast de confirmación
                 Toast.makeText(this, "Ubicación seleccionada", Toast.LENGTH_SHORT).show()
             }
         }}
-
     private lateinit var binding: ActivityRegistroBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,30 +108,28 @@ class Registro : AppCompatActivity() {
             insets
         }
         binding.btneditUbicacion.setOnClickListener {
-
+            if (binding.contenedorInferior.visibility == View.VISIBLE) {
+                ocultarContenedorInferior()
+                limpiarContenedorInferior()
+            }
             val intent = Intent(this, MapaSeleccionActivity::class.java)
             mapaLauncher.launch(intent)
         }
         setupContenedor()
         cargarRestricciones()
-
-
         binding.btnSeleccionAvatar.setOnClickListener {
             mostrarSelectorAvatarEnContenedor()
             setupBarraArrastre()
         }
 
         binding.btnSeleccionNivel.setOnClickListener {
-          mostrarSelectorNivel()
+            mostrarSelectorNivel()
             setupBarraArrastre()
         }
         binding.btneditSeleccionEdad.setOnClickListener {
             mostrarSelectorEdad()
             setupBarraArrastre()
-
-
         }
-
         binding.btnSeleccionalergias.setOnClickListener {
 
             mostrarSelectorRestricciones(
@@ -137,7 +137,6 @@ class Registro : AppCompatActivity() {
                 restricciones.alergia
             )
         }
-
         binding.btnSeleccionCultura.setOnClickListener {
 
             mostrarSelectorRestricciones(
@@ -145,7 +144,6 @@ class Registro : AppCompatActivity() {
                 restricciones.cultural
             )
         }
-
         binding.btneditSeleccionAlimento.setOnClickListener {
 
             mostrarSelectorRestricciones(
@@ -153,7 +151,6 @@ class Registro : AppCompatActivity() {
                 restricciones.alimento
             )
         }
-
         binding.btneditintolerancias.setOnClickListener {
 
             mostrarSelectorRestricciones(
@@ -162,39 +159,24 @@ class Registro : AppCompatActivity() {
             )
         }
         binding.btnFin.setOnClickListener {
-
             binding.layoutPersonalizar.visibility = View.GONE
-
             binding.layoutrestricciones.visibility = View.VISIBLE
         }
         binding.btnFinRes.setOnClickListener {
 
-            Toast.makeText(
-                this,
-                "Registro completo",
-                Toast.LENGTH_LONG
-            ).show()
-
+            registrarUsuario()
         }
-
-
         setupValidaciones()
     }
 
     private fun cargarRestricciones() {
-
         lifecycleScope.launch {
-
             try {
-
                 val response = ApiClient.apiService.obtenerRestricciones()
-
                 if (response.success) {
                     restricciones = response.restricciones
                 }
-
             } catch (e: Exception) {
-
                 Toast.makeText(
                     this@Registro,
                     "Error cargando restricciones",
@@ -205,45 +187,33 @@ class Registro : AppCompatActivity() {
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         if (requestCode == MAP_REQUEST && resultCode == RESULT_OK) {
-
             val lat = data?.getDoubleExtra("lat", 0.0)
             val lng = data?.getDoubleExtra("lng", 0.0)
-
             val geocoder = Geocoder(this, Locale.getDefault())
             val addresses = geocoder.getFromLocation(lat!!, lng!!, 1)
-
             if (!addresses.isNullOrEmpty()) {
-
-
             }
         }
     }
     private fun setupContenedor() {
         // Convertir dp a píxeles
         val barraHeight = (ALTURA_BARRA * resources.displayMetrics.density).toInt()
-
         // Calcular alturas basadas en la pantalla
         val displayMetrics = resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
-
         // Altura expandida: 70% de la pantalla
         alturaExpandida = (screenHeight * 0.9).toInt()
-
         // Altura minimizada: solo la barra + padding
         alturaMinimizada = barraHeight + 32 // 16dp padding top + 16dp padding bottom
-
         // Estado inicial: minimizado
         estadoActual = EstadoContenedor.MINIMIZADO
         actualizarAlturaContenedor(alturaMinimizada)
         actualizarTextoBarra()
-
         // Configurar click en la barra
         binding.barraArrastre.setOnClickListener {
             toggleContenedor()
         }
-
         // Opcional: doble click para cerrar completamente
         binding.barraArrastre.setOnLongClickListener {
             ocultarContenedorInferior()
@@ -260,7 +230,6 @@ class Registro : AppCompatActivity() {
         binding.barraArrastre.setOnClickListener {
             toggleContenedor()
         }
-
         // Opcional: Configurar gesto de arrastre
         binding.barraArrastre.setOnTouchListener { v, event ->
             when (event.action) {
@@ -325,45 +294,57 @@ class Registro : AppCompatActivity() {
                 mostrarError("Las contraseñas no coinciden")
                 return@setOnClickListener
             }
-            mostrarExito(nombre)
+            mostrarExito()
+            nombreSeleccionado = nombre
+            correoSeleccionado = correo
+            passSeleccionado = pass
             // registrarUsuario(nombre, correo, pass)
         }
     }
-    private fun registrarUsuario(nombre: String, correo: String, pass: String) {
 
-        val ip = obtenerIP()   // 🔥 AQUÍ
-
+    private fun registrarUsuario() {
+        val ip = obtenerIP()
         binding.txtError.visibility = View.GONE
-
         CoroutineScope(Dispatchers.IO).launch {
-
             try {
-
+                // 🔹 datos que ya obtienes en tu pantalla de registro
+                val edad = edadSeleccionada
+                val nivel = nivelSeleccionado
+                val avatar = avatarSeleccionado
+                val latitud = latitudSeleccionada
+                val longitud = longitudSeleccionada
+                val  nombre = nombreSeleccionado
+                val correo = correoSeleccionado
+                val pass = passSeleccionado
+                val origen = "APP_GOURMEET"
+                // lista de ids de restricciones seleccionadas
+                val restriccionesIds = restriccionesSeleccionadas.map { it.id }
                 val usuario = UsuarioRegistro(
                     nombre = nombre,
                     correo = correo,
                     password = pass,
-                    cliPrimerIp = ip   // 🔥 enviada
+                    cliPrimerIp = ip,
+                    origen = origen,
+                    edad = edad,
+                    nivel = nivel,
+                    avatar = avatar,
+                    latitud = latitud,
+                    longitud = longitud,
+                    restricciones = restriccionesIds
                 )
-
                 val response = ApiClient.apiService.registrarUsuario(usuario)
-
                 withContext(Dispatchers.Main) {
-
                     if (response.success) {
-                        mostrarExito(nombre)
+                        mostrarExito()
                     } else {
-                        mostrarError(response.error ?: "Error desconocido")
+                        mostrarError( "Error desconocido")
                     }
                 }
-
             } catch (e: Exception) {
-
                 withContext(Dispatchers.Main) {
-
                     mostrarError("Error de conexión")
-
                 }
+
             }
         }
     }
@@ -376,17 +357,14 @@ class Registro : AppCompatActivity() {
             mostrarError("Ingresa tu nombre")
             return false
         }
-
         val regex = Regex("^[A-ZÁÉÍÓÚÑ][a-záéíóúñA-ZÁÉÍÓÚÑ ]*$")
 
         if (!regex.matches(nombre)) {
             mostrarError("Nombre inválido. Solo letras y debe iniciar con mayúscula")
             return false
         }
-
         return true
     }
-
     // =========================
     // ✅ VALIDAR CORREO
     // =========================
@@ -396,7 +374,6 @@ class Registro : AppCompatActivity() {
             mostrarError("Ingresa tu correo")
             return false
         }
-
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
             mostrarError("Correo inválido")
             return false
@@ -404,7 +381,6 @@ class Registro : AppCompatActivity() {
 
         return true
     }
-
     // =========================
     // ✅ VALIDAR PASSWORD
     // =========================
@@ -424,12 +400,10 @@ class Registro : AppCompatActivity() {
 
         return true
     }
-
     // =========================
     // ✅ MENSAJES
     // =========================
     private fun mostrarError(msg: String) {
-
         binding.txtError.apply {
             text = msg
             visibility = View.VISIBLE
@@ -437,14 +411,10 @@ class Registro : AppCompatActivity() {
             animate().alpha(1f).setDuration(250).start()
         }
     }
-
-    private fun mostrarExito(nombre: String) {
-
+    private fun mostrarExito() {
         binding.layoutRegistro.visibility = View.GONE
-
         binding.layoutPersonalizar.visibility = View.VISIBLE
     }
-
     private fun obtenerIP(): String {
         return try {
             val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
@@ -461,15 +431,29 @@ class Registro : AppCompatActivity() {
             "0.0.0.0"
         }
     }
+    private fun limpiarContenedorInferior() {
+        Log.d("RegistroDebug", "Entrando a limpiar")
+        val avatar = binding.contenedorInferior.findViewWithTag<View>("avatar_container")
+        avatar?.let { binding.contenedorInferior.removeView(it) }
+        val nivel = binding.contenedorInferior.findViewWithTag<View>("nivel_container")
+        nivel?.let { binding.contenedorInferior.removeView(it) }
+        val restricciones = binding.contenedorInferior.findViewWithTag<View>("restricciones_container")
+        restricciones?.let { binding.contenedorInferior.removeView(it) }
+        val edad = binding.contenedorInferior.findViewWithTag<View>("edad_container")
+        edad?.let { binding.contenedorInferior.removeView(it) }
 
+    }
     private fun mostrarSelectorAvatarEnContenedor() {
-        binding.tvTituloContenedor.text = "Selecciona tu avatar"
+        Log.d(TAG, "Entrando a avatar")
+        if (binding.contenedorInferior.visibility == View.VISIBLE) {
 
+            limpiarContenedorInferior()
+        }
+        binding.tvTituloContenedor.text = "Selecciona tu avatar"
         // Inflar el layout de avatares
         val avatarView = layoutInflater.inflate(R.layout.dialog_avatar, null)
         val radioGroup = avatarView.findViewById<RadioGroup>(R.id.radiogroupgenero)
         val grid = avatarView.findViewById<GridLayout>(R.id.gridavatares)
-
         fun cargarAvatares(genero: String) {
             grid.removeAllViews()
             for (i in 1..5) {
@@ -480,7 +464,6 @@ class Registro : AppCompatActivity() {
                 params.setMargins(16, 16, 16, 16)
                 imageView.layoutParams = params
                 imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-
                 val nombreImagen = if (genero == "M") {
                     "ic_usuario_$i"
                 } else {
@@ -495,10 +478,18 @@ class Registro : AppCompatActivity() {
                     imageView.setImageResource(resourceId)
                 }
                 imageView.setOnClickListener {
-                    avatarSeleccionadoUrl = nombreImagen
+                    avatarSeleccionado = "$nombreImagen.png"   // 🔥 ESTE ES EL QUE VA A LA API
                     binding.btnSeleccionAvatar.text = "Avatar seleccionado"
+                    val resourceId = resources.getIdentifier(
+                        nombreImagen,
+                        "drawable",
+                        packageName
+                    )
+                    binding.btnSeleccionAvatar.iconTint = null
+                    binding.btnSeleccionAvatar.setIconResource(resourceId)
                     ocultarContenedorInferior()
                     Toast.makeText(this, "Avatar seleccionado", Toast.LENGTH_SHORT).show()
+                    avatar = avatarSeleccionado
                 }
                 grid.addView(imageView)
             }
@@ -515,9 +506,6 @@ class Registro : AppCompatActivity() {
                 cargarAvatares("F")
             }
         }
-
-        // 🔥 SOLUCIÓN: En lugar de usar RecyclerView, usamos un contenedor lineal
-        // para mostrar el contenido del avatar
         val contenedorAvatar = LinearLayout(this)
         contenedorAvatar.layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -525,50 +513,55 @@ class Registro : AppCompatActivity() {
         )
         contenedorAvatar.orientation = LinearLayout.VERTICAL
         contenedorAvatar.addView(avatarView)
-
         // Reemplazar el contenido del contenedor inferior
         val parent = binding.recyclerOpciones.parent as? ViewGroup
         val index = (parent?.indexOfChild(binding.recyclerOpciones) ?: 0) + 1
-
         // Ocultar RecyclerView y mostrar el contenedor personalizado
         binding.recyclerOpciones.visibility = View.GONE
-
         // Buscar si ya existe un contenedor personalizado y eliminarlo
         val existingContainer = binding.contenedorInferior.findViewWithTag<View>("avatar_container")
         existingContainer?.let { binding.contenedorInferior.removeView(it) }
-
         // Agregar el nuevo contenedor con tag para identificarlo
         contenedorAvatar.tag = "avatar_container"
         binding.contenedorInferior.addView(contenedorAvatar, binding.contenedorInferior.childCount - 1)
-
         mostrarContenedorInferior()
     }
     private fun mostrarSelectorNivel() {
 
+        Log.d(TAG, "Entrando a nivel")
+        if (binding.contenedorInferior.visibility == View.VISIBLE) {
+
+            limpiarContenedorInferior()
+        }
         binding.tvTituloContenedor.text = "Selecciona tu nivel"
 
         val listaNiveles = listOf(
             NivelCocina(
+                1,
                 "Ayudante de cocina (Commis)",
                 "Apoya en tareas básicas: lavar, cortar, preparar ingredientes.",
                 R.drawable.ic_gorrito_1
             ),
             NivelCocina(
+                2,
                 "Cocinero (Chef de partida)",
                 "Encargado de una estación específica (carnes, pastas, postres, etc.).",
                 R.drawable.ic_gorrito_2
             ),
             NivelCocina(
+                3,
                 "Subchef (Sous Chef)",
                 "Segundo al mando. Supervisa al equipo y reemplaza al chef cuando no está.",
                 R.drawable.ic_gorrito_3
             ),
             NivelCocina(
+                4,
                 "Chef Ejecutivo",
                 "Responsable del menú, calidad, costos y organización de la cocina.",
                 R.drawable.ic_gorrito_4
             ),
             NivelCocina(
+                5,
                 "Chef Corporativo",
                 "Supervisa varias cocinas o restaurantes dentro de una empresa.",
                 R.drawable.ic_gorrito_5
@@ -583,7 +576,6 @@ class Registro : AppCompatActivity() {
         )
 
         listaNiveles.forEach { nivel ->
-
             val item = layoutInflater.inflate(R.layout.dialog_nivel, null)
             val img = item.findViewById<ImageView>(R.id.imggorrito)
             val txtNombre = item.findViewById<TextView>(R.id.txtnivel)
@@ -592,26 +584,29 @@ class Registro : AppCompatActivity() {
             txtNombre.text = nivel.nombre
             txtDescripcion.text = nivel.descripcion
             item.setOnClickListener {
-                binding.btnSeleccionNivel.setText(nivel.nombre)
+                nivelSeleccionado = nivel.id
+                // Cambiar texto
+                binding.btnSeleccionNivel.text = nivel.nombre
+                // Cambiar icono al gorrito seleccionado
+                binding.btnSeleccionNivel.setIconResource(nivel.imagen)
+                // Quitar el tint azul
+                binding.btnSeleccionNivel.iconTint = null
                 ocultarContenedorInferior()
                 Toast.makeText(this, "Nivel seleccionado", Toast.LENGTH_SHORT).show()
             }
             contenedor.addView(item)
         }
-
         // Ocultar RecyclerView
         binding.recyclerOpciones.visibility = View.GONE
-
         // Eliminar contenedor anterior si existe
         val existing = binding.contenedorInferior.findViewWithTag<View>("nivel_container")
         existing?.let { binding.contenedorInferior.removeView(it) }
-
         contenedor.tag = "nivel_container"
         binding.contenedorInferior.addView(contenedor, binding.contenedorInferior.childCount - 1)
-
         mostrarContenedorInferior()
     }
     private fun ocultarContenedorInferior() {
+        Log.d(TAG, "Entrando a contenedor inferior")
 
         binding.contenedorInferior.animate()
             .translationY(binding.contenedorInferior.height.toFloat()) // baja
@@ -672,27 +667,27 @@ class Registro : AppCompatActivity() {
     }
     class NivelAdapter(private val lista: List<NivelCocina>) :
         RecyclerView.Adapter<NivelAdapter.ViewHolder>() {
-
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             val img = view.findViewById<ImageView>(R.id.imgGorrito)
             val txt = view.findViewById<TextView>(R.id.txtNivel)
         }
-
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_nivel, parent, false)
             return ViewHolder(view)
         }
-
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = lista[position]
             holder.img.setImageResource(item.imagen)
             holder.txt.text = item.nombre
         }
-
         override fun getItemCount() = lista.size
     }
     private fun mostrarSelectorEdad() {
+        Log.d(TAG, "Entrando a edad")
+        if (binding.contenedorInferior.visibility == View.VISIBLE) {
+            limpiarContenedorInferior()
+        }
         binding.tvTituloContenedor.text = "Selecciona tu edad"
 
         // Crear contenedor principal
@@ -825,7 +820,6 @@ class Registro : AppCompatActivity() {
                 .inflate(R.layout.item_edad, parent, false)
             return EdadViewHolder(view)
         }
-
         override fun onBindViewHolder(holder: EdadViewHolder, position: Int) {
             val edad = edades[position]
             val isSelected = position == selectedPosition
@@ -834,59 +828,57 @@ class Registro : AppCompatActivity() {
         override fun getItemCount() = edades.size
     }
     private fun mostrarSelectorRestricciones(titulo: String, lista: List<Restriccion>) {
-
         binding.tvTituloContenedor.text = titulo
 
-        val contenedorRestricciones = LinearLayout(this).apply {
+        // Contenedor principal
+        val contenedorPrincipal = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
         }
-
-        val seleccionadas = mutableSetOf<Int>()
-
+        // Contenedor SOLO para la lista
+        val contenedorLista = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+        val seleccionadas = mutableSetOf<Int>().apply {
+            addAll(restriccionesSeleccionadas)
+        }
         lista.forEach { restriccion ->
-
             val item = layoutInflater.inflate(R.layout.item_restriccion, null)
-
             val nombre = item.findViewById<TextView>(R.id.tvNombre)
             val descripcion = item.findViewById<TextView>(R.id.tvDescripcion)
-
+            val typeface = ResourcesCompat.getFont(this, R.font.caviardreams)
+            nombre.typeface = typeface
+            descripcion.typeface = typeface
             nombre.text = restriccion.nombre
             descripcion.text = restriccion.descripcion
-
             item.setOnClickListener {
-
                 if (seleccionadas.contains(restriccion.id)) {
-
                     seleccionadas.remove(restriccion.id)
-
                     nombre.setTextColor(Color.BLACK)
                     descripcion.setTextColor(Color.GRAY)
-
                     item.setBackgroundColor(Color.TRANSPARENT)
-
                 } else {
-
                     seleccionadas.add(restriccion.id)
-
                     nombre.setTextColor(Color.WHITE)
                     descripcion.setTextColor(Color.WHITE)
-
                     item.setBackgroundColor(Color.parseColor("#0E90E4"))
                 }
             }
-            contenedorRestricciones.addView(item)
+            contenedorLista.addView(item)
         }
-
+        // Botón confirmar
         val btnConfirmar = MaterialButton(this).apply {
             text = "CONFIRMAR"
             setBackgroundColor(ContextCompat.getColor(context, R.color.azulgourmeet))
             setTextColor(Color.WHITE)
             textSize = 18f
-            setTypeface(null, Typeface.BOLD)
             typeface = ResourcesCompat.getFont(context, R.font.caviardreams)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -897,31 +889,28 @@ class Registro : AppCompatActivity() {
                 rightMargin = 32
             }
             setOnClickListener {
-
                 Toast.makeText(
                     this@Registro,
                     "Seleccionaste ${seleccionadas.size} restricciones",
                     Toast.LENGTH_SHORT
                 ).show()
-
+                binding.contenedorContenido.removeView(contenedorPrincipal)
                 ocultarContenedorInferior()
             }
         }
-
-        contenedorRestricciones.addView(btnConfirmar)
-
+        // Orden correcto
+        contenedorPrincipal.addView(contenedorLista)
+        contenedorPrincipal.addView(btnConfirmar)
         binding.recyclerOpciones.visibility = View.GONE
 
-        val existing = binding.contenedorInferior.findViewWithTag<View>("restricciones_container")
-        existing?.let { binding.contenedorInferior.removeView(it) }
+// eliminar contenedor anterior si existe
+        val existing = binding.contenedorContenido.findViewWithTag<View>("restricciones_container")
+        existing?.let { binding.contenedorContenido.removeView(it) }
 
-        contenedorRestricciones.tag = "restricciones_container"
+// agregar nuevo contenedor
+        contenedorPrincipal.tag = "restricciones_container"
+        binding.contenedorContenido.addView(contenedorPrincipal)
 
-        binding.contenedorInferior.addView(
-            contenedorRestricciones,
-            binding.contenedorInferior.childCount - 1
-        )
         mostrarContenedorInferior()
     }
 }
-

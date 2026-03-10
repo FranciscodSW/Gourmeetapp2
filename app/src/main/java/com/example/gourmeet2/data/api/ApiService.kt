@@ -54,8 +54,13 @@ interface ApiService {
     @POST("RegistroUsuario.php")
     suspend fun registrarUsuario(
         @Body usuario: UsuarioRegistro
-    ): UsuarioRegistroResponse
+    ): RegistroResponse
 
     @GET("obtener_restricciones.php")
     suspend fun obtenerRestricciones(): RestriccionesResponse
+
+    @POST("login_usuario.php")
+    suspend fun loginUsuario(
+        @Body request: Login
+    ): LoginResponse
 }

@@ -19,10 +19,18 @@ import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
+import android.widget.Toast.makeText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.gourmeet2.data.api.ApiClient
+import com.example.gourmeet2.data.models.Login
 import com.example.gourmeet2.databinding.ActivityLoginBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class Login : AppCompatActivity() {
 
@@ -79,6 +87,18 @@ class Login : AppCompatActivity() {
                 android.R.anim.fade_out
             )
         }
+        binding.btnLogin.setOnClickListener {
+
+            val usuario = binding.editUsuario.text.toString().trim()
+            val pass = binding.editPassword.text.toString()
+
+            if (usuario.isEmpty() || pass.isEmpty()) {
+                makeText(this, "Completa los campos", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            loginUsuario(usuario, pass)
+        }
 
 
         behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
@@ -132,6 +152,57 @@ class Login : AppCompatActivity() {
 
         binding.btnsinCuenta.setOnClickListener {
             mostrarDialogoPrivacidad()
+        }
+    }
+    private fun loginUsuario(usuario: String, pass: String) {
+
+        CoroutineScope(Dispatchers.IO).launch {
+
+            try {
+
+                val request = Login(usuario, pass)
+
+                val response = ApiClient.apiService.loginUsuario(request)
+
+                withContext(Dispatchers.Main) {
+
+                    if (response.success) {
+
+                        makeText(
+                            this@LoginActivity,
+                            "Bienvenido ${response.nombre}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        // Abrir pantalla principal
+                        startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                        finish()
+
+                    } else {
+                        makeText(
+                            this@LoginActivity,
+                            response.error ?: "Error",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                    }
+
+                }
+
+            } catch (e: Exception) {
+
+                withContext(Dispatchers.Main) {
+
+                    makeText(
+                        this@LoginActivity,
+                        "Error de conexión",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+            }
+
         }
     }
 
