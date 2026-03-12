@@ -63,4 +63,9 @@ interface ApiService {
     suspend fun loginUsuario(
         @Body request: Login
     ): LoginResponse
+
+    @POST("verificar_usuario.php")
+    suspend fun verificarUsuario(
+        @Body request: VerificarUsuario
+    ): VerificarUsuarioResponse
 }

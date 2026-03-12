@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "241245482852",
+    "project_id": "gourmeet-a3830",
+    "storage_bucket": "gourmeet-a3830.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:241245482852:android:3df1ae1f8a7993f739d471",
+        "android_client_info": {
+          "package_name": "com.example.gourmeet2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbW4haTMbz5cACmQ9QlgMFl0kd6mu07PE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

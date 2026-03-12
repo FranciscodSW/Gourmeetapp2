@@ -1,6 +1,8 @@
 package com.example.gourmeet2
+import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.location.Geocoder
 import android.net.wifi.WifiManager
 import android.os.Bundle
@@ -10,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -31,6 +34,7 @@ import com.example.gourmeet2.data.api.ApiClient
 import com.example.gourmeet2.data.models.Restriccion
 import com.example.gourmeet2.data.models.RestriccionesData
 import com.example.gourmeet2.data.models.UsuarioRegistro
+import com.example.gourmeet2.data.models.VerificarUsuario
 import com.example.gourmeet2.databinding.ActivityRegistroBinding
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
@@ -95,7 +99,6 @@ class Registro : AppCompatActivity() {
             }
         }}
     private lateinit var binding: ActivityRegistroBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -121,7 +124,6 @@ class Registro : AppCompatActivity() {
             mostrarSelectorAvatarEnContenedor()
             setupBarraArrastre()
         }
-
         binding.btnSeleccionNivel.setOnClickListener {
             mostrarSelectorNivel()
             setupBarraArrastre()
@@ -131,28 +133,24 @@ class Registro : AppCompatActivity() {
             setupBarraArrastre()
         }
         binding.btnSeleccionalergias.setOnClickListener {
-
             mostrarSelectorRestricciones(
                 "Alergias",
                 restricciones.alergia
             )
         }
         binding.btnSeleccionCultura.setOnClickListener {
-
             mostrarSelectorRestricciones(
                 "Restricciones culturales",
                 restricciones.cultural
             )
         }
         binding.btneditSeleccionAlimento.setOnClickListener {
-
             mostrarSelectorRestricciones(
                 "Restricciones alimenticias",
                 restricciones.alimento
             )
         }
         binding.btneditintolerancias.setOnClickListener {
-
             mostrarSelectorRestricciones(
                 "Intolerancias",
                 restricciones.intolerancia
@@ -163,12 +161,35 @@ class Registro : AppCompatActivity() {
             binding.layoutrestricciones.visibility = View.VISIBLE
         }
         binding.btnFinRes.setOnClickListener {
-
             registrarUsuario()
+            mostrarPantallaFinal()
         }
         setupValidaciones()
     }
+    private fun mostrarPantallaFinal() {
 
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_registro_exitoso)
+
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
+
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        val btnContinuar = dialog.findViewById<Button>(R.id.btnContinuar)
+
+        btnContinuar.setOnClickListener {
+            dialog.dismiss()
+            val intent = Intent(this, Menu_principal_free::class.java)
+            startActivity(intent)
+            finish()
+
+        }
+
+        dialog.show()
+    }
     private fun cargarRestricciones() {
         lifecycleScope.launch {
             try {
@@ -210,7 +231,6 @@ class Registro : AppCompatActivity() {
         estadoActual = EstadoContenedor.MINIMIZADO
         actualizarAlturaContenedor(alturaMinimizada)
         actualizarTextoBarra()
-        // Configurar click en la barra
         binding.barraArrastre.setOnClickListener {
             toggleContenedor()
         }
@@ -226,21 +246,17 @@ class Registro : AppCompatActivity() {
         binding.contenedorInferior.layoutParams = params
     }
     private fun setupBarraArrastre() {
-        // Configurar click en la barra para expandir/contraer
-        binding.barraArrastre.setOnClickListener {
-            toggleContenedor()
-        }
-        // Opcional: Configurar gesto de arrastre
+
         binding.barraArrastre.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    // Guardar posición inicial del toque
-                    // Aquí podrías implementar arrastre continuo
+                    lastY = event.rawY
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
                     val deltaY = event.rawY - lastY
                     val newHeight = (binding.contenedorInferior.height - deltaY).toInt()
+
                     if (newHeight in alturaMinimizada..alturaExpandida) {
                         val params = binding.contenedorInferior.layoutParams
                         params.height = newHeight
@@ -250,9 +266,8 @@ class Registro : AppCompatActivity() {
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    // Determinar si debe expandirse o contraerse basado en la altura final
-                    val params = binding.contenedorInferior.layoutParams
-                    contenedorExpandido = params.height > (alturaMinima + alturaMaxima) / 2
+                    val alturaActual = binding.contenedorInferior.height
+                    contenedorExpandido = alturaActual > (alturaMinimizada + alturaExpandida) / 2
                     actualizarTextoBarra()
                     true
                 }
@@ -262,16 +277,13 @@ class Registro : AppCompatActivity() {
     }
     private fun toggleContenedor() {
         contenedorExpandido = !contenedorExpandido
-
         val params = binding.contenedorInferior.layoutParams
         params.height = if (contenedorExpandido) alturaMaxima else alturaMinima
         binding.contenedorInferior.layoutParams = params
-
         // Animar el cambio
         binding.contenedorInferior.animate()
             .setDuration(300)
             .start()
-
         actualizarTextoBarra()
     }
     private fun actualizarTextoBarra() {
@@ -294,14 +306,29 @@ class Registro : AppCompatActivity() {
                 mostrarError("Las contraseñas no coinciden")
                 return@setOnClickListener
             }
-            mostrarExito()
-            nombreSeleccionado = nombre
-            correoSeleccionado = correo
-            passSeleccionado = pass
-            // registrarUsuario(nombre, correo, pass)
+            // Llamada a la API
+            lifecycleScope.launch {
+                try {
+                    val request = VerificarUsuario(nombre, correo)
+                    val response = ApiClient.apiService.verificarUsuario(request)
+                    if (response.correoExiste) {
+                        mostrarError("El correo ya está registrado")
+                        return@launch
+                    }
+                    if (response.nombreExiste) {
+                        mostrarError("El nombre de usuario ya está ocupado")
+                        return@launch
+                    }
+                    mostrarExito()
+                    nombreSeleccionado = nombre
+                    correoSeleccionado = correo
+                    passSeleccionado = pass
+                } catch (e: Exception) {
+                    mostrarError("Error al conectar con el servidor")
+                }
+            }
         }
     }
-
     private fun registrarUsuario() {
         val ip = obtenerIP()
         binding.txtError.visibility = View.GONE
@@ -689,7 +716,6 @@ class Registro : AppCompatActivity() {
             limpiarContenedorInferior()
         }
         binding.tvTituloContenedor.text = "Selecciona tu edad"
-
         // Crear contenedor principal
         val contenedorEdad = LinearLayout(this)
         contenedorEdad.orientation = LinearLayout.VERTICAL
@@ -697,7 +723,6 @@ class Registro : AppCompatActivity() {
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         )
-
         // Crear TextView para mostrar la edad seleccionada
         val txtEdadSeleccionada = TextView(this).apply {
             text = "18 años"
@@ -712,41 +737,33 @@ class Registro : AppCompatActivity() {
                 bottomMargin = 32
             }
         }
-
         // Crear RecyclerView para el carrusel
         val recyclerView = RecyclerView(this)
         recyclerView.layoutParams = RecyclerView.LayoutParams(
             RecyclerView.LayoutParams.MATCH_PARENT,
             400 // Altura fija para el carrusel
         )
-
         // Configurar LayoutManager horizontal con centrado
         val layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         recyclerView.layoutManager = layoutManager
-
         // Agregar SnapHelper para efecto de centrado
         val snapHelper = LinearSnapHelper()
         snapHelper.attachToRecyclerView(recyclerView)
-
         // Crear lista de edades (18 a 100 años)
         val edades = (18..100).toList()
-
         // Crear y configurar el adaptador
         val adapter = EdadAdapter(edades) { edad ->
             txtEdadSeleccionada.text = "$edad años"
             edadSeleccionada = edad
         }
         recyclerView.adapter = adapter
-
         // Scroll a la edad por defecto (18)
         recyclerView.post {
             layoutManager.scrollToPosition(0)
         }
-
         // Agregar vistas al contenedor
         contenedorEdad.addView(txtEdadSeleccionada)
         contenedorEdad.addView(recyclerView)
-
         // Botón para confirmar selección
         val btnConfirmar = MaterialButton(this).apply {
             text = "CONFIRMAR EDAD"
@@ -763,27 +780,28 @@ class Registro : AppCompatActivity() {
             }
             cornerRadius = 20
             setOnClickListener {
-                if (edadSeleccionada > 0) {
-                    btnEdad.text = "$edadSeleccionada años"
-                    ocultarContenedorInferior()
-                    Toast.makeText(this@Registro, "Edad seleccionada: $edadSeleccionada", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this@Registro, "Selecciona una edad", Toast.LENGTH_SHORT).show()
+                // Si no seleccionó edad → usar 18
+                if (edadSeleccionada <= 0) {
+                    edadSeleccionada = 18
                 }
+                btnEdad.text = "$edadSeleccionada años"
+                ocultarContenedorInferior()
+
+                Toast.makeText(
+                    this@Registro,
+                    "Edad seleccionada: $edadSeleccionada",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
         contenedorEdad.addView(btnConfirmar)
-
         // Ocultar RecyclerView principal
         binding.recyclerOpciones.visibility = View.GONE
-
         // Eliminar contenedor anterior si existe
         val existing = binding.contenedorInferior.findViewWithTag<View>("edad_container")
         existing?.let { binding.contenedorInferior.removeView(it) }
-
         contenedorEdad.tag = "edad_container"
         binding.contenedorInferior.addView(contenedorEdad, binding.contenedorInferior.childCount - 1)
-
         mostrarContenedorInferior()
     }
     inner class EdadAdapter(
@@ -902,15 +920,12 @@ class Registro : AppCompatActivity() {
         contenedorPrincipal.addView(contenedorLista)
         contenedorPrincipal.addView(btnConfirmar)
         binding.recyclerOpciones.visibility = View.GONE
-
 // eliminar contenedor anterior si existe
         val existing = binding.contenedorContenido.findViewWithTag<View>("restricciones_container")
         existing?.let { binding.contenedorContenido.removeView(it) }
-
 // agregar nuevo contenedor
         contenedorPrincipal.tag = "restricciones_container"
         binding.contenedorContenido.addView(contenedorPrincipal)
-
         mostrarContenedorInferior()
     }
 }

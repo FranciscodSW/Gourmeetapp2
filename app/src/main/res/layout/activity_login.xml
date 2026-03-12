@@ -8,13 +8,10 @@
     android:clipChildren="false"
     android:clipToPadding="false"
     >
-
-
     <!-- CONTENIDO PRINCIPAL -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
         <!-- IMÁGENES de fondo -->
         <ImageView
             android:id="@+id/imgTopLeft"
@@ -25,7 +22,6 @@
             android:layout_marginStart="16dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"/>
-
         <ImageView
             android:id="@+id/imgTopRight"
             android:layout_width="90dp"
@@ -35,7 +31,6 @@
             android:layout_marginEnd="16dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
-
         <ImageView
             android:id="@+id/imgFondo"
             android:layout_width="120dp"
@@ -137,6 +132,10 @@
                 app:boxStrokeColor="#0E90E4"
                 app:boxStrokeWidthFocused="2dp"
                 app:hintTextColor="#0E90E4"
+                app:boxCornerRadiusTopStart="20dp"
+                app:boxCornerRadiusTopEnd="20dp"
+                app:boxCornerRadiusBottomStart="20dp"
+                app:boxCornerRadiusBottomEnd="20dp">
                 android:layout_marginBottom="5dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -158,6 +157,10 @@
                 app:boxStrokeWidthFocused="2dp"
                 app:hintTextColor="#0E90E4"
                 app:endIconMode="password_toggle"
+                app:boxCornerRadiusTopStart="20dp"
+                app:boxCornerRadiusTopEnd="20dp"
+                app:boxCornerRadiusBottomStart="20dp"
+                app:boxCornerRadiusBottomEnd="20dp">
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -246,7 +249,7 @@
                     android:layout_width="200dp"
                     android:layout_height="100dp"
                     android:layout_margin="11dp"
-                    android:src="@drawable/ic_fondo2" />
+                    android:src="@drawable/logocompleto" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

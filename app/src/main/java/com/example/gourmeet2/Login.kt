@@ -23,16 +23,22 @@ import android.widget.Toast
 import android.widget.Toast.makeText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.gourmeet2.data.api.ApiClient
+import com.example.gourmeet2.data.api.ApiService
 import com.example.gourmeet2.data.models.Login
 import com.example.gourmeet2.databinding.ActivityLoginBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class Login : AppCompatActivity() {
+    lateinit var editUsuario: TextInputEditText
+    lateinit var editPassword: TextInputEditText
+    lateinit var btnLogin: Button
 
     private lateinit var binding: ActivityLoginBinding
     private lateinit var behavior: BottomSheetBehavior<LinearLayout>
@@ -45,6 +51,9 @@ class Login : AppCompatActivity() {
 
         val anim = AnimationUtils.loadAnimation(this, R.anim.mover)
         val animSubir = AnimationUtils.loadAnimation(this, R.anim.subir)
+        editUsuario = findViewById(R.id.editUsuario)
+        editPassword = findViewById(R.id.editPassword)
+        btnLogin = findViewById(R.id.btnLogin)
 
         binding.imgTopLeft.startAnimation(anim)
         binding.imgTopRight.startAnimation(anim)
@@ -66,145 +75,69 @@ class Login : AppCompatActivity() {
             repeatCount = ObjectAnimator.INFINITE
             interpolator = AccelerateDecelerateInterpolator()
         }
-
         containerAnimator.start()
-
-
-
-
         val titleNormal = 30f
         val subtitleNormal = 30f
         val titleMin = 20f
         val subtitleMin = 22f
         behavior.peekHeight = 100
         binding.btnRegistrar.setOnClickListener {
-
             val intent = Intent(this, Registro::class.java)
             startActivity(intent)
-
             overridePendingTransition(
                 android.R.anim.fade_in,
                 android.R.anim.fade_out
             )
         }
-        binding.btnLogin.setOnClickListener {
-
-            val usuario = binding.editUsuario.text.toString().trim()
-            val pass = binding.editPassword.text.toString()
-
-            if (usuario.isEmpty() || pass.isEmpty()) {
-                makeText(this, "Completa los campos", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            loginUsuario(usuario, pass)
-        }
-
-
         behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
               // altura visible cuando está cerrado
-
-
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
-
                 binding.txtBienvenido.textSize =
                     titleNormal - (titleNormal - titleMin) * slideOffset
-
                 binding.txtSubtitulo.textSize =
                     subtitleNormal - (subtitleNormal - subtitleMin) * slideOffset
-
                 binding.imgTopSheet.alpha = 1f - slideOffset
-
                 val textTranslation = -50f * slideOffset
                 binding.txtBienvenido.translationY = textTranslation
                 binding.txtSubtitulo.translationY = textTranslation
-
                 if (containerAnimator.isRunning) containerAnimator.cancel()
-
-
                 binding.sheetContent.translationY = 0f
                 binding.bottomSheet.scaleX = 1f
                 binding.bottomSheet.scaleY = 1f
             }
 
             override fun onStateChanged(bottomSheet: View, newState: Int) {
-
                 when (newState) {
-
                     BottomSheetBehavior.STATE_COLLAPSED -> {
-
                         binding.txtTituloSheet.text = "Bienvenido"
-
                         if (!containerAnimator.isRunning) containerAnimator.start()
-
                     }
-
                     BottomSheetBehavior.STATE_EXPANDED -> {
-
                         binding.txtTituloSheet.text = "Iniciar sesión"
-
                         containerAnimator.cancel()
-
                     }
                 }
             }
         })
+        btnLogin.setOnClickListener {
 
+            val usuario = editUsuario.text.toString().trim()
+            val password = editPassword.text.toString().trim()
+            if (usuario.isEmpty() || password.isEmpty()) {
+
+                Toast.makeText(this, "Completa los campos", Toast.LENGTH_SHORT).show()
+
+            } else {
+
+                loginUsuario(usuario, password)
+
+            }
+        }
         binding.btnsinCuenta.setOnClickListener {
             mostrarDialogoPrivacidad()
         }
     }
-    private fun loginUsuario(usuario: String, pass: String) {
 
-        CoroutineScope(Dispatchers.IO).launch {
-
-            try {
-
-                val request = Login(usuario, pass)
-
-                val response = ApiClient.apiService.loginUsuario(request)
-
-                withContext(Dispatchers.Main) {
-
-                    if (response.success) {
-
-                        makeText(
-                            this@LoginActivity,
-                            "Bienvenido ${response.nombre}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        // Abrir pantalla principal
-                        startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                        finish()
-
-                    } else {
-                        makeText(
-                            this@LoginActivity,
-                            response.error ?: "Error",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                    }
-
-                }
-
-            } catch (e: Exception) {
-
-                withContext(Dispatchers.Main) {
-
-                    makeText(
-                        this@LoginActivity,
-                        "Error de conexión",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                }
-
-            }
-
-        }
-    }
 
 
     private fun mostrarDialogoPrivacidad() {
@@ -254,7 +187,6 @@ class Login : AppCompatActivity() {
             interpolator = AccelerateInterpolator()
         }
         animaciones.add(bottomSheetAnim)
-
         // Animación para la imagen superior
         val imgTopAnim = ObjectAnimator.ofFloat(
             binding.imgTopSheet,
@@ -264,7 +196,6 @@ class Login : AppCompatActivity() {
             duration = 400
         }
         animaciones.add(imgTopAnim)
-
         // Animación para las imágenes decorativas
         val imgTopLeftAnim = ObjectAnimator.ofFloat(
             binding.imgTopLeft,
@@ -274,7 +205,6 @@ class Login : AppCompatActivity() {
             duration = 400
         }
         animaciones.add(imgTopLeftAnim)
-
         val imgTopRightAnim = ObjectAnimator.ofFloat(
             binding.imgTopRight,
             "alpha",
@@ -283,7 +213,6 @@ class Login : AppCompatActivity() {
             duration = 400
         }
         animaciones.add(imgTopRightAnim)
-
         val imgFondoAnim = ObjectAnimator.ofFloat(
             binding.imgFondo,
             "alpha",
@@ -298,8 +227,6 @@ class Login : AppCompatActivity() {
         ).apply {
             duration =400
         }
-
-
         val subtituloAnim = ObjectAnimator.ofFloat(
             binding.txtSubtitulo,
             "alpha",
@@ -332,8 +259,32 @@ class Login : AppCompatActivity() {
 
         animatorSet.start()
     }
+    fun loginUsuario(usuario: String, password: String) {
+        lifecycleScope.launch {
+            try {
+                val request = Login(
+                    usuario = usuario,
+                    password = password
+                )
+                val response = ApiClient.apiService.loginUsuario(request)
+                if (response.success) {
 
-
+                    Toast.makeText(this@Login,
+                        "Bienvenido ${response.nombre}",
+                        Toast.LENGTH_LONG).show()
+                         ocultarPaginaAnterior()
+                } else {
+                    Toast.makeText(this@Login,
+                        response.error,
+                        Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@Login,
+                    "Error de conexión",
+                    Toast.LENGTH_LONG).show()
+            }
+        }
+    }
     private fun configurarTextoConEnlaceCompleto(textView: TextView) {
         val textoCompleto = "Acepto los términos y condiciones de uso"
         val spannable = SpannableString(textoCompleto)
@@ -368,8 +319,6 @@ class Login : AppCompatActivity() {
         textView.movementMethod = LinkMovementMethod.getInstance()
         textView.highlightColor = Color.TRANSPARENT
     }
-
-
     private fun iniciarTransicionDeCarga() {
         // Crear intent para la nueva actividad
         val intent = Intent(this, Trancicion_de_carga_para_menu_free::class.java)
@@ -383,7 +332,6 @@ class Login : AppCompatActivity() {
         // Opcional: Cerrar esta actividad si ya no es necesaria
         // finish()
     }
-
     private fun mostrarTerminosCompletos() {
         val dialogView = layoutInflater.inflate(R.layout.terminos_completos, null)
 
@@ -393,7 +341,6 @@ class Login : AppCompatActivity() {
         val scrollView = dialogView.findViewById<ScrollView>(R.id.scrollView)
         val txtTerminosCompletos = dialogView.findViewById<TextView>(R.id.txtTerminosCompletos)
         val btnCerrar = dialogView.findViewById<Button>(R.id.btnCerrar)
-
         // TEXTO COMPLETO DE TÉRMINOS Y CONDICIONES
         val terminosTexto = """
         TÉRMINOS Y CONDICIONES DE USO 
@@ -476,6 +423,4 @@ class Login : AppCompatActivity() {
 
         dialog.show()
     }
-
-
 }
