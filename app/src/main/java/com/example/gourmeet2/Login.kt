@@ -16,6 +16,7 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -27,18 +28,27 @@ import androidx.lifecycle.lifecycleScope
 import com.example.gourmeet2.data.api.ApiClient
 import com.example.gourmeet2.data.api.ApiService
 import com.example.gourmeet2.data.models.Login
+import com.example.gourmeet2.data.models.LoginGoogle
 import com.example.gourmeet2.databinding.ActivityLoginBinding
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.jvm.java
 
 class Login : AppCompatActivity() {
     lateinit var editUsuario: TextInputEditText
     lateinit var editPassword: TextInputEditText
     lateinit var btnLogin: Button
+    val iconGmail = findViewById<ImageView>(R.id.iconGmail)
+    private val RC_SIGN_IN = 100
+    private lateinit var googleSignInClient: GoogleSignInClient
 
     private lateinit var binding: ActivityLoginBinding
     private lateinit var behavior: BottomSheetBehavior<LinearLayout>
@@ -136,6 +146,16 @@ class Login : AppCompatActivity() {
         binding.btnsinCuenta.setOnClickListener {
             mostrarDialogoPrivacidad()
         }
+        iconGmail.setOnClickListener {
+            googleSignInClient.signOut().addOnCompleteListener {
+                val signInIntent = googleSignInClient.signInIntent
+                startActivityForResult(signInIntent, RC_SIGN_IN)
+            }
+        }
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .build()
+        val googleSignInClient = GoogleSignIn.getClient(this, gso)
     }
 
 
@@ -285,6 +305,65 @@ class Login : AppCompatActivity() {
             }
         }
     }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == RC_SIGN_IN) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+
+                val correoSeleccionado = account.email ?: ""
+                val googleIdSeleccionado = account.id ?: ""
+
+                // 🔥 AQUÍ LLAMAS TU API
+                loginUsuarioGoogle(correoSeleccionado, googleIdSeleccionado)
+
+            } catch (e: ApiException) {
+                Toast.makeText(this, "Error en Google Sign-In", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    fun loginUsuarioGoogle(correo: String, googleId: String) {
+        lifecycleScope.launch {
+            try {
+                val request = LoginGoogle(
+                    correo = correo,
+                    google_id = googleId
+                )
+
+                val response = ApiClient.apiService.loginUsuarioGoogle(request)
+
+                if (response.success) {
+
+                    Toast.makeText(
+                        this@Login,
+                        "Bienvenido ${response.nombre}",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    ocultarPaginaAnterior()
+
+                } else {
+
+                    Toast.makeText(
+                        this@Login,
+                        response.error,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                Toast.makeText(
+                    this@Login,
+                    "Error de conexión",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
     private fun configurarTextoConEnlaceCompleto(textView: TextView) {
         val textoCompleto = "Acepto los términos y condiciones de uso"
         val spannable = SpannableString(textoCompleto)

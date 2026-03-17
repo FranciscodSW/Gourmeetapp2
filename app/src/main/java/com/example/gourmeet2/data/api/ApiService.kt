@@ -68,4 +68,14 @@ interface ApiService {
     suspend fun verificarUsuario(
         @Body request: VerificarUsuario
     ): VerificarUsuarioResponse
+
+    @POST("RegistroUsuarioGoogle.php")
+    suspend fun registroGoogle(
+            @Body request: RegistroGoogle
+    ): RegistroGoogleResponse
+    @POST("login_google.php")
+    suspend fun loginUsuarioGoogle(
+        @Body request: LoginGoogle
+    ): LoginGoogleResponse
+
 }

@@ -181,7 +181,6 @@
                 android:layout_marginBottom="10dp"
                 android:gravity="center"
                 android:orientation="horizontal">
-
                 <ImageButton
                     android:id="@+id/btnGoogle"
                     android:layout_width="60dp"
@@ -191,7 +190,6 @@
                     android:contentDescription="Google"
                     android:scaleType="centerInside"
                     android:src="@drawable/ic_gmail" />
-
                 <ImageButton
                     android:id="@+id/btnFacebook"
                     android:layout_width="60dp"
@@ -201,7 +199,6 @@
                     android:contentDescription="Facebook"
                     android:scaleType="centerInside"
                     android:src="@drawable/ic_facebook" />
-
                 <ImageButton
                     android:id="@+id/btnTictok"
                     android:layout_width="60dp"

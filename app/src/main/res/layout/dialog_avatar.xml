@@ -14,7 +14,6 @@
         android:gravity="center"
         android:buttonTint="@color/azulgourmeet"
         android:layout_marginBottom="16dp">
-
         <RadioButton
             android:id="@+id/rbmasculino"
             android:layout_width="wrap_content"
@@ -33,7 +32,16 @@
             android:text="Femenino"
             android:textSize="16sp"/>
     </RadioGroup>
-
+    <Button
+        android:id="@+id/btnGoogleAvatar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Usar foto de Google"
+        android:visibility="gone"
+        android:layout_marginBottom="12dp"
+        android:backgroundTint="@color/azulgourmeet"
+        android:textColor="@android:color/white"
+        android:fontFamily="@font/caviardreams"/>
     <!-- GridLayout para avatares -->
     <GridLayout
         android:id="@+id/gridavatares"

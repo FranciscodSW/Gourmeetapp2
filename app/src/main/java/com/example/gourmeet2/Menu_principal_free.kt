@@ -147,18 +147,13 @@ class Menu_principal_free : AppCompatActivity() {
 // ============================================================
 // ENUMS
 // ============================================================
-
     enum class ModoBusqueda {
         CATEGORIA,
         INGREDIENTES
     }
-
-
-
 // ============================================================
 // MOSTRAR PANTALLA DE INGREDIENTES
 // ============================================================
-
     private fun mostrarPantallaIngredientes() {
         pantallaActual = PantallaActual.INGREDIENTES
 
@@ -202,11 +197,9 @@ class Menu_principal_free : AppCompatActivity() {
             categoriaActualId = categoriasList[0].id
         }
     }
-
 // ============================================================
 // SETUP CARRUSEL DE INGREDIENTES (CORREGIDO)
 // ============================================================
-
     private fun setupCarruselIngredientes() {
 
         if (categoriasList.isEmpty()) return
@@ -255,14 +248,9 @@ class Menu_principal_free : AppCompatActivity() {
 
         binding.viewPagerCarrusel.registerOnPageChangeCallback(carruselCallback!!)
     }
-
-
-
-
     private fun obtenerIngredientesSeleccionados(): List<String> {
         return ingredientesSeleccionados.map { it.descripcion }
     }
-
     // ============================================================
 // CARGAR RECETAS POR CATEGORÍA (RENOMBRADO)
 // ============================================================
@@ -293,7 +281,6 @@ class Menu_principal_free : AppCompatActivity() {
             cargarRecetasPorCategoriaIngredientes(categoriaActualId)
         }
     }
-
     private fun cargarRecetasPorCategoriaIngredientes(categoriaId: Int) {
         // 🔥 PREVENIR LLAMADAS DUPLICADAS
         if (categoriaId == ultimaCategoriaCargada && !cargandoEnProgreso) {
@@ -408,11 +395,9 @@ class Menu_principal_free : AppCompatActivity() {
             }
         }
     }
-
 // ============================================================
 // BUSCAR RECETAS POR INGREDIENTES (CORREGIDO)
 // ============================================================
-
     private fun buscarRecetasPorIngredientes(
         ingredientes: List<String>,
         categoriaId: Int
@@ -487,9 +472,6 @@ class Menu_principal_free : AppCompatActivity() {
             }
         }
     }
-
-
-
     private fun buscarSiHayIngredientes() {
         if (categoriaActualId <= 0) return
 
@@ -509,7 +491,6 @@ class Menu_principal_free : AppCompatActivity() {
             cargarRecetasPorCategoriaIngredientes(categoriaActualId)
         }
     }
-
     private fun cargarCategoriasingredientes() {
         Log.d("DEBUG_FLOW", "cargarCategoriasingredientes()")
         CoroutineScope(Dispatchers.IO).launch {
@@ -548,9 +529,6 @@ class Menu_principal_free : AppCompatActivity() {
             }
         }
     }
-
-
-
     private fun agregarIngredienteSeleccionado(ingrediente: BuscarIngredientes) {
 
         if (ingredientesSeleccionados.any { it.id == ingrediente.id }) return
@@ -568,30 +546,24 @@ class Menu_principal_free : AppCompatActivity() {
         )
         ejecutarBusqueda()
     }
-
-
 // ============================================================
 // ON DESTROY - LIMPIAR CALLBACKS
 // ============================================================
-
     override fun onDestroy() {
         super.onDestroy()
         carruselCallback?.let {
             binding.viewPagerCarrusel.unregisterOnPageChangeCallback(it)
         }
     }
-
 // ============================================================
 // MÉTODOS EXISTENTES QUE SE MANTIENEN IGUAL
 // ============================================================
-
     private fun setupRecyclerView() {
         recetaAdapter = RecetaAdapter(recetasList, this)
         binding.recyclerItems.layoutManager = LinearLayoutManager(this)
         binding.recyclerItems.adapter = recetaAdapter
         binding.recyclerItems.visibility = View.VISIBLE
     }
-
     private fun setupDraggableIngredientes() {
 
         binding.containerIngredientes.post {
@@ -633,8 +605,6 @@ class Menu_principal_free : AppCompatActivity() {
             }
         }
     }
-
-
     private fun crearIngredienteView(ingrediente: BuscarIngredientes): View {
         val view = layoutInflater.inflate(
             R.layout.item_ingrediente_card,
@@ -680,7 +650,6 @@ class Menu_principal_free : AppCompatActivity() {
         }
         return view
     }
-
     private fun actualizarUI() {
         if (ingredientesSeleccionados.isEmpty()) {
             binding.chipGroupIngredientesBottom.removeAllViews()
@@ -693,7 +662,6 @@ class Menu_principal_free : AppCompatActivity() {
             binding.chipGroupIngredientesBottom.addView(textView)
         }
     }
-
     private fun buscarIngredientes(query: String) {
         Log.d("DEBUG_FLOW", "buscarIngredientes()")
         CoroutineScope(Dispatchers.IO).launch {
@@ -719,7 +687,6 @@ class Menu_principal_free : AppCompatActivity() {
             }
         }
     }
-
     fun mostrarModoIngredientes() {
         binding.containerIngredientes.visibility = View.VISIBLE
         binding.editTextSearchBottom.requestFocus()
@@ -728,7 +695,6 @@ class Menu_principal_free : AppCompatActivity() {
         )
         actualizarUI()
     }
-
     private fun setupBusquedaIngredientes() {
         Log.d("DEBUG_FLOW", "setupBusquedaIngredientes()")
         binding.editTextSearchBottom.addTextChangedListener(object : TextWatcher {
@@ -755,28 +721,20 @@ class Menu_principal_free : AppCompatActivity() {
             binding.editTextSearchBottom.text.clear()
         }
     }
-
     private fun construirUrlCompleta(rutaRelativa: String): String {
         val rutaLimpia = rutaRelativa.trim()
         if (rutaLimpia.startsWith("http://") || rutaLimpia.startsWith("https://")) {
             return rutaLimpia
         }
         val rutaFinal = if (rutaLimpia.startsWith("/")) rutaLimpia.substring(1) else rutaLimpia
-        return "http://192.168.1.80/develoandroid/$rutaFinal"
+        return "http://192.168.1.72/develoandroid/$rutaFinal"
     }
-
     private fun obtenerIngredientesTexto(): List<String> {
         return ingredientesSeleccionados.map { it.descripcion }
     }
-
     private fun Int.dpToPx(): Int {
         return (this * resources.displayMetrics.density).toInt()
     }
-
-
-
-
-
     // ============================================================
 // Para buscar desde la parte de recetasn
 // ============================================================
@@ -940,8 +898,6 @@ class Menu_principal_free : AppCompatActivity() {
 
         binding.viewPagerCarrusel.registerOnPageChangeCallback(carruselCallback!!)
     }
-
-
     public fun cargarRecetasPorCategoria(categoriaId: Int) {
         Log.d("API_DEBUG", "=== CARGANDO RECETAS POR CATEGORÍA $categoriaId ===")
         CoroutineScope(Dispatchers.IO).launch {
@@ -1142,9 +1098,6 @@ class Menu_principal_free : AppCompatActivity() {
                 cargarDetallesReceta(receta.id, bottomSheet)
             }
         }
-
-
-
         private fun cargarDetallesReceta(recetaId: Int, bottomSheet: DetalleRecetaBottomSheet) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
@@ -1173,9 +1126,7 @@ class Menu_principal_free : AppCompatActivity() {
                 }
             }
         }
-
         override fun getItemCount(): Int = recetas.size
-
         fun updateList(newList: List<RecetaRecrcid>) {
             recetas = newList
             notifyDataSetChanged()
@@ -1193,17 +1144,11 @@ class Menu_principal_free : AppCompatActivity() {
             LinearLayoutManager(recyclerView.context, LinearLayoutManager.HORIZONTAL, false)
 
         CoroutineScope(Dispatchers.IO).launch {
-
             try {
-
                 val response = ApiClient.apiService.getImagenesIngredientes(recetaId)
-
                 withContext(Dispatchers.Main) {
-
                     if (response.success) {
-
                         val imagenesValidas = response.imagenes.filterNotNull()
-
                         recyclerView.adapter = ImagenAdapter(imagenesValidas)
                     }
                 }
@@ -1228,51 +1173,33 @@ class Menu_principal_free : AppCompatActivity() {
 
             return ImagenViewHolder(view)
         }
-
         override fun onBindViewHolder(holder: ImagenViewHolder, position: Int) {
-
             val ruta = imagenes[position]
-
             Glide.with(holder.itemView.context)
-                .load("http://192.168.1.80/develoandroid/${ruta.trimStart('/')}")
+                .load("http://192.168.1.72/develoandroid/${ruta.trimStart('/')}")
                 .centerCrop()
                 .into(holder.imageView)
         }
-
         override fun getItemCount() = imagenes.size
     }
-
-
-
-
 }
 private fun pintarCalificacion(
     receta: RecetaRecrcid,
     holder: Menu_principal_free.RecetaAdapter.RecetaViewHolder
 ) {
-
     with(holder.binding) {
-
         val rating = receta.promedio ?: 0f
-
         if (rating > 0f) {
-
             tvRating.visibility = View.VISIBLE
-
             // 🔥 Formato bonito (2.5 / 4.0 / 3.8)
             tvRating.text = String.format("%.1f", rating)
-
         } else {
             tvRating.visibility = View.GONE
         }
     }
 }
-
-
 private fun cargarImagenFondo(receta: RecetaRecrcid, holder: Menu_principal_free.RecetaAdapter.RecetaViewHolder) {
-
-    val url = "http://192.168.1.80/develoandroid/recetas/${receta.id}/${receta.fotoReceta}"
-
+    val url = "http://192.168.1.72/develoandroid/recetas/${receta.id}/${receta.fotoReceta}"
     Glide.with(holder.itemView.context)
         .load(url)
         .into(holder.binding.imgFondo)

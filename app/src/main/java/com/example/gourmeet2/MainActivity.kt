@@ -15,21 +15,16 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(this)
-
         // Configurar pantalla completa (opcional)
         window.setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN
         )
-
         // Establecer el layout
         setContentView(R.layout.activity_main)  // Asegúrate de crear este layout
-
         // Referencia al logo
         val logo = findViewById<ImageView>(R.id.logo)
-
         // Opción A: Animación simple con alpha
         logo.alpha = 0f
         logo.animate()
@@ -48,6 +43,4 @@ class MainActivity : AppCompatActivity() {
         // Finalizar esta actividad
         finish()
     }
-
-
 }

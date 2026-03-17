@@ -135,8 +135,8 @@
                 app:boxCornerRadiusTopStart="20dp"
                 app:boxCornerRadiusTopEnd="20dp"
                 app:boxCornerRadiusBottomStart="20dp"
-                app:boxCornerRadiusBottomEnd="20dp">
-                android:layout_marginBottom="5dp">
+                app:boxCornerRadiusBottomEnd="20dp"
+                android:layout_marginBottom="5dp" >
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editUsuario"
@@ -160,7 +160,7 @@
                 app:boxCornerRadiusTopStart="20dp"
                 app:boxCornerRadiusTopEnd="20dp"
                 app:boxCornerRadiusBottomStart="20dp"
-                app:boxCornerRadiusBottomEnd="20dp">
+                app:boxCornerRadiusBottomEnd="20dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText

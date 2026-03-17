@@ -7,12 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:241245482852:android:3df1ae1f8a7993f739d471",
+        "mobilesdk_app_id": "1:241245482852:android:eb9f01c60b56807a39d471",
         "android_client_info": {
           "package_name": "com.example.gourmeet2"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "241245482852-crer770ueofij8vrscsmm2q9hj5g4okb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gourmeet2",
+            "certificate_hash": "69b429598373d5bf57c36425f33c4b82d3dc388e"
+          }
+        },
+        {
+          "client_id": "241245482852-vt5951e68h82aeeo39rgcp028o16vl5d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCbW4haTMbz5cACmQ9QlgMFl0kd6mu07PE"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "241245482852-vt5951e68h82aeeo39rgcp028o16vl5d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

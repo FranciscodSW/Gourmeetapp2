@@ -1,11 +1,15 @@
 package com.example.gourmeet2
 import android.app.Dialog
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.location.Geocoder
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.transition.Transition
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -14,6 +18,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.GridLayout
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioGroup
@@ -30,13 +35,21 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
 import com.example.gourmeet2.data.api.ApiClient
+import com.example.gourmeet2.data.models.RegistroGoogle
 import com.example.gourmeet2.data.models.Restriccion
 import com.example.gourmeet2.data.models.RestriccionesData
 import com.example.gourmeet2.data.models.UsuarioRegistro
 import com.example.gourmeet2.data.models.VerificarUsuario
 import com.example.gourmeet2.databinding.ActivityRegistroBinding
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -66,6 +79,7 @@ class Registro : AppCompatActivity() {
     var nombreSeleccionado = ""
     var correoSeleccionado = ""
     var passSeleccionado = ""
+    var googleIdSeleccionado: String = ""
     var restriccionesSeleccionadas = mutableListOf<Restriccion>()
     private var estadoActual = EstadoContenedor.CERRADO
     private var alturaExpandida = 0
@@ -83,6 +97,8 @@ class Registro : AppCompatActivity() {
         cultural = emptyList(),
         intolerancia = emptyList()
     )
+    lateinit var googleSignInClient: GoogleSignInClient
+    val RC_SIGN_IN = 1001
     private val TAG = "RegistroDebug"
     private var avatar: String = ""
     private val mapaLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -161,33 +177,113 @@ class Registro : AppCompatActivity() {
             binding.layoutrestricciones.visibility = View.VISIBLE
         }
         binding.btnFinRes.setOnClickListener {
-            registrarUsuario()
+
+            if (googleIdSeleccionado.isNotEmpty()) {
+                //Usuario con Google
+                Log.d("DEBUG", "Entró a registrarUsuarioGoogle()")
+                registrarUsuarioGoogle()
+            } else {
+                //Usuario normal
+                Log.d("DEBUG", "Entró a registrarUsuario")
+                registrarUsuario()
+            }
             mostrarPantallaFinal()
         }
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestId()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        binding.btnGoogle.setOnClickListener {
+            val googleSignInClient = GoogleSignIn.getClient(this, gso)
+            // 🔥 FORZAR SELECCIÓN DE CUENTA
+            googleSignInClient.revokeAccess().addOnCompleteListener {
+                val signInIntent = googleSignInClient.signInIntent
+                startActivityForResult(signInIntent, RC_SIGN_IN)
+            }
+            Log.d("DEBUG", "Entró a obtenerDatosGoogle()")
+            obtenerDatosGoogle()
+        }
+
         setupValidaciones()
     }
-    private fun mostrarPantallaFinal() {
+    fun obtenerDatosGoogle() {
 
+        val signInIntent = googleSignInClient.signInIntent
+        startActivityForResult(signInIntent, RC_SIGN_IN)
+    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == RC_SIGN_IN) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+
+            try {
+                val account = task.getResult(ApiException::class.java)
+                val nombre = account.displayName ?: ""
+                val correo = account.email ?: ""
+                val avatar = account.photoUrl?.toString() ?: ""
+                val googleId = account.id ?: ""
+
+                Log.d("GOOGLE_LOGIN", "Nombre: $nombre")
+                Log.d("GOOGLE_LOGIN", "Correo: $correo")
+
+                // 🔥 VALIDACIÓN ANTES DE AVANZAR
+                lifecycleScope.launch {
+                    try {
+                        val request = VerificarUsuario(nombre, correo)
+                        val response = ApiClient.apiService.verificarUsuario(request)
+                        if (response.correoExiste) {
+                            mostrarError("Este correo ya está registrado, inicia sesión")
+                            return@launch
+                        }
+                        // ✅ SI TODO BIEN → GUARDAS Y AVANZAS
+                        nombreSeleccionado = nombre
+                        correoSeleccionado = correo
+                        avatarSeleccionado = avatar
+                        googleIdSeleccionado = googleId
+
+                        mostrarPersonalizar(nombreSeleccionado, correoSeleccionado)
+
+                    } catch (e: Exception) {
+                        mostrarError("Error al conectar con el servidor")
+                    }
+                }
+
+            } catch (e: ApiException) {
+                Log.e("GOOGLE_LOGIN", "Error código: ${e.statusCode}")
+                Toast.makeText(this, "Error: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    fun mostrarPersonalizar(nombre:String, correo:String){
+        Log.d("mostrarPersonalizar", "mostrarPersonalizar")
+        val editNombre = findViewById<TextInputEditText>(R.id.editNombre)
+        val editCorreo = findViewById<TextInputEditText>(R.id.editCorreo)
+        val layoutRegistro = findViewById<LinearLayout>(R.id.layoutRegistro)
+        val layoutPersonalizar = findViewById<LinearLayout>(R.id.layoutPersonalizar)
+        layoutRegistro.visibility = View.GONE
+        layoutPersonalizar.visibility = View.VISIBLE
+        editNombre.setText(nombre)
+        editCorreo.setText(correo)
+    }
+    private fun mostrarPantallaFinal() {
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.dialog_registro_exitoso)
-
         dialog.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         )
-
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-
         val btnContinuar = dialog.findViewById<Button>(R.id.btnContinuar)
-
         btnContinuar.setOnClickListener {
             dialog.dismiss()
             val intent = Intent(this, Menu_principal_free::class.java)
             startActivity(intent)
             finish()
-
         }
-
         dialog.show()
     }
     private fun cargarRestricciones() {
@@ -206,17 +302,7 @@ class Registro : AppCompatActivity() {
             }
         }
     }
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == MAP_REQUEST && resultCode == RESULT_OK) {
-            val lat = data?.getDoubleExtra("lat", 0.0)
-            val lng = data?.getDoubleExtra("lng", 0.0)
-            val geocoder = Geocoder(this, Locale.getDefault())
-            val addresses = geocoder.getFromLocation(lat!!, lng!!, 1)
-            if (!addresses.isNullOrEmpty()) {
-            }
-        }
-    }
+
     private fun setupContenedor() {
         // Convertir dp a píxeles
         val barraHeight = (ALTURA_BARRA * resources.displayMetrics.density).toInt()
@@ -325,6 +411,65 @@ class Registro : AppCompatActivity() {
                     passSeleccionado = pass
                 } catch (e: Exception) {
                     mostrarError("Error al conectar con el servidor")
+                }
+            }
+        }
+    }
+    private fun registrarUsuarioGoogle() {
+
+        binding.txtError.visibility = View.GONE
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+
+                val edad = edadSeleccionada
+                val nivel = nivelSeleccionado
+                val latitud = latitudSeleccionada
+                val longitud = longitudSeleccionada
+                val restriccionesIds = restriccionesSeleccionadas.map { it.id }
+                val request = RegistroGoogle(
+                    correo = correoSeleccionado,
+                    nombre = nombreSeleccionado,
+                    google_id = googleIdSeleccionado,
+                    avatar = avatar,
+                    edad = edad,
+                    nivel = nivel,
+                    latitud = latitud,
+                    longitud = longitud,
+                    restricciones = restriccionesIds
+                )
+                val response = ApiClient.apiService.registroGoogle(request)
+                withContext(Dispatchers.Main) {
+
+                    if (response.success) {
+
+                        // 🔥 guardar sesión
+                        val shared = getSharedPreferences("user", MODE_PRIVATE)
+                        shared.edit()
+                            .putInt("id", response.usuario_id ?: 0)
+                            .putString("nombre", response.nombre)
+                            .apply()
+
+                        if (response.login == true) {
+                            Log.d("API", "Login con Google")
+                        }
+
+                        if (response.registro == true) {
+                            Log.d("API", "Registro con Google")
+                        }
+
+                        mostrarExito()
+
+                    } else {
+                        mostrarError(response.error ?: "Error desconocido")
+                    }
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+                withContext(Dispatchers.Main) {
+                    mostrarError("Error de conexión")
                 }
             }
         }
@@ -473,7 +618,6 @@ class Registro : AppCompatActivity() {
     private fun mostrarSelectorAvatarEnContenedor() {
         Log.d(TAG, "Entrando a avatar")
         if (binding.contenedorInferior.visibility == View.VISIBLE) {
-
             limpiarContenedorInferior()
         }
         binding.tvTituloContenedor.text = "Selecciona tu avatar"
@@ -481,6 +625,12 @@ class Registro : AppCompatActivity() {
         val avatarView = layoutInflater.inflate(R.layout.dialog_avatar, null)
         val radioGroup = avatarView.findViewById<RadioGroup>(R.id.radiogroupgenero)
         val grid = avatarView.findViewById<GridLayout>(R.id.gridavatares)
+        val contenedorAvatar = LinearLayout(this)
+        contenedorAvatar.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+
         fun cargarAvatares(genero: String) {
             grid.removeAllViews()
             for (i in 1..5) {
@@ -523,6 +673,17 @@ class Registro : AppCompatActivity() {
         }
 
         // Cargar avatares masculinos por defecto
+        if (googleIdSeleccionado.isNotEmpty()) {
+            val btnGoogleAvatar = avatarView.findViewById<Button>(R.id.btnGoogleAvatar)
+
+            btnGoogleAvatar.visibility = View.VISIBLE
+
+            btnGoogleAvatar.setOnClickListener {
+                binding.btnSeleccionAvatar.text = "Foto de Google seleccionada"
+                ocultarContenedorInferior()
+
+            }
+        }
         cargarAvatares("M")
 
         // Configurar cambio de género
@@ -533,11 +694,7 @@ class Registro : AppCompatActivity() {
                 cargarAvatares("F")
             }
         }
-        val contenedorAvatar = LinearLayout(this)
-        contenedorAvatar.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
+
         contenedorAvatar.orientation = LinearLayout.VERTICAL
         contenedorAvatar.addView(avatarView)
         // Reemplazar el contenido del contenedor inferior
