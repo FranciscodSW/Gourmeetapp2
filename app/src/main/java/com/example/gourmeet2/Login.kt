@@ -1,6 +1,4 @@
 package com.example.gourmeet2
-
-
 import android.animation.*
 import android.content.Intent
 import android.graphics.Color
@@ -41,36 +39,29 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.jvm.java
-
 class Login : AppCompatActivity() {
     lateinit var editUsuario: TextInputEditText
     lateinit var editPassword: TextInputEditText
     lateinit var btnLogin: Button
-    val iconGmail = findViewById<ImageView>(R.id.iconGmail)
+
     private val RC_SIGN_IN = 100
     private lateinit var googleSignInClient: GoogleSignInClient
-
     private lateinit var binding: ActivityLoginBinding
     private lateinit var behavior: BottomSheetBehavior<LinearLayout>
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        val iconGmail = findViewById<ImageView>(R.id.iconGmail)
         val anim = AnimationUtils.loadAnimation(this, R.anim.mover)
         val animSubir = AnimationUtils.loadAnimation(this, R.anim.subir)
         editUsuario = findViewById(R.id.editUsuario)
         editPassword = findViewById(R.id.editPassword)
         btnLogin = findViewById(R.id.btnLogin)
-
         binding.imgTopLeft.startAnimation(anim)
         binding.imgTopRight.startAnimation(anim)
         binding.imgFondo.startAnimation(animSubir)
-
         behavior = BottomSheetBehavior.from(binding.bottomSheet)
-
         // ===============================
         // 🔴 Animaciones dinámicas
         // ===============================
@@ -115,7 +106,6 @@ class Login : AppCompatActivity() {
                 binding.bottomSheet.scaleX = 1f
                 binding.bottomSheet.scaleY = 1f
             }
-
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 when (newState) {
                     BottomSheetBehavior.STATE_COLLAPSED -> {
@@ -134,13 +124,9 @@ class Login : AppCompatActivity() {
             val usuario = editUsuario.text.toString().trim()
             val password = editPassword.text.toString().trim()
             if (usuario.isEmpty() || password.isEmpty()) {
-
                 Toast.makeText(this, "Completa los campos", Toast.LENGTH_SHORT).show()
-
             } else {
-
                 loginUsuario(usuario, password)
-
             }
         }
         binding.btnsinCuenta.setOnClickListener {
@@ -155,7 +141,7 @@ class Login : AppCompatActivity() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .build()
-        val googleSignInClient = GoogleSignIn.getClient(this, gso)
+         googleSignInClient = GoogleSignIn.getClient(this, gso)
     }
 
 
@@ -272,11 +258,8 @@ class Login : AppCompatActivity() {
                 //binding.txtTituloSheet.visibility= View.GONE
                 //binding.txtSubtitulo.visibility= View.GONE
                 iniciarTransicionDeCarga()
-
-
             }
         })
-
         animatorSet.start()
     }
     fun loginUsuario(usuario: String, password: String) {
@@ -288,7 +271,6 @@ class Login : AppCompatActivity() {
                 )
                 val response = ApiClient.apiService.loginUsuario(request)
                 if (response.success) {
-
                     Toast.makeText(this@Login,
                         "Bienvenido ${response.nombre}",
                         Toast.LENGTH_LONG).show()
@@ -312,13 +294,10 @@ class Login : AppCompatActivity() {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val account = task.getResult(ApiException::class.java)
-
                 val correoSeleccionado = account.email ?: ""
                 val googleIdSeleccionado = account.id ?: ""
-
                 // 🔥 AQUÍ LLAMAS TU API
                 loginUsuarioGoogle(correoSeleccionado, googleIdSeleccionado)
-
             } catch (e: ApiException) {
                 Toast.makeText(this, "Error en Google Sign-In", Toast.LENGTH_SHORT).show()
             }
@@ -331,9 +310,7 @@ class Login : AppCompatActivity() {
                     correo = correo,
                     google_id = googleId
                 )
-
                 val response = ApiClient.apiService.loginUsuarioGoogle(request)
-
                 if (response.success) {
 
                     Toast.makeText(
@@ -341,9 +318,7 @@ class Login : AppCompatActivity() {
                         "Bienvenido ${response.nombre}",
                         Toast.LENGTH_LONG
                     ).show()
-
                     ocultarPaginaAnterior()
-
                 } else {
 
                     Toast.makeText(
@@ -352,7 +327,6 @@ class Login : AppCompatActivity() {
                         Toast.LENGTH_LONG
                     ).show()
                 }
-
             } catch (e: Exception) {
 
                 Toast.makeText(
