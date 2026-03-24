@@ -7,7 +7,13 @@
     <string name="previous">Previous</string>
     <string name="google_maps_key">AIzaSyCTrTNHhUVszuiWL1XC4jQjcKV0bpoJci0</string>
     <string name="base_url">http://192.168.1.80/develoandroid/</string>
+    <string name="facebook_app_id">1637085987299183</string>
+    <string name="fb_login_protocol_scheme">efe92fc08e2f924dfb33bcdb89cd5215</string>
+    <string name="facebook_client_token">82742d69d79faa4fa45ec744b242507a</string>
+
+
     <string name="lorem_ipsum">
+
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
         volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus
         dui nec risus. Maecenas non sodales nisi, vel dictum dolor. Class aptent taciti sociosqu ad

@@ -1,29 +1,14 @@
 package com.example.gourmeet2
 import android.app.Dialog
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
-import android.location.Geocoder
+import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Bundle
-import android.transition.Transition
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.GridLayout
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.RadioGroup
-import android.widget.TextView
-import android.widget.Toast
+import android.view.*
+import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -35,15 +20,17 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
 import com.example.gourmeet2.data.api.ApiClient
-import com.example.gourmeet2.data.models.RegistroGoogle
-import com.example.gourmeet2.data.models.Restriccion
-import com.example.gourmeet2.data.models.RestriccionesData
-import com.example.gourmeet2.data.models.UsuarioRegistro
-import com.example.gourmeet2.data.models.VerificarUsuario
+import com.example.gourmeet2.data.models.*
 import com.example.gourmeet2.databinding.ActivityRegistroBinding
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.FacebookSdk
+import com.facebook.GraphRequest
+import com.facebook.appevents.AppEventsLogger
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -55,11 +42,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Collections.addAll
-import java.util.Locale
 import kotlin.collections.emptyList
 
 class Registro : AppCompatActivity() {
     lateinit var btnEdad: MaterialButton
+    lateinit var callbackManager: CallbackManager
     private enum class EstadoContenedor {
         EXPANDIDO,      // Altura máxima
         MINIMIZADO,     // Altura mínima (solo se ve la barra)
@@ -79,6 +66,7 @@ class Registro : AppCompatActivity() {
     var nombreSeleccionado = ""
     var correoSeleccionado = ""
     var passSeleccionado = ""
+    var facebookIdSeleccionado: String = ""
     var googleIdSeleccionado: String = ""
     var restriccionesSeleccionadas = mutableListOf<Restriccion>()
     private var estadoActual = EstadoContenedor.CERRADO
@@ -113,11 +101,77 @@ class Registro : AppCompatActivity() {
                 // Mostrar un toast de confirmación
                 Toast.makeText(this, "Ubicación seleccionada", Toast.LENGTH_SHORT).show()
             }
-        }}
+        }
+    }
     private lateinit var binding: ActivityRegistroBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FacebookSdk.sdkInitialize(applicationContext)
+        AppEventsLogger.activateApp(application)
         enableEdgeToEdge()
+        val data = intent?.data
+        if (data != null) {
+            Log.d("TIKTOK", "Intent en onCreate: $data")
+
+            val code = data.getQueryParameter("code")
+
+            if (code != null) {
+                Log.d("TIKTOK", "✅ CODE (onCreate): $code")
+            }
+        }
+        callbackManager = CallbackManager.Factory.create()
+        LoginManager.getInstance().registerCallback(callbackManager,
+            object : FacebookCallback<LoginResult> {
+                override fun onSuccess(result: LoginResult) {
+                    val request = GraphRequest.newMeRequest(
+                        result.accessToken
+                    ) { obj, _ ->
+                        val json = obj ?: return@newMeRequest
+                        val facebookId = json.optString("id", "")
+                        val nombre = json.optString("name", "")
+                        val correo = json.optString("email", "")
+                        val avatar = "https://graph.facebook.com/$facebookId/picture?type=large"
+                        Log.d("FACEBOOK_LOGIN", "Nombre: $nombre")
+                        Log.d("FACEBOOK_LOGIN", "Correo: $correo")
+                        Log.d("FACEBOOK_LOGIN","ID: $facebookId")
+
+
+                        // 🔥 MISMA VALIDACIÓN QUE GOOGLE
+                        lifecycleScope.launch {
+                            try {
+                                val requestApi = VerificarUsuario(nombre, correo)
+                                val response = ApiClient.apiService.verificarUsuario(requestApi)
+                                if (response.correoExiste) {
+                                    mostrarError("Este correo ya está registrado, inicia sesión")
+                                    return@launch
+                                }
+                                // 🔥 MISMAS VARIABLES
+                                nombreSeleccionado = nombre
+                                correoSeleccionado = correo
+                                avatarSeleccionado = avatar
+                                facebookIdSeleccionado = facebookId
+
+                                // 🔥 MISMO FLUJO
+                                mostrarPersonalizar(nombreSeleccionado, correoSeleccionado)
+
+                            } catch (e: Exception) {
+                                mostrarError("Error al conectar con el servidor")
+                            }
+                        }
+                    }
+
+                    val parameters = Bundle()
+                    parameters.putString("fields", "id,name,email")
+                    request.parameters = parameters
+                    request.executeAsync()
+                }
+                override fun onCancel() {
+                    mostrarError("Inicio cancelado")
+                }
+                override fun onError(error: FacebookException) {
+                    mostrarError("Error Facebook")
+                }
+            })
         binding = ActivityRegistroBinding.inflate(layoutInflater)
         setContentView(binding.root)
         btnEdad = binding.btneditSeleccionEdad
@@ -178,15 +232,23 @@ class Registro : AppCompatActivity() {
         }
         binding.btnFinRes.setOnClickListener {
 
-            if (googleIdSeleccionado.isNotEmpty()) {
-                //Usuario con Google
-                Log.d("DEBUG", "Entró a registrarUsuarioGoogle()")
-                registrarUsuarioGoogle()
-            } else {
-                //Usuario normal
-                Log.d("DEBUG", "Entró a registrarUsuario")
-                registrarUsuario()
+            when {
+                googleIdSeleccionado.isNotEmpty() -> {
+                    Log.d("DEBUG", "Entró a registrarUsuarioGoogle()")
+                    registrarUsuarioGoogle()
+                }
+
+                facebookIdSeleccionado.isNotEmpty() -> {
+                    Log.d("DEBUG", "Entró a registrarUsuarioFacebook()")
+                    registrarUsuarioFacebook()
+                }
+
+                else -> {
+                    Log.d("DEBUG", "Entró a registrarUsuario normal")
+                    registrarUsuario()
+                }
             }
+
             mostrarPantallaFinal()
         }
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -195,7 +257,6 @@ class Registro : AppCompatActivity() {
             .build()
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
-
         binding.btnGoogle.setOnClickListener {
             val googleSignInClient = GoogleSignIn.getClient(this, gso)
             // 🔥 FORZAR SELECCIÓN DE CUENTA
@@ -206,16 +267,45 @@ class Registro : AppCompatActivity() {
             Log.d("DEBUG", "Entró a obtenerDatosGoogle()")
             obtenerDatosGoogle()
         }
-
+        binding.btnTictok.setOnClickListener {
+            val url = "https://www.tiktok.com/v2/auth/authorize/?" +
+                    "client_key=sbawcifei5hccyogut" +
+                    "&response_type=code" +
+                    "&scope=user.info.basic" +
+                    "&redirect_uri=https://webhook.site/4e3282fd-1395-497c-ad7d-f79402426aed"+
+                    "&state=123" +
+                    "&prompt=consent"
+            Log.d("TIKTOK", "==========================")
+            Log.d("TIKTOK", "Botón presionado")
+            Log.d("TIKTOK", "URL generada:")
+            Log.d("TIKTOK", url)
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            try {
+                startActivity(intent)
+                Log.d("TIKTOK", "Intent lanzado correctamente")
+            } catch (e: Exception) {
+                Log.e("TIKTOK", "Error abriendo navegador: ${e.message}")
+            }
+        }
+        binding.btnFacebook.setOnClickListener {
+            obtenerDatosFacebook()
+        }
         setupValidaciones()
     }
     fun obtenerDatosGoogle() {
-
         val signInIntent = googleSignInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
+    fun obtenerDatosFacebook() {
+
+        LoginManager.getInstance().logInWithReadPermissions(
+            this,
+            listOf("email", "public_profile")
+        )
+    }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        callbackManager.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == RC_SIGN_IN) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
@@ -320,7 +410,6 @@ class Registro : AppCompatActivity() {
         binding.barraArrastre.setOnClickListener {
             toggleContenedor()
         }
-        // Opcional: doble click para cerrar completamente
         binding.barraArrastre.setOnLongClickListener {
             ocultarContenedorInferior()
             true
@@ -411,6 +500,68 @@ class Registro : AppCompatActivity() {
                     passSeleccionado = pass
                 } catch (e: Exception) {
                     mostrarError("Error al conectar con el servidor")
+                }
+            }
+        }
+    }
+    private fun registrarUsuarioFacebook() {
+
+        binding.txtError.visibility = View.GONE
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+
+                val edad = edadSeleccionada
+                val nivel = nivelSeleccionado
+                val latitud = latitudSeleccionada
+                val longitud = longitudSeleccionada
+                val restriccionesIds = restriccionesSeleccionadas.map { it.id }
+
+                val request = FacebookRegistro(
+                    correo = correoSeleccionado, // puede venir null ⚠️
+                    nombre = nombreSeleccionado,
+                    facebook_id = facebookIdSeleccionado,
+                    avatar = avatar,
+                    edad = edad,
+                    nivel = nivel,
+                    latitud = latitud,
+                    longitud = longitud,
+                    restricciones = restriccionesIds
+                )
+
+                val response = ApiClient.apiService.registroFacebook(request)
+
+                withContext(Dispatchers.Main) {
+
+                    if (response.success) {
+
+                        // 🔥 guardar sesión
+                        val shared = getSharedPreferences("user", MODE_PRIVATE)
+                        shared.edit()
+                            .putInt("id", response.usuario_id ?: 0)
+                            .putString("nombre", response.nombre)
+                            .apply()
+
+                        if (response.login == true) {
+                            Log.d("API", "Login con Facebook")
+                        }
+
+                        if (response.registro == true) {
+                            Log.d("API", "Registro con Facebook")
+                        }
+
+                        mostrarExito()
+
+                    } else {
+                        mostrarError(response.error ?: "Error desconocido")
+                    }
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+
+                withContext(Dispatchers.Main) {
+                    mostrarError("Error de conexión")
                 }
             }
         }
@@ -1084,5 +1235,30 @@ class Registro : AppCompatActivity() {
         contenedorPrincipal.tag = "restricciones_container"
         binding.contenedorContenido.addView(contenedorPrincipal)
         mostrarContenedorInferior()
+    }
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+
+        val data = intent?.data
+
+        Log.d("TIKTOK", "==============================")
+        Log.d("TIKTOK", "Intent recibido: $data")
+
+        val code = data?.getQueryParameter("code")
+        val state = data?.getQueryParameter("state")
+
+        if (code != null) {
+            Log.d("TIKTOK", "✅ CODE RECIBIDO:")
+            Log.d("TIKTOK", code)
+        } else {
+            Log.e("TIKTOK", "❌ No se recibió code")
+        }
+
+        if (state != null) {
+            Log.d("TIKTOK", "STATE:")
+            Log.d("TIKTOK", state)
+        }
+
+        Log.d("TIKTOK", "==============================")
     }
 }

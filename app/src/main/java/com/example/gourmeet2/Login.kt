@@ -8,6 +8,7 @@ import android.text.Spanned
 import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
+import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
@@ -26,8 +27,15 @@ import androidx.lifecycle.lifecycleScope
 import com.example.gourmeet2.data.api.ApiClient
 import com.example.gourmeet2.data.api.ApiService
 import com.example.gourmeet2.data.models.Login
+import com.example.gourmeet2.data.models.LoginFacebook
 import com.example.gourmeet2.data.models.LoginGoogle
 import com.example.gourmeet2.databinding.ActivityLoginBinding
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.GraphRequest
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -38,18 +46,20 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import kotlin.jvm.java
 class Login : AppCompatActivity() {
     lateinit var editUsuario: TextInputEditText
     lateinit var editPassword: TextInputEditText
     lateinit var btnLogin: Button
-
+    private lateinit var callbackManager: CallbackManager
     private val RC_SIGN_IN = 100
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var binding: ActivityLoginBinding
     private lateinit var behavior: BottomSheetBehavior<LinearLayout>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val iconGmail = findViewById<ImageView>(R.id.iconGmail)
@@ -120,7 +130,6 @@ class Login : AppCompatActivity() {
             }
         })
         btnLogin.setOnClickListener {
-
             val usuario = editUsuario.text.toString().trim()
             val password = editPassword.text.toString().trim()
             if (usuario.isEmpty() || password.isEmpty()) {
@@ -132,6 +141,54 @@ class Login : AppCompatActivity() {
         binding.btnsinCuenta.setOnClickListener {
             mostrarDialogoPrivacidad()
         }
+        callbackManager = CallbackManager.Factory.create()
+
+        val iconFacebook = findViewById<ImageView>(R.id.iconFacebook)
+
+        iconFacebook.setOnClickListener {
+
+            LoginManager.getInstance().logInWithReadPermissions(
+                this,
+                listOf("email", "public_profile")
+            )
+        }
+        LoginManager.getInstance().registerCallback(callbackManager,
+            object : FacebookCallback<LoginResult> {
+
+                override fun onSuccess(result: LoginResult) {
+
+                    val accessToken = result.accessToken
+
+                    val request = GraphRequest.newMeRequest(
+                        accessToken
+                    ) { obj: JSONObject?, _ ->
+
+                        val facebookId = obj?.getString("id") ?: ""
+                        val nombre = obj?.getString("name") ?: ""
+                        val correo = obj?.optString("email", null)
+
+                        Log.d("FACEBOOK", "ID: $facebookId")
+
+                        // 🔥 AQUÍ LLAMAS TU API
+                        loginUsuarioFacebook(correo, facebookId)
+                    }
+
+                    val parameters = Bundle()
+                    parameters.putString("fields", "id,name,email")
+                    request.parameters = parameters
+                    request.executeAsync()
+                }
+
+                override fun onCancel() {
+                    Toast.makeText(this@Login, "Login cancelado", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onError(error: FacebookException) {
+                    Toast.makeText(this@Login, "Error Facebook", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+
         iconGmail.setOnClickListener {
             googleSignInClient.signOut().addOnCompleteListener {
                 val signInIntent = googleSignInClient.signInIntent
@@ -143,8 +200,6 @@ class Login : AppCompatActivity() {
             .build()
          googleSignInClient = GoogleSignIn.getClient(this, gso)
     }
-
-
 
     private fun mostrarDialogoPrivacidad() {
         val dialogView = layoutInflater.inflate(R.layout.aceptar_terminos, null)
@@ -289,7 +344,7 @@ class Login : AppCompatActivity() {
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
+        callbackManager.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RC_SIGN_IN) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
@@ -337,7 +392,46 @@ class Login : AppCompatActivity() {
             }
         }
     }
+    fun loginUsuarioFacebook(correo: String?, facebookId: String) {
+        lifecycleScope.launch {
+            try {
 
+                val request = LoginFacebook(
+                    facebook_id = facebookId,
+                    correo = correo
+                )
+
+                val response = ApiClient.apiService.loginFacebook(request)
+
+                if (response.success) {
+
+                    Toast.makeText(
+                        this@Login,
+                        "Bienvenido ${response.nombre}",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    ocultarPaginaAnterior()
+
+                } else {
+
+                    Toast.makeText(
+                        this@Login,
+                        response.error,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                Toast.makeText(
+                    this@Login,
+                    "Error de conexión",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
     private fun configurarTextoConEnlaceCompleto(textView: TextView) {
         val textoCompleto = "Acepto los términos y condiciones de uso"
         val spannable = SpannableString(textoCompleto)
@@ -476,4 +570,6 @@ class Login : AppCompatActivity() {
 
         dialog.show()
     }
+
+
 }

@@ -78,4 +78,14 @@ interface ApiService {
         @Body request: LoginGoogle
     ): LoginGoogleResponse
 
+    @POST("RegistroUsuarioFacebook.php")
+    suspend fun registroFacebook(
+        @Body request: FacebookRegistro
+    ): FacebookRegistroResponse
+
+    @POST("Login_Facebook.php")
+    suspend fun loginFacebook(
+        @Body request: LoginFacebook
+    ): LoginFacebookResponse
+
 }
