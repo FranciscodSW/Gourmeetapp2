@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/postre"
+        android:title="Postre"/>
+
+    <item
+        android:id="@+id/bebida"
+        android:title="Bebida"/>
+
+    <item
+        android:id="@+id/snack"
+        android:title="Snack"/>
+
+    <item
+        android:id="@+id/entrada"
+        android:title="Entrada"/>
+
+    <item
+        android:id="@+id/plato_fuerte"
+        android:title="Plato fuerte"/>
+
+</menu>

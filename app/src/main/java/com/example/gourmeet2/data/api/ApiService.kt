@@ -87,5 +87,12 @@ interface ApiService {
     suspend fun loginFacebook(
         @Body request: LoginFacebook
     ): LoginFacebookResponse
-
+    @GET("ingredientes/api_autocomplete_ingredientes.php")
+    suspend fun autocompleteIngredientes(
+        @Query("busqueda") busqueda: String
+    ): BuscarIngredientesResponse
+    @GET("recetas/api_autocomplete_recetas.php")
+    suspend fun autocompleteRecetas(
+        @Query("busqueda") busqueda: String
+    ): BuscarRecetasResponse
 }

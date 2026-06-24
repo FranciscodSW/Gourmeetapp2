@@ -865,11 +865,9 @@ class Registro : AppCompatActivity() {
 
         Log.d(TAG, "Entrando a nivel")
         if (binding.contenedorInferior.visibility == View.VISIBLE) {
-
             limpiarContenedorInferior()
         }
         binding.tvTituloContenedor.text = "Selecciona tu nivel"
-
         val listaNiveles = listOf(
             NivelCocina(
                 1,
@@ -993,7 +991,6 @@ class Registro : AppCompatActivity() {
         // Iniciar desde abajo
         binding.contenedorInferior.translationY = binding.contenedorInferior.height.toFloat()
         binding.contenedorInferior.alpha = 0f
-
         binding.contenedorInferior.animate()
             .translationY(0f) // sube
             .alpha(1f)        // aparece
@@ -1238,27 +1235,21 @@ class Registro : AppCompatActivity() {
     }
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-
         val data = intent?.data
-
         Log.d("TIKTOK", "==============================")
         Log.d("TIKTOK", "Intent recibido: $data")
-
         val code = data?.getQueryParameter("code")
         val state = data?.getQueryParameter("state")
-
         if (code != null) {
             Log.d("TIKTOK", "✅ CODE RECIBIDO:")
             Log.d("TIKTOK", code)
         } else {
             Log.e("TIKTOK", "❌ No se recibió code")
         }
-
         if (state != null) {
             Log.d("TIKTOK", "STATE:")
             Log.d("TIKTOK", state)
         }
-
         Log.d("TIKTOK", "==============================")
     }
 }

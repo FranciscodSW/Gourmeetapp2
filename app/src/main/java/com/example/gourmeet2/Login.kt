@@ -435,24 +435,20 @@ class Login : AppCompatActivity() {
     private fun configurarTextoConEnlaceCompleto(textView: TextView) {
         val textoCompleto = "Acepto los términos y condiciones de uso"
         val spannable = SpannableString(textoCompleto)
-
         val clickableSpan = object : ClickableSpan() {
             override fun onClick(widget: View) {
                 // Mostrar términos COMPLETOS en un nuevo diálogo
                 mostrarTerminosCompletos()
             }
-
             override fun updateDrawState(ds: TextPaint) {
                 super.updateDrawState(ds)
                 ds.color = Color.parseColor("#0E90E4") // Color azul
                 ds.isUnderlineText = true
             }
         }
-
         // Hacer "términos y condiciones de uso" clickeable
         val startIndex = textoCompleto.indexOf("términos")
         val endIndex = textoCompleto.length
-
         if (startIndex != -1) {
             spannable.setSpan(
                 clickableSpan,
@@ -461,7 +457,6 @@ class Login : AppCompatActivity() {
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
         }
-
         textView.text = spannable
         textView.movementMethod = LinkMovementMethod.getInstance()
         textView.highlightColor = Color.TRANSPARENT
@@ -469,22 +464,17 @@ class Login : AppCompatActivity() {
     private fun iniciarTransicionDeCarga() {
         // Crear intent para la nueva actividad
         val intent = Intent(this, Trancicion_de_carga_para_menu_free::class.java)
-
         // Iniciar la actividad
         startActivity(intent)
-
         // Transición suave entre actividades
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-
         // Opcional: Cerrar esta actividad si ya no es necesaria
         // finish()
     }
     private fun mostrarTerminosCompletos() {
         val dialogView = layoutInflater.inflate(R.layout.terminos_completos, null)
-
         val builder = AlertDialog.Builder(this)
         builder.setView(dialogView)
-
         val scrollView = dialogView.findViewById<ScrollView>(R.id.scrollView)
         val txtTerminosCompletos = dialogView.findViewById<TextView>(R.id.txtTerminosCompletos)
         val btnCerrar = dialogView.findViewById<Button>(R.id.btnCerrar)

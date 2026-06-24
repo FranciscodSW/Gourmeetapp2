@@ -1,0 +1,23 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- fondo -->
+    <item>
+        <shape>
+            <solid android:color="#FFFFFF"/>
+            <corners
+                android:topLeftRadius="25dp"
+                android:topRightRadius="25dp"/>
+        </shape>
+    </item>
+    <!-- borde solo arriba -->
+    <item android:bottom="0dp">
+        <shape>
+            <stroke
+                android:width="1dp"
+                android:color="#000000"/>
+            <corners
+                android:topLeftRadius="25dp"
+                android:topRightRadius="25dp"/>
+        </shape>
+    </item>
+
+</layer-list>
