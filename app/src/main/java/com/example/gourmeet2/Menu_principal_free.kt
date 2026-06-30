@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.gourmeet2.data.api.ApiClient
 import com.example.gourmeet2.data.models.BuscarIngredientes
 import com.example.gourmeet2.data.models.BuscarRecetas
+import com.example.gourmeet2.data.models.FiltrosRecetasRequest
+import com.example.gourmeet2.data.models.SeccionResultados
 import com.example.gourmeet2.databinding.ActivityMenuPrincipalFreeBinding
 import kotlinx.coroutines.launch
 class Menu_principal_free : AppCompatActivity() {
@@ -26,6 +28,9 @@ class Menu_principal_free : AppCompatActivity() {
     private lateinit var seleccionadosAdapter: SeleccionadosAdapter
     private val recetasSeleccionadas = mutableListOf<BuscarRecetas>()
     private lateinit var recetasAdapter: RecetasAdapter
+    private lateinit var adapterResultados: AdapterResultados
+
+
     private lateinit var adapter: IngredienteAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +53,12 @@ class Menu_principal_free : AppCompatActivity() {
             binding.panelingredietes.visibility = View.GONE
             binding.editBusqueda.setText("")
         }
+        adapterResultados = AdapterResultados(mutableListOf())
+
+        binding.rvPrincipal.layoutManager =
+            androidx.recyclerview.widget.LinearLayoutManager(this)
+
+        binding.rvPrincipal.adapter = adapterResultados
         binding.rvResultados.layoutManager =
             GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
         binding.rvResultados.adapter = adapter
@@ -270,6 +281,36 @@ class Menu_principal_free : AppCompatActivity() {
         if (!yaExiste) {
             ingredientesSeleccionados.add(ingrediente)
             seleccionadosAdapter.notifyDataSetChanged()
+            cargarRecetasPorIngredientes()
+        }
+    }
+    private fun cargarRecetasPorIngredientes() {
+        lifecycleScope.launch {
+            try {
+
+                val request = FiltrosRecetasRequest(
+                    ingredientes = ingredientesSeleccionados.map { it.id }
+                )
+
+                val response = ApiClient.apiService.getFiltrosRecetas(request)
+
+                if (response.success) {
+                    val secciones = listOf(
+                        SeccionResultados("Coincidencia", response.coincidencia),
+                        SeccionResultados("Calorías", response.calorias),
+                        SeccionResultados("Tiempo", response.tiempo),
+                        SeccionResultados("Gasto", response.gasto),
+                        SeccionResultados("Sin lácteos", response.sin_lacteos),
+                        SeccionResultados("Sin azúcar", response.sin_azucar),
+                        SeccionResultados("Dificultad", response.dificultad)
+                    )
+
+                    adapterResultados.actualizar(secciones)
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

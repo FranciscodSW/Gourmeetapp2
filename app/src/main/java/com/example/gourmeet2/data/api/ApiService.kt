@@ -77,12 +77,10 @@ interface ApiService {
     suspend fun loginUsuarioGoogle(
         @Body request: LoginGoogle
     ): LoginGoogleResponse
-
     @POST("RegistroUsuarioFacebook.php")
     suspend fun registroFacebook(
         @Body request: FacebookRegistro
     ): FacebookRegistroResponse
-
     @POST("Login_Facebook.php")
     suspend fun loginFacebook(
         @Body request: LoginFacebook
@@ -95,4 +93,8 @@ interface ApiService {
     suspend fun autocompleteRecetas(
         @Query("busqueda") busqueda: String
     ): BuscarRecetasResponse
+    @POST("ingredientes/api_filtros_recetas.php")
+    suspend fun getFiltrosRecetas(
+        @Body request: FiltrosRecetasRequest
+    ): FiltrosRecetasResponse
 }

@@ -1,0 +1,28 @@
+<androidx.cardview.widget.CardView android:layout_width="100dp"
+    android:layout_height="120dp"
+    app:cardCornerRadius="16dp"
+    android:layout_margin="8dp"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/imgReceta"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/ic_logo_circular"
+            />
+
+        <TextView
+            android:id="@+id/txtNombre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Receta"
+            android:textSize="12sp"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

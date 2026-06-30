@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:id="@+id/containerCoincidencia"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- HEADER -->
+    <LinearLayout
+        android:id="@+id/headerCoincidencia"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/txtCoincidencia"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Coincidencia"
+            android:textStyle="bold"
+            android:textSize="20sp"/>
+
+        <ImageView
+            android:id="@+id/btnToggleCoincidencia"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/ic_flecha_abajo"/>
+    </LinearLayout>
+    <!-- LISTA HORIZONTAL -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCoincidencia"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:orientation="horizontal"/>
+</LinearLayout>
