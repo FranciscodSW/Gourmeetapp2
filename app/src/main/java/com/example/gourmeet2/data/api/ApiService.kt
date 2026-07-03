@@ -97,4 +97,12 @@ interface ApiService {
     suspend fun getFiltrosRecetas(
         @Body request: FiltrosRecetasRequest
     ): FiltrosRecetasResponse
+    @POST("recetas/api_filtros_recetas_nombre.php")
+    suspend fun getFiltrosRecetasNombre(
+        @Body request: FiltrosRecetasNombreRequest
+    ): FiltrosRecetasResponse
+    @POST("recetas/api_detalle_receta.php")
+    suspend fun getDetalleReceta(
+        @Body request: DetalleRecetaRequest
+    ): DetalleRecetaResponse
 }

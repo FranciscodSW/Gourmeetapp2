@@ -7,10 +7,15 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.gourmeet2.data.models.RecetaconFiltro
 import com.example.gourmeet2.data.models.SeccionResultados
 
 class AdapterResultados(
-    private val secciones: MutableList<SeccionResultados>
+
+    private val secciones: MutableList<SeccionResultados>,
+
+    private val onClick: (RecetaconFiltro) -> Unit
+
 ) : RecyclerView.Adapter<AdapterResultados.ViewHolder>() {
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -37,7 +42,8 @@ class AdapterResultados(
 
             rv.adapter =
                 CoincidenciaAdapter(
-                    seccion.recetas.toMutableList()
+                    seccion.recetas.toMutableList(),
+                    onClick
                 )
         }
     }

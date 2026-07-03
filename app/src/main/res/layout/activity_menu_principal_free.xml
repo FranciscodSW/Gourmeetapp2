@@ -291,8 +291,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Buscar..."
+                    android:background="@null"
                     android:paddingHorizontal="16dp"
-                    android:background="@null"/>
+                    android:singleLine="true"
+                    android:maxLines="1"
+                    android:inputType="text"
+                    android:imeOptions="actionNone|flagNoEnterAction"/>
             </androidx.cardview.widget.CardView>
             <!-- Filtro -->
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -389,5 +393,17 @@
                 android:textStyle="bold"
                 android:fontFamily="@font/caviardreams"/>
         </androidx.cardview.widget.CardView>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+    <FrameLayout
+        android:id="@+id/containerDetalleReceta"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:background="#CCFFFFFF"
+        android:elevation="20dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
