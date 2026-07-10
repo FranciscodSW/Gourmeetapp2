@@ -5,86 +5,37 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
-
 interface ApiService {
-    @GET("listar_recetas_api.php")
-    suspend fun getRecetas(
-        @Query("pagina") pagina: Int = 1,
-        @Query("limite") limite: Int = 100
-    ): RecetaResponse
-    @GET("listar_descripcio_color.php")
-    suspend fun getCategorias(): CategoriaResponse
-
-    @GET("listar_recetas_rec_rc_id_api.php")
-    suspend fun getRecetasPorCategoria(
-        @Query("categoria_id") categoriaId: Int // Sin valor por defecto
-    ): RecetaRecrcidResponse
-
-    @GET("buscar_recetas_nombre.php") // Ajusta el endpoint según tu API
-    suspend fun buscarRecetas(
-        @Query("REC_NOMBRE") query: String,
-        @Query("REC_RC_ID") categoriaId: Int
-    ): RecetaBuscarResponse
-    // NUEVO ENDPOINT
-    @GET("listar_ingredientes_recetas.php")
-    suspend fun getRecetaConIngredientes(
-        @Query("REC_ID") recId: Int
-    ): IngredienteRecetaResponse
-
-    @GET("listar_pasos_recetas.php")
-    suspend fun getPasosPreparacion(
-        @Query("REC_ID") recetaId: Int
-    ): PasosResponse
-    @GET("buscar_ingredientes.php")
-    suspend fun getBuscarIngredientes(
-        @Query("q") termino: String
-    ): BuscarIngredientesResponse
-
-    @GET("buscar_recetas_ingrediente.php")
-    suspend fun getRecetasPorIngredientes(
-        @Query("ingredientes") termino: String,
-        @Query("categoria") categoria: Int
-    ): RecetasPorIngredientesResponse
-
-    @GET("buscar_imagenes_recetas.php")
-    suspend fun getImagenesIngredientes(
-        @Query("RI_REC_ID") recetaId: Int
-    ): ImagenesIngredientesResponse
-
-    @POST("RegistroUsuario.php")
-    suspend fun registrarUsuario(
-        @Body usuario: UsuarioRegistro
-    ): RegistroResponse
-
-    @GET("obtener_restricciones.php")
+    @GET("usuario/obtener_restricciones.php")
     suspend fun obtenerRestricciones(): RestriccionesResponse
-
-    @POST("login_usuario.php")
+    @POST("usuario/RegistroUsuario.php")
+    suspend fun registrarUsuario(
+        @Body request: UsuarioRegistro
+    ): AuthResponse
+    @POST("usuario/login_usuario.php")
     suspend fun loginUsuario(
         @Body request: Login
-    ): LoginResponse
-
-    @POST("verificar_usuario.php")
+    ): AuthResponse
+    @POST("usuario/verificar_usuario.php")
     suspend fun verificarUsuario(
         @Body request: VerificarUsuario
     ): VerificarUsuarioResponse
-
-    @POST("RegistroUsuarioGoogle.php")
+    @POST("usuario/RegistroUsuarioGoogle.php")
     suspend fun registroGoogle(
-            @Body request: RegistroGoogle
-    ): RegistroGoogleResponse
-    @POST("login_google.php")
+        @Body request: RegistroGoogle
+    ): AuthResponse
+    @POST("usuario/login_google.php")
     suspend fun loginUsuarioGoogle(
         @Body request: LoginGoogle
-    ): LoginGoogleResponse
-    @POST("RegistroUsuarioFacebook.php")
+    ): AuthResponse
+    @POST("usuario/RegistroUsuarioFacebook.php")
     suspend fun registroFacebook(
         @Body request: FacebookRegistro
-    ): FacebookRegistroResponse
-    @POST("Login_Facebook.php")
+    ): AuthResponse
+    @POST("usuario/Login_Facebook.php")
     suspend fun loginFacebook(
         @Body request: LoginFacebook
-    ): LoginFacebookResponse
+    ): AuthResponse
     @GET("ingredientes/api_autocomplete_ingredientes.php")
     suspend fun autocompleteIngredientes(
         @Query("busqueda") busqueda: String
@@ -105,4 +56,8 @@ interface ApiService {
     suspend fun getDetalleReceta(
         @Body request: DetalleRecetaRequest
     ): DetalleRecetaResponse
+    @POST("recetas/api_recetas_inicio.php")
+    suspend fun getRecetasInicio(
+        @Body request: RecetasInicioRequest
+    ): FiltrosRecetasResponse
 }

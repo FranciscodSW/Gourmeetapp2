@@ -41,7 +41,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
-
         <!-- TEXTO  -->
         <TextView
             android:id="@+id/txtBienvenido"
@@ -58,7 +57,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             />
-
         <TextView
             android:id="@+id/txtSubtitulo"
             android:layout_width="wrap_content"
@@ -73,9 +71,7 @@
             app:layout_constraintTop_toBottomOf="@id/txtBienvenido"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
-
     <LinearLayout
         android:id="@+id/bottomSheet"
         android:layout_width="match_parent"
@@ -85,11 +81,9 @@
         android:background="@drawable/bg_card"
         android:clipChildren="false"
         android:clipToPadding="false"
-
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
         app:behavior_peekHeight="0dp"
         app:behavior_hideable="false">
-
         <!-- ✅ CONTENEDOR INTERNO (ESTE ES EL IMPORTANTE) -->
         <LinearLayout
             android:id="@+id/sheetContent"
@@ -97,7 +91,6 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             >
-
             <!-- Imagen -->
             <ImageView
                 android:id="@+id/imgTopSheet"
@@ -109,7 +102,6 @@
                 android:translationZ="12dp"
                 android:layout_marginTop="-60dp"
                 android:layout_gravity="center_horizontal|top" />
-
             <!-- Título -->
             <TextView
                 android:id="@+id/txtTituloSheet"
@@ -121,7 +113,6 @@
                 android:textSize="30sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="5dp" />
-
             <!-- Usuario -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="202dp"
@@ -137,15 +128,12 @@
                 app:boxCornerRadiusBottomStart="20dp"
                 app:boxCornerRadiusBottomEnd="20dp"
                 android:layout_marginBottom="5dp" >
-
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editUsuario"
                     android:layout_width="200dp"
                     android:layout_height="50dp"
                     android:inputType="textEmailAddress"/>
-
             </com.google.android.material.textfield.TextInputLayout>
-
             <!-- Contraseña -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="200dp"
@@ -162,15 +150,12 @@
                 app:boxCornerRadiusBottomStart="20dp"
                 app:boxCornerRadiusBottomEnd="20dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPassword"/>
-
             </com.google.android.material.textfield.TextInputLayout>
-
             <!-- Botón login -->
             <Button
                 android:id="@+id/btnLogin"
@@ -182,7 +167,6 @@
                 android:layout_marginTop="16dp"
                 android:layout_width="200dp"
                 android:layout_height="50dp" />
-
             <!-- Redes -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -190,21 +174,18 @@
                 android:layout_marginTop="16dp"
                 android:orientation="horizontal"
                 android:gravity="center">
-
                 <ImageView
                     android:id="@+id/iconFacebook"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_margin="12dp"
                     android:src="@drawable/ic_facebook" />
-
                 <ImageView
                     android:id="@+id/iconGmail"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_margin="12dp"
                     android:src="@drawable/ic_gmail" />
-
                 <ImageView
                     android:id="@+id/iconTiktok"
                     android:layout_width="40dp"
@@ -212,7 +193,6 @@
                     android:layout_margin="12dp"
                     android:src="@drawable/ic_tiktok" />
             </LinearLayout>
-
             <!-- Botones -->
             <Button
                 android:id="@+id/btnRegistrar"
@@ -224,7 +204,6 @@
                 android:layout_marginTop="16dp"
                 android:layout_width="200dp"
                 android:layout_height="50dp" />
-
             <Button
                 android:id="@+id/btnsin_cuenta"
                 android:text="Continuar sin cuenta"
@@ -235,7 +214,6 @@
                 android:layout_marginTop="16dp"
                 android:layout_width="200dp"
                 android:layout_height="50dp" />
-
             <!-- Imagen inferior -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -243,7 +221,6 @@
                 android:layout_marginTop="16dp"
                 android:orientation="horizontal"
                 android:gravity="center">
-
                 <ImageView
                     android:id="@+id/ic_fondo2"
                     android:layout_width="200dp"

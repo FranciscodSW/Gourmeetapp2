@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:padding="16dp"
+    android:padding="1dp"
     android:paddingBottom="200dp"
     android:scrollbars="vertical">
 
@@ -19,34 +19,137 @@
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="260dp"
-            android:layout_margin="8dp"
+            android:layout_margin="1dp"
             app:cardCornerRadius="18dp"
             app:cardElevation="6dp">
 
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-
                 <!-- Imagen de fondo -->
-
                 <ImageView
                     android:id="@+id/imgHeaderReceta"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"/>
-
-                <!-- Oscurece un poco la imagen -->
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="#33000000"/>
-
                 <!-- Todo el contenido -->
-
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
+                    <!-- ========================= -->
+                    <!-- PANEL SUPERIOR IZQUIERDO  -->
+                    <!-- ========================= -->
+                    <LinearLayout
+                        android:id="@+id/layoutDatos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <!-- Tiempo -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="10dp"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <ImageView
+                                android:layout_width="26dp"
+                                android:layout_height="26dp"
+                                android:src="@drawable/ic_clock_bg"/>
+
+                            <TextView
+                                android:id="@+id/txtTiempo"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="50 min"
+                                android:textColor="@android:color/black"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/caviardreams"/>
+
+                        </LinearLayout>
+
+                        <!-- Nivel -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="10dp"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <ImageView
+                                android:layout_width="26dp"
+                                android:layout_height="26dp"
+                                android:src="@drawable/ic_gorrito_nuevo_azul"/>
+
+                            <TextView
+                                android:id="@+id/txtNivel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Fácil"
+                                android:textColor="@android:color/black"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/caviardreams"/>
+
+                        </LinearLayout>
+
+                        <!-- Precio -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="10dp"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <ImageView
+                                android:layout_width="26dp"
+                                android:layout_height="26dp"
+                                android:src="@drawable/ic_dinero"/>
+
+                            <TextView
+                                android:id="@+id/txtCosto"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="$49"
+                                android:textColor="@android:color/black"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/caviardreams"/>
+
+                        </LinearLayout>
+
+                        <!-- Tipo -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <ImageView
+                                android:layout_width="26dp"
+                                android:layout_height="26dp"
+                                android:src="@drawable/ic_comida"/>
+
+                            <TextView
+                                android:id="@+id/txtTipo"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Plato fuerte"
+                                android:textColor="@android:color/black"
+                                android:textSize="10sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/caviardreams"/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
 
                     <!-- ========================= -->
                     <!-- TITULO                    -->
@@ -54,16 +157,16 @@
 
                     <TextView
                         android:id="@+id/txtTitulo"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:gravity="center"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="10dp"
+                        android:fontFamily="@font/caviardreams"
                         android:text="Enchiladas Verdes"
                         android:textColor="@android:color/white"
-                        android:textSize="28sp"
+                        android:textSize="24sp"
                         android:textStyle="bold"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"/>
 
                     <!-- ========================= -->
@@ -74,116 +177,19 @@
                         android:id="@+id/txtCoincidencia"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Coincidencia 35%"
-                        android:textColor="#FFD54F"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="10dp"
+                        android:paddingStart="8dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="2dp"
+                        android:fontFamily="@font/caviardreams"
+                        android:text="Coincidencia: 35%"
+                        android:textColor="@color/azulgourmeet"
+                        android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textSize="15sp"
-                        app:layout_constraintTop_toBottomOf="@id/txtTitulo"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"/>
-
-                    <!-- ========================= -->
-                    <!-- PANEL SUPERIOR            -->
-                    <!-- ========================= -->
-                    <LinearLayout
-                        android:id="@+id/layoutDatos"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center"
-                        android:paddingTop="80dp">
-
-                        <!-- Tiempo -->
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:orientation="vertical">
-                            <ImageView
-                                android:layout_width="30dp"
-                                android:layout_height="30dp"
-                                android:src="@drawable/ic_clock_bg"/>
-                            <TextView
-                                android:id="@+id/txtTiempo"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="50 min"
-                                android:textColor="@android:color/white"
-                                android:textStyle="bold"/>
-                        </LinearLayout>
-
-                        <!-- Nivel -->
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <ImageView
-                                android:layout_width="30dp"
-                                android:layout_height="30dp"
-                                android:src="@drawable/ic_nivel"/>
-
-                            <TextView
-                                android:id="@+id/txtNivel"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Fácil"
-                                android:textColor="@android:color/white"
-                                android:textStyle="bold"/>
-                        </LinearLayout>
-
-                        <!-- Costo -->
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <ImageView
-                                android:layout_width="30dp"
-                                android:layout_height="30dp"
-                                android:src="@drawable/ic_dinero"/>
-
-                            <TextView
-                                android:id="@+id/txtCosto"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="$45"
-                                android:textColor="@android:color/white"
-                                android:textStyle="bold"/>
-                        </LinearLayout>
-
-                        <!-- Tipo -->
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <ImageView
-                                android:layout_width="30dp"
-                                android:layout_height="30dp"
-                                android:src="@drawable/ic_comida"/>
-
-                            <TextView
-                                android:id="@+id/txtTipo"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Mexicana"
-                                android:textColor="@android:color/white"
-                                android:textStyle="bold"/>
-                        </LinearLayout>
-
-                    </LinearLayout>
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/txtTitulo"/>
 
                     <!-- ========================= -->
                     <!-- CALIFICACION              -->
@@ -192,9 +198,9 @@
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_margin="14dp"
+                        android:layout_margin="12dp"
                         android:gravity="center"
+                        android:orientation="vertical"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent">
 
@@ -202,10 +208,11 @@
                             android:id="@+id/txtCalificacion"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:fontFamily="@font/caviardreams"
                             android:text="4.0"
-                            android:textStyle="bold"
                             android:textColor="@android:color/white"
-                            android:textSize="24sp"/>
+                            android:textSize="22sp"
+                            android:textStyle="bold"/>
 
                         <RatingBar
                             android:id="@+id/ratingReceta"
@@ -225,7 +232,6 @@
             android:layout_height="170dp"
             android:layout_marginTop="8dp"
             android:orientation="horizontal">
-
             <!-- PANEL DATO GOURMEET -->
 
             <LinearLayout
@@ -241,7 +247,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Dato Gourmeet"
+                    android:text="Dato GourMeet"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"
                     android:textSize="11sp"
@@ -304,6 +310,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:text="Ingredientes"
                 android:textStyle="bold"
                 android:textSize="22sp"
@@ -330,7 +337,7 @@
             android:id="@+id/cardPreparacion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="1dp"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?android:attr/selectableItemBackground"
@@ -343,25 +350,24 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="20dp">
-
                 <!-- Cabecera con título y contador -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical">
-
+                    android:gravity="center_vertical"
+                    >
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="👨‍🍳 Preparación"
+                        android:gravity="center"
+                        android:text="Preparación"
                         android:fontFamily="@font/caviardreams"
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="#333333"/>
-
                 </LinearLayout>
 
 
@@ -383,6 +389,7 @@
                             android:textSize="18sp"
                             android:textColor="#333333"
                             android:gravity="center"
+                            android:fontFamily="@font/caviardreams"
                             android:lineSpacingExtra="5dp"/>
 
 
@@ -407,6 +414,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnVerTodo"
                         android:layout_width="140dp"
+                        android:fontFamily="@font/caviardreams"
                         android:layout_height="42dp"
                         android:backgroundTint="#177AFF"
                         android:layout_gravity="center_horizontal"
@@ -421,6 +429,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:orientation="vertical"
+                        android:fontFamily="@font/caviardreams"
                         android:visibility="gone"/>
                 </LinearLayout>
 
@@ -473,7 +482,8 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="💬 Comentarios"
+                    android:gravity="center"
+                    android:text="Comentarios"
                     android:fontFamily="@font/caviardreams"
                     android:textSize="20sp"
                     android:textStyle="bold"

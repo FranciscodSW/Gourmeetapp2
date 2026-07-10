@@ -17,11 +17,11 @@
     <!-- Botón abajo a la derecha -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnContinuar"
-        android:layout_width="100dp"
-        android:layout_height="150dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginBottom="0dp"
         android:fontFamily="@font/caviardreams"
         android:textColor="@android:color/black"
         android:textSize="16sp"

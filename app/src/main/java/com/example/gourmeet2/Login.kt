@@ -170,7 +170,7 @@ class Login : AppCompatActivity() {
                         Log.d("FACEBOOK", "ID: $facebookId")
 
                         // 🔥 AQUÍ LLAMAS TU API
-                        loginUsuarioFacebook(correo, facebookId)
+                       // loginUsuarioFacebook(correo, facebookId)
                     }
 
                     val parameters = Bundle()
@@ -234,10 +234,8 @@ class Login : AppCompatActivity() {
     private fun ocultarPaginaAnterior() {
         // Crear un conjunto de animaciones para ocultar todos los elementos
         val animatorSet = AnimatorSet()
-
         // Lista de animaciones
         val animaciones = mutableListOf<Animator>()
-
         // Animación para el BottomSheet
         val bottomSheetAnim = ObjectAnimator.ofPropertyValuesHolder(
             binding.bottomSheet,
@@ -324,23 +322,40 @@ class Login : AppCompatActivity() {
                     usuario = usuario,
                     password = password
                 )
-                val response = ApiClient.apiService.loginUsuario(request)
+
+                val response =
+                    ApiClient.apiService.loginUsuario(request)
+
                 if (response.success) {
-                    Toast.makeText(this@Login,
-                        "Bienvenido ${response.nombre}",
-                        Toast.LENGTH_LONG).show()
-                         ocultarPaginaAnterior()
+
+                    val usuarioLogueado = response.usuario
+
+                    Toast.makeText(
+                        this@Login,
+                        "Bienvenido ${usuarioLogueado?.nombre}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    // Aquí posteriormente guardaremos la sesión
+                    ocultarPaginaAnterior()
                 } else {
-                    Toast.makeText(this@Login,
-                        response.error,
-                        Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this@Login,
+                        response.message,
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@Login,
+
+                Toast.makeText(
+                    this@Login,
                     "Error de conexión",
-                    Toast.LENGTH_LONG).show()
+                    Toast.LENGTH_LONG
+                ).show()
+
             }
+
         }
+
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -358,41 +373,85 @@ class Login : AppCompatActivity() {
             }
         }
     }
-    fun loginUsuarioGoogle(correo: String, googleId: String) {
+    fun loginUsuarioGoogle(
+        correo: String,
+        googleId: String
+    ) {
+
         lifecycleScope.launch {
+
             try {
+
                 val request = LoginGoogle(
                     correo = correo,
                     google_id = googleId
                 )
-                val response = ApiClient.apiService.loginUsuarioGoogle(request)
-                if (response.success) {
+
+                val response =
+                    ApiClient.apiService.loginUsuarioGoogle(request)
+
+                if (response.success && response.usuario != null) {
+
+                    val usuario = response.usuario
+
+                    //--------------------------------------------------
+                    // GUARDAR SESIÓN
+                    //--------------------------------------------------
+
+                    val shared =
+                        getSharedPreferences("user", MODE_PRIVATE)
+
+                    shared.edit()
+                        .putInt("id", usuario.id)
+                        .putString("nombre", usuario.nombre)
+                        .putString("correo", usuario.correo)
+                        .putString("foto", usuario.foto)
+                        .putString("origen", usuario.origen)
+                        .putInt("nivel", usuario.nivel ?: 1)
+                        .putInt("edad", usuario.edad ?: 0)
+                        .apply()
+
+                    //--------------------------------------------------
+                    // MENSAJE
+                    //--------------------------------------------------
 
                     Toast.makeText(
                         this@Login,
-                        "Bienvenido ${response.nombre}",
+                        "Bienvenido ${usuario.nombre}",
                         Toast.LENGTH_LONG
                     ).show()
+
+                    //--------------------------------------------------
+                    // ABRIR MENÚ
+                    //--------------------------------------------------
+
                     ocultarPaginaAnterior()
+
                 } else {
 
                     Toast.makeText(
                         this@Login,
-                        response.error,
+                        response.message,
                         Toast.LENGTH_LONG
                     ).show()
+
                 }
+
             } catch (e: Exception) {
+
+                e.printStackTrace()
 
                 Toast.makeText(
                     this@Login,
                     "Error de conexión",
                     Toast.LENGTH_LONG
                 ).show()
+
             }
+
         }
     }
-    fun loginUsuarioFacebook(correo: String?, facebookId: String) {
+    /*fun loginUsuarioFacebook(correo: String?, facebookId: String) {
         lifecycleScope.launch {
             try {
 
@@ -431,7 +490,7 @@ class Login : AppCompatActivity() {
                 ).show()
             }
         }
-    }
+    }*/
     private fun configurarTextoConEnlaceCompleto(textView: TextView) {
         val textoCompleto = "Acepto los términos y condiciones de uso"
         val spannable = SpannableString(textoCompleto)
@@ -543,23 +602,16 @@ class Login : AppCompatActivity() {
         •   Última actualización: 14 de agosto de 2025
 
     """.trimIndent()
-
         txtTerminosCompletos.text = terminosTexto
-
         val dialog = builder.create()
-
         btnCerrar.setOnClickListener {
             dialog.dismiss()
         }
-
         // Tamaño del diálogo
         dialog.window?.setLayout(
             android.view.ViewGroup.LayoutParams.MATCH_PARENT,
             (resources.displayMetrics.heightPixels * 0.85).toInt()
         )
-
         dialog.show()
     }
-
-
 }

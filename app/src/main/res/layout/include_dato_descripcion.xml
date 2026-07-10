@@ -22,6 +22,7 @@
             android:text="Dato Gourmeet"
             android:textColor="@android:color/white"
             android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
             android:textSize="16sp"/>
 
         <TextView
@@ -30,6 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="30g/mg"
+            android:fontFamily="@font/caviardreams"
             android:textColor="@android:color/black"
             android:textStyle="bold"
             android:textSize="11sp"/>
@@ -52,7 +54,8 @@
             android:text="Descripción"
             android:textColor="@android:color/white"
             android:textStyle="bold"
-            android:textSize="16sp"/>
+            android:textSize="16sp"
+            android:fontFamily="@font/caviardreams"/>
 
         <TextView
             android:id="@+id/txtDescripcion"
@@ -63,7 +66,8 @@
             android:maxLines="4"
             android:text="Descripción..."
             android:textColor="@android:color/black"
-            android:textSize="11sp"/>
+            android:textSize="11sp"
+            android:fontFamily="@font/caviardreams"/>
 
     </LinearLayout>
 

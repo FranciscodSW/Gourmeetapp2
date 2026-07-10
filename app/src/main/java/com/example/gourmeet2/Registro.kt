@@ -240,7 +240,7 @@ class Registro : AppCompatActivity() {
 
                 facebookIdSeleccionado.isNotEmpty() -> {
                     Log.d("DEBUG", "Entró a registrarUsuarioFacebook()")
-                    registrarUsuarioFacebook()
+                    //registrarUsuarioFacebook()
                 }
 
                 else -> {
@@ -504,7 +504,7 @@ class Registro : AppCompatActivity() {
             }
         }
     }
-    private fun registrarUsuarioFacebook() {
+    /*private fun registrarUsuarioFacebook() {
 
         binding.txtError.visibility = View.GONE
 
@@ -565,65 +565,85 @@ class Registro : AppCompatActivity() {
                 }
             }
         }
-    }
+    }*/
     private fun registrarUsuarioGoogle() {
 
         binding.txtError.visibility = View.GONE
 
         CoroutineScope(Dispatchers.IO).launch {
+
             try {
 
-                val edad = edadSeleccionada
-                val nivel = nivelSeleccionado
-                val latitud = latitudSeleccionada
-                val longitud = longitudSeleccionada
-                val restriccionesIds = restriccionesSeleccionadas.map { it.id }
                 val request = RegistroGoogle(
+
                     correo = correoSeleccionado,
+
                     nombre = nombreSeleccionado,
+
                     google_id = googleIdSeleccionado,
+
                     avatar = avatar,
-                    edad = edad,
-                    nivel = nivel,
-                    latitud = latitud,
-                    longitud = longitud,
-                    restricciones = restriccionesIds
+
+                    edad = edadSeleccionada,
+
+                    nivel = nivelSeleccionado,
+
+                    latitud = latitudSeleccionada,
+
+                    longitud = longitudSeleccionada,
+
+                    restricciones = restriccionesSeleccionadas.map { it.id }
+
                 )
-                val response = ApiClient.apiService.registroGoogle(request)
+
+                val response =
+                    ApiClient.apiService.registroGoogle(request)
+
                 withContext(Dispatchers.Main) {
 
-                    if (response.success) {
+                    if (response.success && response.usuario != null) {
 
-                        // 🔥 guardar sesión
-                        val shared = getSharedPreferences("user", MODE_PRIVATE)
+                        val usuario = response.usuario
+
+                        //------------------------------------------------
+                        // Guardar sesión
+                        //------------------------------------------------
+
+                        val shared =
+                            getSharedPreferences("user", MODE_PRIVATE)
+
                         shared.edit()
-                            .putInt("id", response.usuario_id ?: 0)
-                            .putString("nombre", response.nombre)
+                            .putInt("id", usuario.id)
+                            .putString("nombre", usuario.nombre)
+                            .putString("correo", usuario.correo)
+                            .putString("foto", usuario.foto)
+                            .putString("origen", usuario.origen)
                             .apply()
-
-                        if (response.login == true) {
-                            Log.d("API", "Login con Google")
-                        }
-
-                        if (response.registro == true) {
-                            Log.d("API", "Registro con Google")
-                        }
 
                         mostrarExito()
 
                     } else {
-                        mostrarError(response.error ?: "Error desconocido")
+
+                        mostrarError(response.message)
+
                     }
+
                 }
 
             } catch (e: Exception) {
+
                 e.printStackTrace()
 
                 withContext(Dispatchers.Main) {
+
                     mostrarError("Error de conexión")
+
                 }
+
             }
+
         }
+
     }
     private fun registrarUsuario() {
         val ip = obtenerIP()

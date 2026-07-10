@@ -2,7 +2,6 @@ package com.example.gourmeet2
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
-import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -18,7 +17,11 @@ import com.example.gourmeet2.data.models.SeccionResultados
 import com.example.gourmeet2.databinding.ActivityMenuPrincipalFreeBinding
 import kotlinx.coroutines.launch
 import android.content.Context
+import android.util.Log
 import android.view.inputmethod.InputMethodManager
+import com.bumptech.glide.Glide
+import com.example.gourmeet2.data.models.RecetasInicioRequest
+
 class Menu_principal_free : AppCompatActivity() {
     private var menuAbierto = false
     private lateinit var binding: ActivityMenuPrincipalFreeBinding
@@ -32,22 +35,19 @@ class Menu_principal_free : AppCompatActivity() {
     private lateinit var seleccionadosAdapter: SeleccionadosAdapter
     private val recetasSeleccionadas = mutableListOf<BuscarRecetas>()
     private lateinit var recetasAdapter: RecetasAdapter
+    private var categoriaSeleccionada: Int? = null
     private lateinit var adapterResultados: AdapterResultados
     private lateinit var adapter: IngredienteAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMenuPrincipalFreeBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        cargarUsuario()
         supportFragmentManager.addOnBackStackChangedListener {
-
             if (supportFragmentManager.backStackEntryCount == 0) {
-
                 binding.containerDetalleReceta.visibility = View.GONE
-
             }
-
         }
-
         actualizarModo()
         binding.editBusqueda.setOnEditorActionListener { _, _, _ ->
             true    // Consume cualquier acción del botón del teclado
@@ -65,13 +65,9 @@ class Menu_principal_free : AppCompatActivity() {
         binding.editBusqueda.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER &&
                 event.action == KeyEvent.ACTION_DOWN) {
-
                 true   // Bloquea el Enter
-
             } else {
-
                 false
-
             }
         }
         adapter = IngredienteAdapter(emptyList()) { ingrediente ->
@@ -85,7 +81,6 @@ class Menu_principal_free : AppCompatActivity() {
         ) { receta ->
             abrirDetalleReceta(receta.REC_ID)
         }
-
         binding.rvPrincipal.layoutManager =
             androidx.recyclerview.widget.LinearLayoutManager(this)
         binding.rvPrincipal.adapter = adapterResultados
@@ -107,6 +102,7 @@ class Menu_principal_free : AppCompatActivity() {
             }
             actualizarModo()
             actualizarTextoBuscador()
+            actualizarBusquedaCategoria()
         }
         binding.imgFlecha.setOnClickListener {
             if (!menuAbierto) {
@@ -116,29 +112,45 @@ class Menu_principal_free : AppCompatActivity() {
             }
             menuAbierto = !menuAbierto
         }
-        binding.opPostre.setOnClickListener {
-            cambiarEncabezado(
-                "Postre",
-                R.drawable.ic_logo_rosa
-            )
-        }
-        binding.opBebida.setOnClickListener {
-            cambiarEncabezado("Bebida", R.drawable.ic_logo_naranja)
-        }
         binding.opSnack.setOnClickListener {
+            categoriaSeleccionada = 1
             cambiarEncabezado("Snack", R.drawable.ic_logo_morado)
+            actualizarBusquedaCategoria()
+
         }
-        binding.opEntrada.setOnClickListener {
-            cambiarEncabezado("Entrada", R.drawable.ic_logo_verde)
+
+        binding.opBebida.setOnClickListener {
+            categoriaSeleccionada = 2
+            cambiarEncabezado("Bebida", R.drawable.ic_logo_naranja)
+            actualizarBusquedaCategoria()
+
+
         }
+
         binding.opPlatoFuerte.setOnClickListener {
+            categoriaSeleccionada = 3
             cambiarEncabezado("Plato fuerte", R.drawable.ic_logo_azul)
+            actualizarBusquedaCategoria()
+
+
+        }
+
+        binding.opPostre.setOnClickListener {
+            categoriaSeleccionada = 4
+            cambiarEncabezado("Postre", R.drawable.ic_logo_rosa)
+            actualizarBusquedaCategoria()
+
+        }
+
+        binding.opEntrada.setOnClickListener {
+            categoriaSeleccionada = 5
+            cambiarEncabezado("Entrada", R.drawable.ic_logo_verde)
+            actualizarBusquedaCategoria()
         }
         binding.barraExpandirBusqueda.setOnClickListener {
             if (!panelBusquedaAbierto) {
                 abrirPanelBusqueda()
-            } else {cerrarPanelBusqueda()
-            }
+            } else {cerrarPanelBusqueda() }
             panelBusquedaAbierto = !panelBusquedaAbierto
         }
         seleccionadosAdapter = SeleccionadosAdapter(
@@ -157,12 +169,12 @@ class Menu_principal_free : AppCompatActivity() {
             binding.panelingredietes.translationY = -(imeHeight - extraOffset)
             insets
         }
+        cargarRecetasInicio()
     }
     private fun cerrarMenu() {
         menuAbierto = false
         ocultarMenuAnimado()
     }
-
     private fun actualizarModo() {
         if (modoActual == Modo.INGREDIENTES) {
             binding.imgModo.setImageResource(R.drawable.ic_recetas)
@@ -172,7 +184,6 @@ class Menu_principal_free : AppCompatActivity() {
             binding.txtModo.text = "Ingrediente"
         }
     }
-
     private fun mostrarMenuAnimado() {
         binding.menuCategorias.visibility = View.VISIBLE
         binding.menuCategorias.alpha = 0f
@@ -269,21 +280,16 @@ class Menu_principal_free : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val response = ApiClient.apiService.autocompleteRecetas(texto)
-
                 if (response.success) {
-
                     binding.rvResultados.visibility = View.VISIBLE
                     binding.panelingredietes.visibility = View.VISIBLE
-
                     val lista = response.recetas
-
                     recetasAdapter = RecetasAdapter(lista) { receta ->
                         moverRecetasSeleccionadas(receta)
                         binding.rvResultados.visibility = View.GONE
                         binding.panelingredietes.visibility = View.GONE
                         binding.editBusqueda.setText("")
                     }
-
                     binding.rvResultados.adapter = recetasAdapter
                 }
             } catch (e: Exception) {
@@ -296,38 +302,51 @@ class Menu_principal_free : AppCompatActivity() {
         val yaExiste = recetasSeleccionadas.any {
             it.id == receta.id
         }
-
         if (!yaExiste) {
-
             recetasSeleccionadas.add(receta)
-
             recetasAdapter.notifyDataSetChanged()
-
             cargarRecetasPorNombre(receta.nombre)
         }
     }
     private fun moverASeleccionados(ingrediente: BuscarIngredientes) {
-
         val yaExiste = ingredientesSeleccionados.any {
             it.id == ingrediente.id
         }
-
         if (!yaExiste) {
             ingredientesSeleccionados.add(ingrediente)
             seleccionadosAdapter.notifyDataSetChanged()
             cargarRecetasPorIngredientes()
         }
     }
+    private fun cargarRecetasInicio() {
+        lifecycleScope.launch {
+            try {
+                val request = RecetasInicioRequest(categoriaId = categoriaSeleccionada ?: 0)
+                val response = ApiClient.apiService.getRecetasInicio(request)
+                if (response.success) {
+                    val secciones = listOf(
+                        SeccionResultados("Más recientes", response.coincidencia),
+                        SeccionResultados("Menos calorías", response.calorias),
+                        SeccionResultados("Preparación rápida", response.tiempo),
+                        SeccionResultados("Más económicas", response.gasto),
+                        SeccionResultados("Sin lácteos", response.sin_lacteos),
+                        SeccionResultados("Sin azúcar", response.sin_azucar),
+                        SeccionResultados("Difíciles", response.dificultad))
+                    adapterResultados.actualizar(secciones)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
     private fun cargarRecetasPorIngredientes() {
         lifecycleScope.launch {
             try {
-
                 val request = FiltrosRecetasRequest(
-                    ingredientes = ingredientesSeleccionados.map { it.id }
+                    ingredientes = ingredientesSeleccionados.map { it.id },
+                    categoriaId = categoriaSeleccionada
                 )
-
                 val response = ApiClient.apiService.getFiltrosRecetas(request)
-
                 if (response.success) {
                     val secciones = listOf(
                         SeccionResultados("Coincidencia", response.coincidencia),
@@ -338,68 +357,53 @@ class Menu_principal_free : AppCompatActivity() {
                         SeccionResultados("Sin azúcar", response.sin_azucar),
                         SeccionResultados("Dificultad", response.dificultad)
                     )
-
                     adapterResultados.actualizar(secciones)
                 }
-
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
     private fun cargarRecetasPorNombre(nombreReceta: String) {
-
         lifecycleScope.launch {
-
             try {
-
                 val request =
                     FiltrosRecetasNombreRequest(
-                        busqueda = nombreReceta
+                        busqueda = nombreReceta,
+                        categoriaId = categoriaSeleccionada
                     )
-
                 val response =
                     ApiClient.apiService.getFiltrosRecetasNombre(request)
-
                 if (response.success) {
-
                     val secciones = listOf(
-
                         SeccionResultados(
                             "Coincidencia",
                             response.coincidencia
                         ),
-
                         SeccionResultados(
                             "Calorías",
                             response.calorias
                         ),
-
                         SeccionResultados(
                             "Tiempo",
                             response.tiempo
                         ),
-
                         SeccionResultados(
                             "Gasto",
                             response.gasto
                         ),
-
                         SeccionResultados(
                             "Sin lácteos",
                             response.sin_lacteos
                         ),
-
                         SeccionResultados(
                             "Sin azúcar",
                             response.sin_azucar
                         ),
-
                         SeccionResultados(
                             "Dificultad",
                             response.dificultad
                         )
-
                     )
                     adapterResultados.actualizar(secciones)
                 }
@@ -410,31 +414,53 @@ class Menu_principal_free : AppCompatActivity() {
 
     }
     private fun abrirDetalleReceta(recetaId: Int) {
-
         // Ocultar teclado
         currentFocus?.let { view ->
-
             val imm = getSystemService(Context.INPUT_METHOD_SERVICE)
                     as InputMethodManager
-
             imm.hideSoftInputFromWindow(
                 view.windowToken,
                 0
             )
-
             view.clearFocus()
-
         }
-
         binding.containerDetalleReceta.visibility = View.VISIBLE
-
         val fragment =
             DetalleRecetaFragment.newInstance(recetaId)
-
         supportFragmentManager.beginTransaction()
             .replace(R.id.containerDetalleReceta, fragment)
             .addToBackStack(null)
             .commit()
+    }
+    private fun cargarUsuario() {
 
+        val shared =
+            getSharedPreferences("user", MODE_PRIVATE)
+
+        val foto =
+            shared.getString("foto", null)
+        if (!foto.isNullOrEmpty()) {
+            Glide.with(this)
+                .load(foto)
+                .placeholder(R.drawable.ic_icono_usuario)
+                .error(R.drawable.ic_icono_usuario)
+                .circleCrop()
+                .into(binding.imgUsuario)
+        }
+    }
+    private fun actualizarBusquedaCategoria() {
+        if (modoActual == Modo.INGREDIENTES) {
+            if (ingredientesSeleccionados.isNotEmpty()) {
+                cargarRecetasPorIngredientes()
+            }
+        } else {
+            if (recetasSeleccionadas.isNotEmpty()) {
+                cargarRecetasPorNombre(
+                    recetasSeleccionadas.last().nombre
+                )
+
+            }
+
+        }
     }
 }

@@ -35,6 +35,7 @@
             app:layout_constraintBottom_toBottomOf="parent"/>
         <!--Título-->
         <TextView
+
             android:id="@+id/txtTitulo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -79,6 +80,7 @@
                     android:layout_height="48dp"
                     android:src="@drawable/ic_postre"/>
                 <TextView
+                    android:fontFamily="@font/caviardreams"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Postre"
@@ -98,6 +100,7 @@
                     android:layout_height="48dp"
                     android:src="@drawable/ic_bebida"/>
                 <TextView
+                    android:fontFamily="@font/caviardreams"
                     android:text="Bebida"
                     android:textStyle="bold"
                     android:layout_width="wrap_content"
@@ -117,6 +120,7 @@
                     android:layout_height="48dp"
                     android:src="@drawable/ic_snack"/>
                 <TextView
+                    android:fontFamily="@font/caviardreams"
                     android:text="Snack"
                     android:textStyle="bold"
                     android:layout_width="wrap_content"
@@ -136,6 +140,7 @@
                     android:layout_height="48dp"
                     android:src="@drawable/ic_entrada"/>
                 <TextView
+                    android:fontFamily="@font/caviardreams"
                     android:text="Entrada"
                     android:textStyle="bold"
                     android:layout_width="wrap_content"
@@ -155,6 +160,7 @@
                     android:layout_height="48dp"
                     android:src="@drawable/ic_plato_fuerte"/>
                 <TextView
+                    android:fontFamily="@font/caviardreams"
                     android:text="Plato fuerte"
                     android:textStyle="bold"
                     android:layout_width="wrap_content"
@@ -175,6 +181,7 @@
                     android:layout_height="48dp"
                     android:src="@drawable/ic_recetas"/>
                 <TextView
+                    android:fontFamily="@font/caviardreams"
                     android:id="@+id/txtModo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -291,6 +298,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="Buscar..."
+                    android:fontFamily="@font/caviardreams"
                     android:background="@null"
                     android:paddingHorizontal="16dp"
                     android:singleLine="true"
@@ -359,6 +367,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
             <ImageView
+                android:id="@+id/imgUsuario"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@drawable/ic_icono_usuario"/>
