@@ -48,6 +48,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import kotlin.jvm.java
+import com.example.gourmeet2.utils.SesionUsuario
+
 class Login : AppCompatActivity() {
     lateinit var editUsuario: TextInputEditText
     lateinit var editPassword: TextInputEditText
@@ -335,7 +337,17 @@ class Login : AppCompatActivity() {
                         "Bienvenido ${usuarioLogueado?.nombre}",
                         Toast.LENGTH_LONG
                     ).show()
-                    // Aquí posteriormente guardaremos la sesión
+                    SesionUsuario.guardarSesion(
+                        context = this@Login,
+                        id = usuarioLogueado!!.id,
+                        nombre = usuarioLogueado.nombre,
+                        correo = usuarioLogueado.correo,
+                        foto = usuarioLogueado.foto,
+                        origen = usuarioLogueado.origen,
+                        nivel = usuarioLogueado.nivel ?: 1,
+                        puntos = usuarioLogueado.puntos ?: 0,
+                        edad = usuarioLogueado.edad ?: 0
+                    )
                     ocultarPaginaAnterior()
                 } else {
                     Toast.makeText(
@@ -377,16 +389,12 @@ class Login : AppCompatActivity() {
         correo: String,
         googleId: String
     ) {
-
         lifecycleScope.launch {
-
             try {
-
                 val request = LoginGoogle(
                     correo = correo,
                     google_id = googleId
                 )
-
                 val response =
                     ApiClient.apiService.loginUsuarioGoogle(request)
 
@@ -397,20 +405,17 @@ class Login : AppCompatActivity() {
                     //--------------------------------------------------
                     // GUARDAR SESIÓN
                     //--------------------------------------------------
-
-                    val shared =
-                        getSharedPreferences("user", MODE_PRIVATE)
-
-                    shared.edit()
-                        .putInt("id", usuario.id)
-                        .putString("nombre", usuario.nombre)
-                        .putString("correo", usuario.correo)
-                        .putString("foto", usuario.foto)
-                        .putString("origen", usuario.origen)
-                        .putInt("nivel", usuario.nivel ?: 1)
-                        .putInt("edad", usuario.edad ?: 0)
-                        .apply()
-
+                    SesionUsuario.guardarSesion(
+                        context = this@Login,
+                        id = usuario.id,
+                        nombre = usuario.nombre,
+                        correo = usuario.correo,
+                        foto = usuario.foto,
+                        origen = usuario.origen,
+                        nivel = usuario.nivel ?: 1,
+                        puntos = usuario.puntos ?:0,
+                        edad = usuario.edad ?: 0
+                    )
                     //--------------------------------------------------
                     // MENSAJE
                     //--------------------------------------------------

@@ -6,5 +6,6 @@ data class Usuario(
     val foto: String?,
     val nivel: Int?,
     val edad: Int?,
+    val puntos: Int?,
     val origen: String?
 )

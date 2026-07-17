@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:fillViewport="true"
     android:padding="1dp"
+    android:background="@android:color/white"
     android:paddingBottom="200dp"
     android:scrollbars="vertical">
 
@@ -27,12 +28,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
                 <!-- Imagen de fondo -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:layout_gravity="top"
+                    android:background="@drawable/degradado_negro_superior"/>
                 <ImageView
                     android:id="@+id/imgHeaderReceta"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"/>
-                <!-- Todo el contenido -->
+                <!-- contenido -->
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
@@ -82,12 +88,10 @@
                             android:layout_marginEnd="10dp"
                             android:gravity="center"
                             android:orientation="vertical">
-
                             <ImageView
                                 android:layout_width="26dp"
                                 android:layout_height="26dp"
                                 android:src="@drawable/ic_gorrito_nuevo_azul"/>
-
                             <TextView
                                 android:id="@+id/txtNivel"
                                 android:layout_width="wrap_content"
@@ -97,7 +101,6 @@
                                 android:textSize="10sp"
                                 android:textStyle="bold"
                                 android:fontFamily="@font/caviardreams"/>
-
                         </LinearLayout>
 
                         <!-- Precio -->
@@ -155,39 +158,30 @@
                     <!-- TITULO                    -->
                     <!-- ========================= -->
 
-                    <TextView
+                    <com.example.gourmeet2.views.StrokeTextView
                         android:id="@+id/txtTitulo"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="10dp"
-                        android:fontFamily="@font/caviardreams"
+
                         android:text="Enchiladas Verdes"
                         android:textColor="@android:color/white"
                         android:textSize="24sp"
-                        android:textStyle="bold"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"/>
+
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"/>
 
                     <!-- ========================= -->
                     <!-- COINCIDENCIA              -->
                     <!-- ========================= -->
 
-                    <TextView
+                    <com.example.gourmeet2.views.BlueStrokeTextView
                         android:id="@+id/txtCoincidencia"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:layout_marginEnd="10dp"
-                        android:paddingStart="8dp"
-                        android:paddingTop="2dp"
-                        android:paddingEnd="8dp"
-                        android:paddingBottom="2dp"
-                        android:fontFamily="@font/caviardreams"
                         android:text="Coincidencia: 35%"
-                        android:textColor="@color/azulgourmeet"
                         android:textSize="16sp"
                         android:textStyle="bold"
+                        android:fontFamily="@font/caviardreams"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/txtTitulo"/>
 
@@ -219,10 +213,13 @@
                             style="?android:attr/ratingBarStyleSmall"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:isIndicator="true"
                             android:numStars="5"
-                            android:rating="4"
-                            android:stepSize="0.5"/>
+                            android:stepSize="1"
+                            android:rating="0"
+                            android:isIndicator="false"
+                            android:progressTint="#177AFF"
+                            android:secondaryProgressTint="#177AFF"
+                            android:progressBackgroundTint="#D6D6D6"/>
                     </LinearLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </FrameLayout>
@@ -277,7 +274,6 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
                 android:padding="16dp">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -286,7 +282,6 @@
                     android:textStyle="bold"
                     android:textSize="11sp"
                     android:fontFamily="@font/caviardreams"/>
-
                 <TextView
                     android:id="@+id/tvRecetaDescripcion"
                     android:layout_width="match_parent"
@@ -306,7 +301,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:orientation="vertical">
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -316,9 +310,6 @@
                 android:textSize="22sp"
                 android:fontFamily="@font/caviardreams"
                 android:textColor="#222"/>
-
-
-
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvIngredientes"
                 android:layout_width="match_parent"
@@ -329,22 +320,19 @@
                 android:paddingEnd="18dp"
                 android:overScrollMode="never"
                 android:scrollbars="horizontal"/>
-
         </LinearLayout>
-
-
         <androidx.cardview.widget.CardView
             android:id="@+id/cardPreparacion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="1dp"
+            android:layout_marginBottom="0dp"
+            app:cardBackgroundColor="#177AFF"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?android:attr/selectableItemBackground"
             app:cardCornerRadius="12dp"
-            app:cardElevation="6dp"
+            app:cardElevation="0dp"
             app:cardUseCompatPadding="true">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -367,11 +355,19 @@
                         android:fontFamily="@font/caviardreams"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        android:textColor="#333333"/>
+                        android:textColor="#FFFFFF"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnParlante"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="0dp"
+                        android:backgroundTint="#177AFF"
+                        app:cornerRadius="24dp"
+                        app:icon="@drawable/ic_audio_on"
+                        app:iconGravity="textStart"
+                        app:iconPadding="0dp"
+                        app:iconTint="@android:color/white"/>
                 </LinearLayout>
-
-
-
                 <!-- Área para mostrar el paso actual -->
                 <LinearLayout
                     android:id="@+id/containerPasoActual"
@@ -379,8 +375,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:background="@drawable/bg_paso"
-                    android:padding="20dp">
-
+                    >
                         <TextView
                             android:id="@+id/tvDescripcionPaso"
                             android:layout_width="match_parent"
@@ -391,9 +386,6 @@
                             android:gravity="center"
                             android:fontFamily="@font/caviardreams"
                             android:lineSpacingExtra="5dp"/>
-
-
-
                     <!-- Barra de progreso -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -401,8 +393,6 @@
                         android:orientation="horizontal"
                         android:layout_marginBottom="16dp"
                         android:layoutDirection="rtl">
-
-
                     </LinearLayout>
                     <LinearLayout
                         android:id="@+id/containerIndicadores"
@@ -411,18 +401,86 @@
                         android:layout_marginTop="18dp"
                         android:gravity="center"
                         android:orientation="horizontal"/>
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnVerTodo"
-                        android:layout_width="140dp"
-                        android:fontFamily="@font/caviardreams"
-                        android:layout_height="42dp"
-                        android:backgroundTint="#177AFF"
-                        android:layout_gravity="center_horizontal"
+                    <LinearLayout
+                        android:id="@+id/layoutControlesPreparacion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
-                        android:text="Ver todo"
-                        android:textAllCaps="false"
-                        android:textStyle="bold"
-                        app:cornerRadius="22dp"/>
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <!-- IZQUIERDA -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnVerTodo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="42dp"
+                            android:text="Ver todo"
+                            app:iconGravity="textStart"
+                            android:textAllCaps="false"
+                            android:layout_marginStart="8dp"
+                            android:backgroundTint="#177AFF"
+                            app:cornerRadius="22dp"/>
+
+                        <!-- ESPACIO FLEXIBLE -->
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1"/>
+
+                        <!-- CENTRO -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnVoz"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:minWidth="0dp"
+                            android:minHeight="0dp"
+                            android:padding="0dp"
+                            android:backgroundTint="#177AFF"
+                            app:cornerRadius="20dp"
+                            app:icon="@drawable/ic_microfono"
+                            app:iconGravity="textStart"
+                            app:iconPadding="0dp"
+                            app:iconTint="@android:color/white"/>
+
+                        <!-- ESPACIO FLEXIBLE -->
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1"/>
+
+                        <!-- DERECHA -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAnterior"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:backgroundTint="#177AFF"
+                                app:cornerRadius="24dp"
+                                app:icon="@drawable/ic_flecha_izquierda"
+                                app:iconGravity="textStart"
+                                app:iconPadding="0dp"
+                                app:iconTint="@android:color/white"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSiguiente"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:layout_marginStart="8dp"
+                                android:backgroundTint="#177AFF"
+                                app:cornerRadius="24dp"
+                                app:icon="@drawable/ic_flecha_derecha"
+                                app:iconGravity="textStart"
+                                app:iconPadding="0dp"
+                                app:iconTint="@android:color/white"/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
                     <LinearLayout
                         android:id="@+id/containerTodosLosPasos"
                         android:layout_width="match_parent"
@@ -462,7 +520,6 @@
                     android:src="@drawable/ic_youtube"
                     android:alpha="0.9"/>
             </FrameLayout>
-
         </androidx.cardview.widget.CardView>
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
@@ -471,128 +528,322 @@
             app:cardCornerRadius="12dp"
             app:cardElevation="4dp"
             app:cardUseCompatPadding="false">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReportarProblema"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    android:text="Reportar"
+                    android:backgroundTint="#D9593F"
+                    app:cornerRadius="22dp"/>
+                <Space
+                    android:layout_width="8dp"
+                    android:layout_height="0dp"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRecetaTerminada"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    android:text="Terminada"
+                    android:enabled="false"
+                    android:alpha="0.5"
+                    android:backgroundTint="#177AFF"
+                    app:cornerRadius="22dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardComentarios"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="5dp"
+            app:cardUseCompatPadding="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:orientation="vertical">
 
-                <!-- 🔥 Título -->
+                <!-- Encabezado -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/imgUsuarioComentario"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_user"
+                        android:scaleType="centerCrop"
+                        android:padding="2dp"/>
+                    <EditText
+                        android:id="@+id/editComentario"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:background="@android:color/transparent"
+                        android:hint="¿Qué te pareció esta receta?"
+                        android:textColor="#333333"
+                        android:textColorHint="#A0A0A0"
+                        android:textSize="16sp"
+                        android:maxLength="150"
+                        android:minLines="1"
+                        android:maxLines="3"
+                        android:gravity="center_vertical"
+                        android:imeOptions="actionDone"
+                        android:inputType="textCapSentences|textMultiLine"/>
+                </LinearLayout>
+                <!-- Estrellas + botón -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="16dp">
+                    <RatingBar
+                        android:id="@+id/ratingComentario"
+                        style="?android:attr/ratingBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:numStars="5"
+                        android:stepSize="1"
+                        android:rating="0"
+                        android:isIndicator="false"
+                        android:progressTint="#177AFF"
+                        android:secondaryProgressTint="#177AFF"
+                        android:progressBackgroundTint="#D6D6D6"/>
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnComentar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="Comentar"
+                        android:enabled="false"
+                        android:alpha="0.5"
+                        android:textAllCaps="false"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/white"
+                        android:backgroundTint="#177AFF"
+                        app:cornerRadius="20dp"/>
+                </LinearLayout>
+
+                <!-- Separador -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E6E6E6"/>
+
+                <!-- Ver comentarios -->
+                <LinearLayout
+                    android:id="@+id/layoutVerComentarios"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:gravity="center_vertical"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnVerComentarios"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="10dp"
+                        android:text="Comentarios anteriores"
+                        android:textAllCaps="false"
+                        android:textSize="15sp"
+                        android:textColor="#177AFF"
+                        android:backgroundTint="@android:color/white"
+                        app:strokeColor="#177AFF"
+                        app:strokeWidth="2dp"
+                        app:cornerRadius="20dp"
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardComplementar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="5dp"
+            app:cardUseCompatPadding="true">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp"
+                android:gravity="center_vertical">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Completa tu comida"
+                android:fontFamily="@font/caviardreams"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"/>
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardMasFunciones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+                <!-- Título -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="Comentarios"
-                    android:fontFamily="@font/caviardreams"
+                    android:text="Más funciones de GourMeet para ti"
+                    android:textColor="#212121"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="#333333"
-                    android:layout_marginBottom="12dp"/>
-
-                <!-- 🔥 RecyclerView -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerComentarios"
+                    android:fontFamily="@font/caviardreams"/>
+                <!-- Espacio -->
+                <Space
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false"/>
-                <!-- 🔥 Apartado escribir comentario -->
+                    android:layout_height="18dp"/>
+                <!-- Opciones -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="16dp">
-
-                    <!-- Usuario android:background="@drawable/circle_bg" -->
+                    android:orientation="horizontal"
+                    android:gravity="center">
+                    <!-- Guardar colección -->
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:id="@+id/layoutColeccion"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="6dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless">
 
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:src="@drawable/ic_user"
-                            android:scaleType="centerCrop"
-                            />
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:src="@drawable/ic_guardar"/>
 
-                        <LinearLayout
-                            android:layout_width="0dp"
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="10dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Usuario"
-                                android:textStyle="bold"
-                                android:textSize="16sp"
-                                android:textColor="#000000"/>
-
-                            <!-- Ranking bar -->
-                            <RatingBar
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:numStars="5"
-                                android:stepSize="1"
-                                android:rating="0"
-                                android:isIndicator="true"
-                                android:progressTint="@android:color/holo_orange_dark"
-                            android:progressBackgroundTint="@android:color/darker_gray"
-                            android:secondaryProgressTint="@android:color/holo_orange_dark"
-                            />
-                        </LinearLayout>
-
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="Guardar en\ncolección"
+                            android:textColor="#177AFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"/>
                     </LinearLayout>
-
-                    <!-- Campo comentario + enviar  android:background="@drawable/edit_bg" -->
+                    <!-- Compartir -->
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:id="@+id/layoutCompartir"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-
-                        android:paddingStart="12dp"
-                        android:paddingEnd="8dp">
-
-                        <EditText
-                            android:id="@+id/editComentario"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:hint="Escribe tu comentario"
-                            android:maxLength="150"
-                            android:background="@android:color/transparent"
-                            android:textColor="#000000"
-                            android:textColorHint="#888888"
-                            android:paddingTop="10dp"
-                            android:paddingBottom="10dp"/>
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="6dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless">
 
                         <ImageView
-                            android:id="@+id/btnEnviarComentario"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:src="@drawable/ic_send"
-                            android:padding="6dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="Enviar comentario"/>
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:src="@drawable/ic_compartir"/>
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="Compartir\nreceta"
+                            android:textColor="#177AFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"/>
                     </LinearLayout>
 
-                    <!-- Contador -->
-                    <TextView
-                        android:id="@+id/txtContador"
-                        android:layout_width="wrap_content"
+                    <!-- Planeador -->
+                    <LinearLayout
+                        android:id="@+id/layoutPlaneador"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="0/150"
-                        android:layout_gravity="end"
-                        android:textSize="12sp"
-                        android:textColor="#666666"
-                        android:layout_marginTop="4dp"/>
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="6dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless">
+                        <ImageView
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:src="@drawable/ic_calendario"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="Agregar al\nplaneador"
+                            android:textColor="#177AFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
+                    <!-- Favoritos -->
+                    <LinearLayout
+                        android:id="@+id/layoutFavoritos"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="6dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless">
+                        <ImageView
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:src="@drawable/ic_favorito"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="Guardar en\nfavoritas"
+                            android:textColor="#177AFF"
+                            android:textSize="14sp"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>

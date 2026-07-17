@@ -60,4 +60,20 @@ interface ApiService {
     suspend fun getRecetasInicio(
         @Body request: RecetasInicioRequest
     ): FiltrosRecetasResponse
+    @POST("recetas/comentar_calificar_receta_api.php")
+    suspend fun comentarCalificarReceta(
+        @Body request: ComentarCalificarRequest
+    ): ComentarCalificarResponse
+    @POST("recetas/obtener_mi_comentario_api.php")
+    suspend fun obtenerMiComentario(
+        @Body request: ObtenerMiComentarioRequest
+    ): ObtenerMiComentarioResponse
+    @POST("recetas/marcar_receta_terminada_api.php")
+    suspend fun marcarRecetaTerminada(
+        @Body request: MarcarRecetaTerminadaRequest
+    ): MarcarRecetaTerminadaResponse
+    @POST("recetas/verificar_receta_terminada_api.php")
+    suspend fun verificarRecetaTerminada(
+        @Body request: VerificarRecetaTerminadaRequest
+    ): VerificarRecetaTerminadaResponse
 }

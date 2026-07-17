@@ -118,7 +118,6 @@ class Menu_principal_free : AppCompatActivity() {
             actualizarBusquedaCategoria()
 
         }
-
         binding.opBebida.setOnClickListener {
             categoriaSeleccionada = 2
             cambiarEncabezado("Bebida", R.drawable.ic_logo_naranja)
@@ -126,7 +125,6 @@ class Menu_principal_free : AppCompatActivity() {
 
 
         }
-
         binding.opPlatoFuerte.setOnClickListener {
             categoriaSeleccionada = 3
             cambiarEncabezado("Plato fuerte", R.drawable.ic_logo_azul)
@@ -134,14 +132,12 @@ class Menu_principal_free : AppCompatActivity() {
 
 
         }
-
         binding.opPostre.setOnClickListener {
             categoriaSeleccionada = 4
             cambiarEncabezado("Postre", R.drawable.ic_logo_rosa)
             actualizarBusquedaCategoria()
 
         }
-
         binding.opEntrada.setOnClickListener {
             categoriaSeleccionada = 5
             cambiarEncabezado("Entrada", R.drawable.ic_logo_verde)
