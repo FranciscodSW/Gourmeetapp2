@@ -1,6 +1,11 @@
 package com.example.gourmeet2
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
@@ -27,9 +32,12 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import android.telecom.Call
 import android.util.Log
 import android.view.Gravity
 import android.view.Window
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -38,8 +46,15 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.gourmeet2.adapters.ComentarioAdapter
+import com.example.gourmeet2.adapters.OnComentarioClickListener
 import com.example.gourmeet2.data.models.*
+import com.example.gourmeet2.databinding.DialogReportarComentarioBinding
+
 import com.example.gourmeet2.utils.SesionUsuario
+import com.facebook.appevents.codeless.internal.UnityReflection
+import com.google.android.gms.cast.framework.SessionManager
 import java.util.Locale
 
 
@@ -58,6 +73,15 @@ class DetalleRecetaFragment : Fragment() {
     private var lecturaActiva = false
     private var recetaTerminada = false
     private var textToSpeech: TextToSpeech? = null
+    private var animatorSet: AnimatorSet? = null
+    private var leyendo = false
+    private var comentariosVisibles = false
+    private val administradorComandosVoz = AdministradorComandosVoz()
+    private var textoActualLeido = ""
+    private lateinit var comentarioAdapter: ComentarioAdapter
+    private var comentarioSeleccionado: Comentarios? = null
+    private var respuestaSeleccionada: RespuestaComentario? = null
+    private var modoRespuesta = "CREAR"
 
     companion object {
         private const val ARG_RECETA = "REC_ID"
@@ -73,7 +97,6 @@ class DetalleRecetaFragment : Fragment() {
         super.onCreate(savedInstanceState)
         recetaId = arguments?.getInt(ARG_RECETA) ?: 0
     }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -86,7 +109,6 @@ class DetalleRecetaFragment : Fragment() {
         )
         return binding.root
     }
-
     override fun onViewCreated(
         view: View,
         savedInstanceState: Bundle?
@@ -97,6 +119,7 @@ class DetalleRecetaFragment : Fragment() {
         cargarDetalle()
         inicializarTextToSpeech()
         inicializarReconocimiento()
+        inicializarRecyclerComentarios()
         verificarRecetaTerminada()
         gestureDetector = GestureDetector(
             requireContext(),
@@ -128,17 +151,11 @@ class DetalleRecetaFragment : Fragment() {
             siguientePaso()
         }
         binding.btnVerTodo.setOnClickListener {
-
             if (mostrandoTodosLosPasos) {
-
                 ocultarTodosLosPasos()
-
             } else {
-
                 mostrarTodosLosPasos()
-
             }
-
         }
         binding.cardPreparacion.setOnTouchListener { _, event ->
             gestureDetector.onTouchEvent(event)
@@ -174,25 +191,21 @@ class DetalleRecetaFragment : Fragment() {
             }
         }
         binding.editComentario.addTextChangedListener {
-
             validarComentario()
-
         }
         binding.ratingComentario.setOnRatingBarChangeListener {
-
                 _, _, _ ->
-
             validarComentario()
-
         }
         binding.btnComentar.setOnClickListener {
-
             enviarComentario()
-
         }
         binding.btnParlante.setOnClickListener {
-            if (!lecturaActiva) {
-                lecturaActiva = true
+
+            lecturaActiva = !lecturaActiva
+
+            if (lecturaActiva) {
+
                 binding.btnParlante.icon =
                     ContextCompat.getDrawable(
                         requireContext(),
@@ -200,7 +213,6 @@ class DetalleRecetaFragment : Fragment() {
                     )
                 iniciarLecturaPasoActual()
             } else {
-                lecturaActiva = false
                 binding.btnParlante.icon =
                     ContextCompat.getDrawable(
                         requireContext(),
@@ -209,20 +221,665 @@ class DetalleRecetaFragment : Fragment() {
                 detenerLectura()
             }
         }
+        binding.btnVerComentarios.setOnClickListener {
+
+            comentariosVisibles = !comentariosVisibles
+
+            if (comentariosVisibles) {
+
+                binding.rvComentarios.visibility = View.VISIBLE
+
+                binding.btnVerComentarios.text = "Ocultar comentarios"
+
+                cargarComentarios()
+
+            } else {
+
+                binding.rvComentarios.visibility = View.GONE
+
+                binding.btnVerComentarios.text = "Comentarios anteriores"
+
+            }
+
+        }
+
+
+
+        binding.rvComentarios.layoutManager =
+            LinearLayoutManager(requireContext())
+
+        binding.rvComentarios.adapter =
+            comentarioAdapter
+    }
+    private fun cargarComentarios() {
+
+        val usuarioId = SesionUsuario.obtenerId(requireContext())
+
+        lifecycleScope.launch {
+            val response = ApiClient.apiService.listarComentarios(
+                ListarComentariosRequest(
+                    receta = recetaId,
+                    usuario = usuarioId
+                )
+            )
+            if (response.success) {
+                comentarioAdapter.actualizarLista(response.comentarios)
+            }
+        }
+    }
+
+    private fun responderComentario(
+        comentarioPadre: Int,
+        texto: String
+    ) {
+
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            try {
+                val request = RespuestaComentarioRequest(
+                    accion = "CREAR",
+                    receta = recetaId,   // <-- tu id de la receta
+                    usuario = SesionUsuario.obtenerId(requireContext()),
+                    comentarioPadre = comentarioPadre,
+                    comentario = texto
+                )
+                val response = ApiClient.apiService.responderComentario(request)
+                if (response.success) {
+                    comentarioAdapter.cerrarCajaRespuesta()
+                    Toast.makeText(
+                        requireContext(),
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    cargarComentarios()
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    requireContext(),
+                    e.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+    private fun editarRespuesta(
+        respuestaId: Int,
+        texto: String
+    ) {
+
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            try {
+
+                val request = RespuestaComentarioRequest(
+
+                    accion = "EDITAR",
+
+                    usuario = SesionUsuario.obtenerId(requireContext()),
+
+                    respuesta = respuestaId,
+
+                    comentario = texto
+
+                )
+
+                val response = ApiClient.apiService.responderComentario(request)
+
+                if (response.success) {
+
+                    comentarioAdapter.cerrarCajaRespuesta()
+
+                    Toast.makeText(
+                        requireContext(),
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    cargarComentarios()
+
+                } else {
+
+                    Toast.makeText(
+                        requireContext(),
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+            } catch (e: Exception) {
+
+                Toast.makeText(
+                    requireContext(),
+                    e.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            }
+
+        }
+
+    }
+    private fun inicializarRecyclerComentarios() {
+
+        comentarioAdapter = ComentarioAdapter(
+
+            mutableListOf(),
+
+            object : OnComentarioClickListener {
+                override fun onActualizarRespuesta(
+                    respuesta: RespuestaComentario,
+                    nuevoTexto: String
+                ) {
+
+                    editarRespuesta(
+                        respuesta.id,
+                        nuevoTexto
+                    )
+
+                }
+
+                override fun onLike(comentario: Comentarios) {
+
+                    reaccionarComentario(
+                        comentario.id,
+                        "LIKE"
+                    )
+
+                }
+
+                override fun onDislike(comentario: Comentarios) {
+                    reaccionarComentario(
+                        comentario.id,
+                        "DISLIKE"
+                    )
+                }
+
+                override fun onReportar(comentario: Comentarios) {
+                    mostrarDialogoReportar(comentario)
+
+                }
+
+                override fun onResponder(comentario: Comentarios) {
+
+                    comentarioSeleccionado = comentario
+
+                    val miRespuesta = comentario.respuestas.firstOrNull {
+                        it.esMia
+                    }
+
+                    respuestaSeleccionada = miRespuesta
+
+                    if (miRespuesta != null) {
+
+                        modoRespuesta = "EDITAR"
+
+                        comentarioAdapter.mostrarRespuestaExistente(
+                            comentario.id,
+                            miRespuesta
+                        )
+
+                    } else {
+
+                        modoRespuesta = "CREAR"
+
+                        comentarioAdapter.mostrarCajaRespuesta(
+                            comentario.id
+                        )
+
+                    }
+
+                }
+                override fun onEnviarRespuesta(
+                    comentario: Comentarios,
+                    respuesta: String
+                ) {
+
+                    comentarioSeleccionado = comentario
+
+                    if (modoRespuesta == "CREAR") {
+
+                        responderComentario(
+                            comentario.id,
+                            respuesta
+                        )
+
+                    } else {
+
+                        respuestaSeleccionada?.let {
+
+                            editarRespuesta(
+                                it.id,
+                                respuesta
+                            )
+
+                        }
+
+                    }
+
+                }
+                override fun onEliminarRespuesta(
+                    respuesta: RespuestaComentario
+                ) {
+                    eliminarRespuesta(respuesta.id)
+                }
+
+                override fun onEditarComentario(
+                    comentario: Comentarios
+                ) {
+
+                    editarComentario(comentario)
+
+                }
+
+                override fun onEliminarComentario(
+                    comentario: Comentarios
+                ) {
+
+                    confirmarEliminarComentario(comentario)
+
+                }
+                override fun onActualizarComentario(
+                    comentario: Comentarios,
+                    nuevoComentario: String,
+                    nuevaCalificacion: Float
+                ) {
+
+                    comentarioSeleccionado = comentario
+
+                    guardarComentario(
+                        comentario = nuevoComentario,
+                        calificacion = nuevaCalificacion.toDouble()
+                    )
+
+                }
+
+                override fun onLikeRespuesta(
+                    respuesta: RespuestaComentario
+                ) {
+
+                    reaccionarRespuesta(
+                        respuesta.id,
+                        "LIKE"
+                    )
+
+                }
+
+                override fun onDislikeRespuesta(
+                    respuesta: RespuestaComentario
+                ) {
+
+                    reaccionarRespuesta(
+                        respuesta.id,
+                        "DISLIKE"
+                    )
+
+                }
+
+                override fun onReportarRespuesta(
+                    respuesta: RespuestaComentario
+                ) {
+
+                    reaccionarRespuesta(
+                        respuesta.id,
+                        "REPORTAR"
+                    )
+
+                }
+
+                override fun onEditarRespuesta(
+                    respuesta: RespuestaComentario
+                ) = Unit
+            }
+        )
+        binding.rvComentarios.layoutManager =
+            LinearLayoutManager(requireContext())
+        binding.rvComentarios.adapter =
+            comentarioAdapter
+
+    }
+    private fun reaccionarRespuesta(
+        respuestaId: Int,
+        tipo: String
+    ) {
+        val usuarioId = SesionUsuario.obtenerId(requireContext())
+
+        lifecycleScope.launch {
+
+            try {
+
+                val response = ApiClient.apiService.reaccionarRespuesta(
+
+                    ReaccionRespuestaRequest(
+
+                        respuesta = respuestaId,
+
+                        usuario = usuarioId,
+
+                        tipo = tipo
+
+                    )
+
+                )
+
+                if (response.success) {
+
+                    comentarioAdapter.actualizarReaccionRespuesta(
+
+                        respuestaId = response.respuesta,
+
+                        likes = response.likes,
+
+                        dislikes = response.dislikes,
+
+                        reportes = response.reportes,
+
+                        miReaccion = response.miReaccion
+
+                    )
+
+                } else {
+
+                    Toast.makeText(
+                        requireContext(),
+                        response.message ?: "No fue posible reaccionar.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                Toast.makeText(
+                    requireContext(),
+                    "Error de conexión.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            }
+
+        }
+
+    }
+    private fun mostrarDialogoReportar(
+        comentario: Comentarios
+    ) {
+        val dialog = Dialog(requireContext())
+        val binding = DialogReportarComentarioBinding.inflate(layoutInflater)
+        dialog.setContentView(binding.root)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        binding.imgReporte.setImageResource(R.drawable.ic_reportar_comentario)
+        binding.btnContinuar.setOnClickListener {
+            dialog.dismiss()
+            reaccionarComentario(
+                comentario.id,
+                "REPORTAR"
+            )
+        }
+        dialog.show()
+    }
+
+    private fun confirmarEliminarComentario(
+        comentario: Comentarios
+    ) {
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Eliminar comentario")
+            .setMessage("¿Deseas eliminar tu comentario?")
+            .setPositiveButton("Eliminar") { _, _ ->
+
+                eliminarComentario(comentario)
+
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+
+    }
+    private fun eliminarComentario(
+        comentario: Comentarios
+    ) {
+
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            try {
+
+                val response =
+                    ApiClient.apiService.eliminarComentario(
+
+                        EliminarComentarioRequest(
+
+                            CLI_ID = SesionUsuario.obtenerId(requireContext()),
+
+                            REC_ID = recetaId
+
+                        )
+
+                    )
+
+                if (response.success) {
+
+                    Toast.makeText(
+                        requireContext(),
+                        response.mensaje,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    cargarComentarios()
+
+                    cargarMiComentario()
+
+                } else {
+
+                    Toast.makeText(
+                        requireContext(),
+                        response.mensaje,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+            } catch (e: Exception) {
+
+                Toast.makeText(
+                    requireContext(),
+                    e.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            }
+
+        }
+
+    }
+    private fun editarComentario(
+        comentario: Comentarios
+    ) {
+        comentarioSeleccionado = comentario
+        comentarioAdapter.editarComentario(
+            comentario.id
+        )
+    }
+    private fun reaccionarComentario(
+        comentarioId: Int,
+        tipo: String
+    ) {
+        val usuarioId = SesionUsuario.obtenerId(requireContext())
+        if (usuarioId == 0) {
+            Toast.makeText(
+                requireContext(),
+                "Debes iniciar sesión",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            try {
+                val response = ApiClient.apiService.reaccionarComentario(
+
+                    ReaccionComentarioRequest(
+
+                        comentario = comentarioId,
+
+                        usuario = usuarioId,
+
+                        tipo = tipo
+
+                    )
+
+                )
+
+                if (response.success) {
+
+                    comentarioAdapter.actualizarReaccion(
+
+                        comentarioId = response.comentario,
+
+                        likes = response.likes,
+
+                        dislikes = response.dislikes,
+
+                        reportes = response.reportes,
+
+                        miReaccion = response.miReaccion
+
+                    )
+
+                } else {
+
+                    Toast.makeText(
+                        requireContext(),
+                        "No se pudo registrar la reacción",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                Toast.makeText(
+                    requireContext(),
+                    "Error de conexión",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            }
+
+        }
+
+    }
+    private fun eliminarRespuesta(
+        respuestaId: Int
+    ) {
+
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            try {
+
+                val request = RespuestaComentarioRequest(
+
+                    accion = "ELIMINAR",
+
+                    usuario = SesionUsuario.obtenerId(requireContext()),
+
+                    respuesta = respuestaId
+
+                )
+
+                val response = ApiClient.apiService.responderComentario(request)
+
+                if (response.success) {
+
+                    comentarioAdapter.cerrarCajaRespuesta()
+
+                    Toast.makeText(
+                        requireContext(),
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    cargarComentarios()
+
+                } else {
+
+                    Toast.makeText(
+                        requireContext(),
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+            } catch (e: Exception) {
+
+                Toast.makeText(
+                    requireContext(),
+                    e.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            }
+
+        }
+
+    }
+    private fun iniciarAnimacionMicrofono() {
+        animatorSet?.cancel()
+        fun crearOnda(view: View, delay: Long): AnimatorSet {
+            val escalaX = ObjectAnimator.ofFloat(view, View.SCALE_X, 1f, 2.6f)
+            val escalaY = ObjectAnimator.ofFloat(view, View.SCALE_Y, 1f, 2.6f)
+            val alpha = ObjectAnimator.ofFloat(view, View.ALPHA, 0.45f, 0f)
+            return AnimatorSet().apply {
+                playTogether(escalaX, escalaY, alpha)
+                duration = 1200
+                startDelay = delay
+                interpolator = AccelerateDecelerateInterpolator()
+            }
+        }
+        animatorSet = AnimatorSet().apply {
+            playTogether(
+                crearOnda(binding.onda1,0),
+                crearOnda(binding.onda2,350),
+                crearOnda(binding.onda3,700)
+            )
+            addListener(object: AnimatorListenerAdapter(){
+                override fun onAnimationEnd(animation: Animator) {
+                    if (escuchando) {
+                        iniciarAnimacionMicrofono()
+                    }
+                }
+            })
+        }
+        animatorSet?.start()
+    }
+    private fun detenerAnimacionMicrofono(){
+        animatorSet?.cancel()
+        listOf(binding.onda1,binding.onda2,binding.onda3).forEach{
+            it.alpha = 0f
+            it.scaleX = 1f
+            it.scaleY = 1f
+        }
     }
     private fun ocultarTodosLosPasos() {
-
         mostrandoTodosLosPasos = false
-
         binding.btnVerTodo.text = "Ver todo"
-
         binding.btnVerTodo.setBackgroundColor(
             ContextCompat.getColor(
                 requireContext(),
                 android.R.color.white
             )
         )
-
         binding.btnVerTodo.setTextColor(
             ContextCompat.getColor(
                 requireContext(),
@@ -300,9 +957,7 @@ class DetalleRecetaFragment : Fragment() {
                     )
 
                 )
-
                 if(response.success){
-
                     val receta = response.receta
                     Glide.with(requireContext())
                         .load(receta.FotoReceta)
@@ -317,8 +972,6 @@ class DetalleRecetaFragment : Fragment() {
                     binding.txtTiempo.text =
                         receta.REC_TIEMPO_PREPARACION
                     binding.txtCosto.text = "-"
-
-
                     binding.txtNivel.text =
                         receta.Dificultad
                     binding.txtTipo.text =
@@ -333,69 +986,44 @@ class DetalleRecetaFragment : Fragment() {
                             androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL,
                             false
                         )
-
                     binding.rvIngredientes.adapter =
                         IngredientesMiniAdapter(
-
                             response.ingredientes.map {
-
                                 IngredienteReceta(
-
                                     id = it.ING_ID,
-
                                     nombre = it.ING_DESCRIPCION,
-
                                     foto = it.Foto_Ingrediente
-
                                 )
-
                             }
-
                         )
                     pasos = response.preparacion
 
                     pasoActual = 0
                     crearIndicadores()
-
                     mostrarPaso()
-
-
                     val video = response.receta.REC_ENLACEYOUTUBE
-
                     if (video.isNullOrBlank()) {
-
                         binding.cardVideo.visibility = View.GONE
-
                     } else {
-
                         binding.cardVideo.visibility = View.VISIBLE
                         val idVideo = obtenerYoutubeId(video)
-
                         if (idVideo != null) {
-
                             Glide.with(requireContext())
                                 .load("https://img.youtube.com/vi/$idVideo/hqdefault.jpg")
                                 .into(binding.imgPreviewVideo)
                             binding.cardVideo.setOnClickListener {
-
                                 try {
-
                                     val intent = Intent(
                                         Intent.ACTION_VIEW,
                                         Uri.parse("vnd.youtube:$idVideo")
                                     )
-
                                     startActivity(intent)
-
                                 } catch (e: Exception) {
-
                                     val intent = Intent(
                                         Intent.ACTION_VIEW,
                                         Uri.parse(video)
                                     )
-
                                     startActivity(intent)
-
                                 }
 
                             }
@@ -417,29 +1045,61 @@ class DetalleRecetaFragment : Fragment() {
         }
 
     }
+    private fun ejecutarComandoVoz(
+        comando: ComandoVoz
+    ) {
+        when (comando) {
+            ComandoVoz.SIGUIENTE -> {
+                Log.d("VOZ", "Comando: SIGUIENTE")
+                siguientePaso()
+            }
+            ComandoVoz.ANTERIOR -> {
+                Log.d("VOZ", "Comando: ANTERIOR")
+                pasoAnterior()
+            }
+            ComandoVoz.REPETIR -> {
+                Log.d("VOZ", "Comando: REPETIR")
+                iniciarLecturaPasoActual()
+            }
+            ComandoVoz.DETENER -> {
+                Log.d("VOZ", "Comando: DETENER")
+                detenerLectura()
+            }
+            ComandoVoz.CONTINUAR -> {
+                Log.d("VOZ", "Comando: CONTINUAR")
+                iniciarLecturaPasoActual()
+            }
+            ComandoVoz.VER_TODO -> {
+                Log.d("VOZ", "Comando: VER TODO")
+                mostrarTodosLosPasos()
+            }
+            ComandoVoz.OCULTAR -> {
+                Log.d("VOZ", "Comando: OCULTAR")
+                ocultarTodosLosPasos()
+            }
+            ComandoVoz.DESCONOCIDO -> {
+                Log.d("VOZ", "No se reconoció ningún comando")
+
+            }
+        }
+    }
     private fun inicializarReconocimiento() {
         Log.d("VOZ", "Entró a iniciarEscucha")
-
         if (!SpeechRecognizer.isRecognitionAvailable(requireContext()))
             return
-
         speechRecognizer =
             SpeechRecognizer.createSpeechRecognizer(requireContext())
-
         recognizerIntent = Intent(
             RecognizerIntent.ACTION_RECOGNIZE_SPEECH
         ).apply {
-
             putExtra(
                 RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
             )
-
             putExtra(
                 RecognizerIntent.EXTRA_LANGUAGE,
                 "es-MX"
             )
-
             putExtra(
                 RecognizerIntent.EXTRA_PARTIAL_RESULTS,
                 false
@@ -448,85 +1108,58 @@ class DetalleRecetaFragment : Fragment() {
         Log.d("VOZ", "Comenzando reconocimiento")
         speechRecognizer?.setRecognitionListener(
             object : RecognitionListener {
-
                 override fun onResults(results: Bundle?) {
-
                     escuchando = false
-
-                    val texto =
-                        results
-                            ?.getStringArrayList(
-                                SpeechRecognizer.RESULTS_RECOGNITION
-                            )
-                            ?.firstOrNull()
-                            ?.lowercase()
-                            ?: return
-                    Log.d("VOZ", "Texto reconocido: " + texto)
-
-                    procesarComando(texto)
+                    val texto = results
+                        ?.getStringArrayList(
+                            SpeechRecognizer.RESULTS_RECOGNITION
+                        )
+                        ?.firstOrNull()
+                        ?: return
+                    Log.d("VOZ", "Texto reconocido: $texto")
+                    // Analizar el texto reconocido
+                    val comando = administradorComandosVoz.analizarTexto(texto)
+                    // Ejecutar el comando encontrado
+                    ejecutarComandoVoz(comando)
                     if (escuchaContinua) {
-
                         binding.root.postDelayed({
-
                             iniciarEscucha()
-
-                        },600)
-
+                        }, 600)
                     }
                 }
-
-                override fun onReadyForSpeech(params: Bundle?) {}
-
+                override fun onReadyForSpeech(params: Bundle?) {
+                    escuchando = true
+                    iniciarAnimacionMicrofono()
+                }
                 override fun onBeginningOfSpeech() {}
-
                 override fun onRmsChanged(rmsdB: Float) {
-
                     requireActivity().runOnUiThread {
-
                         val escala = (1f + (rmsdB / 15f))
                             .coerceIn(1f, 1.35f)
-
                         binding.btnVoz.scaleX = escala
                         binding.btnVoz.scaleY = escala
                     }
-
                 }
-
                 override fun onBufferReceived(buffer: ByteArray?) {}
-
                 override fun onEndOfSpeech() {
-
-                    binding.btnVoz.animate()
-                        .scaleX(1f)
-                        .scaleY(1f)
-                        .setDuration(150)
-                        .start()
-
+                    escuchando = false
+                    detenerAnimacionMicrofono()
                 }
                 override fun onError(error: Int) {
-
                     escuchando = false
-
+                    detenerAnimacionMicrofono()
                     Log.d("VOZ","Error: $error")
-
                     when(error){
-
                         SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> return
-
                         SpeechRecognizer.ERROR_CLIENT -> return
-
                     }
                     if(escuchaContinua){
                         binding.root.postDelayed({
                             iniciarEscucha()
                         },800)
-
                     }
-
                 }
-
                 override fun onPartialResults(partialResults: Bundle?) {}
-
                 override fun onEvent(eventType: Int, params: Bundle?) {}
             }
         )
@@ -537,98 +1170,76 @@ class DetalleRecetaFragment : Fragment() {
 
             if (status == TextToSpeech.SUCCESS) {
 
-                textToSpeech?.language = Locale("es", "MX")
+                val voz = textToSpeech?.voices?.firstOrNull {
+                    it.name == "es-es-x-eec-network"
+                }
+
+                if (voz != null) {
+
+                    Log.d("TTS", "Usando voz: ${voz.name}")
+
+                    textToSpeech?.voice = voz
+
+                } else {
+
+                    Log.d("TTS", "No se encontró la voz.")
+
+                    textToSpeech?.language = Locale("es", "MX")
+
+                }
+
                 textToSpeech?.setSpeechRate(0.9f)
+
+                textToSpeech?.setPitch(1.0f)
+
+                textToSpeech?.setOnUtteranceProgressListener(
+                    object : UtteranceProgressListener() {
+
+                        override fun onStart(utteranceId: String?) {
+                            Log.d("TTS", "Comenzó la lectura")
+                        }
+
+                        override fun onDone(utteranceId: String?) {
+                            Log.d("TTS", "Terminó la lectura")
+                        }
+
+                        override fun onError(utteranceId: String?) {
+                            Log.d("TTS", "Error al leer")
+                        }
+                    }
+                )
+
             } else {
 
                 Log.e("TTS", "No se pudo inicializar TextToSpeech")
 
             }
-
         }
-
     }
     private fun iniciarLecturaPasoActual() {
-
+        if (!lecturaActiva) {
+            return
+        }
         if (pasos.isEmpty()) return
-
         val texto = pasos[pasoActual].descripcion
-
         textToSpeech?.speak(
             texto,
             TextToSpeech.QUEUE_FLUSH,
             null,
             "PASO_ACTUAL"
         )
-
     }
     private fun detenerLectura() {
         textToSpeech?.stop()
     }
     private fun iniciarEscucha() {
-
         if (escuchando) return
-
         escuchando = true
-
         speechRecognizer?.startListening(recognizerIntent)
-
     }
     private fun detenerEscucha() {
-
         escuchando = false
-
         speechRecognizer?.stopListening()
-
-    }
-    private fun procesarComando(texto: String) {
-        when {
-            texto.contains("sig") ||
-            texto.contains("siguiente") ||
-                    texto.contains("adelante") ||
-                    texto.contains("continúa") ||
-                    texto.contains("cambiar") ||
-                    texto.contains("avanza") ||
-                    texto.contains("seguir") ||
-                    texto.contains("continuar") -> {
-                siguientePaso()
-            }
-            texto.contains("anterior") ||
-                    texto.contains("atrás") ||
-                    texto.contains("retrocede") ||
-                    texto.contains("regresar") -> {
-                pasoAnterior()
-            }
-            texto.contains("repite") -> {
-                mostrarPaso()
-            }
-            texto.contains("ver todo")|| texto.contains("ver receta") || texto.contains("abrir")  -> {
-                mostrarTodosLosPasos()
-            }
-            texto.contains("ver menos") || texto.contains("cerrar")-> {
-                ocultarTodosLosPasos()
-            }
-            texto.contains("silencio") -> {
-                detenerLectura()
-            }
-            texto.contains("leer") ||
-                    texto.contains("léelo") ||
-                    texto.contains("lee") ||
-                    texto.contains("leer paso") ||
-                    texto.contains("reproducir") -> {
-
-                lecturaActiva = true
-
-                binding.btnParlante.icon =
-                    ContextCompat.getDrawable(
-                        requireContext(),
-                        R.drawable.ic_audio_on
-                    )
-
-                iniciarLecturaPasoActual()
-            }
-
-        }
     }
     private fun siguientePaso() {
         if (pasoActual < pasos.lastIndex) {
@@ -652,81 +1263,84 @@ class DetalleRecetaFragment : Fragment() {
         actualizarBotonRecetaTerminada()
     }
     private fun crearIndicadores() {
-
         binding.containerIndicadores.removeAllViews()
-
+        val cantidad = pasos.size
+        val tamañoCirculo: Int
+        val tamañoLinea: Int
+        val margen: Int
+        when {
+            cantidad <= 4 -> {
+                tamañoCirculo = 33.dp
+                tamañoLinea = 45.dp
+                margen = 8.dp
+            }
+            cantidad <= 6 -> {
+                tamañoCirculo = 24.dp
+                tamañoLinea = 27.dp
+                margen = 4.dp
+            }
+            cantidad <= 8 -> {
+                tamañoCirculo = 21.dp
+                tamañoLinea = 24.dp
+                margen = 2.dp
+            }
+            else -> {
+                tamañoCirculo = 15.dp
+                tamañoLinea = 12.dp
+                margen = 1.dp
+            }
+        }
         for (i in pasos.indices) {
-
-            //=========================
-            // CÍRCULO
-            //=========================
-
             val circulo = ImageView(requireContext())
-
-            val paramsCirculo = LinearLayout.LayoutParams(
-                36.dp,
-                36.dp
+            circulo.layoutParams = LinearLayout.LayoutParams(
+                tamañoCirculo,
+                tamañoCirculo
             )
-
-            circulo.layoutParams = paramsCirculo
             circulo.tag = "circulo_$i"
-
+            circulo.setOnClickListener {
+                pasoActual = i
+                mostrarPaso()
+                actualizarIndicadores()
+                if (lecturaActiva) {
+                    iniciarLecturaPasoActual()
+                }
+            }
             binding.containerIndicadores.addView(circulo)
-
-            //=========================
-            // LÍNEA
-            //=========================
-
             if (i < pasos.lastIndex) {
-
                 val linea = View(requireContext())
-
                 val paramsLinea = LinearLayout.LayoutParams(
-                    50.dp,
+                    tamañoLinea,
                     4.dp
                 )
-
-                paramsLinea.marginStart = 8.dp
-                paramsLinea.marginEnd = 8.dp
+                paramsLinea.marginStart = margen
+                paramsLinea.marginEnd = margen
                 paramsLinea.gravity = Gravity.CENTER_VERTICAL
-
                 linea.layoutParams = paramsLinea
                 linea.tag = "linea_$i"
-
                 binding.containerIndicadores.addView(linea)
             }
         }
-
         actualizarIndicadores()
     }
     private fun actualizarIndicadores() {
 
         for (i in 0 until pasos.size) {
-
             //-------------------------
             // CÍRCULO
             //-------------------------
-
             val circulo =
                 binding.containerIndicadores
                     .findViewWithTag<ImageView>("circulo_$i")
-
             if (i <= pasoActual) {
-
                 circulo.setImageResource(R.drawable.ic_check_white)
-
                 circulo.setBackgroundResource(
                     R.drawable.bg_indicador_completado
                 )
-
             } else {
-
                 circulo.setImageDrawable(null)
-
                 circulo.setBackgroundResource(
                     R.drawable.bg_indicador_pendiente
                 )
-
             }
             //-------------------------
             // LÍNEA
@@ -779,12 +1393,19 @@ class DetalleRecetaFragment : Fragment() {
         }
     }
     private fun enviarComentario() {
-        if (binding.editComentario.text.toString().trim().isEmpty()) {
+
+        val comentario = binding.editComentario.text
+            .toString()
+            .trim()
+
+        val calificacion = binding.ratingComentario.rating
+
+        if (comentario.isEmpty()) {
             binding.editComentario.error = "Escribe un comentario"
             return
         }
 
-        if (binding.ratingComentario.rating == 0f) {
+        if (calificacion == 0f) {
             Toast.makeText(
                 requireContext(),
                 "Selecciona una calificación.",
@@ -792,41 +1413,62 @@ class DetalleRecetaFragment : Fragment() {
             ).show()
             return
         }
+
+        guardarComentario(
+            comentario = comentario,
+            calificacion = calificacion.toDouble()
+        )
+
+    }
+    private fun guardarComentario(
+        comentario: String,
+        calificacion: Double
+    ) {
+
         lifecycleScope.launch {
+
             try {
+
                 val response =
                     ApiClient.apiService.comentarCalificarReceta(
                         ComentarCalificarRequest(
                             CLI_ID = SesionUsuario.obtenerId(requireContext()),
                             REC_ID = recetaId,
-                            COMENTARIO = binding.editComentario.text
-                                .toString()
-                                .trim(),
-                            CALIFICACION = binding.ratingComentario.rating
-                                .toDouble()
+                            COMENTARIO = comentario,
+                            CALIFICACION = calificacion
                         )
                     )
+
                 if (response.success) {
+
+                    comentarioAdapter.cancelarEdicionComentario()
+
+                    comentarioSeleccionado = null
+
                     Toast.makeText(
                         requireContext(),
                         response.mensaje,
                         Toast.LENGTH_SHORT
                     ).show()
-                    // Limpiar comentario
-                    binding.editComentario.text?.clear()
-                    // Reiniciar calificación
-                    binding.ratingComentario.rating = 0f
-                    // Deshabilitar nuevamente el botón
-                    validarComentario()
+
+                    cargarComentarios()
+
+                    cargarMiComentario()
+
                 } else {
+
                     Toast.makeText(
                         requireContext(),
                         response.mensaje,
                         Toast.LENGTH_SHORT
                     ).show()
+
                 }
+
             } catch (e: Exception) {
+
                 e.printStackTrace()
+
                 Toast.makeText(
                     requireContext(),
                     "Error al enviar el comentario.",
@@ -838,91 +1480,56 @@ class DetalleRecetaFragment : Fragment() {
         }
 
     }
+
+
     private fun actualizarBotonRecetaTerminada() {
-
         if (recetaTerminada) {
-
             binding.btnRecetaTerminada.apply {
-
                 text = "✓ Receta completada"
-
                 isEnabled = false
-
                 alpha = 1f
-
             }
-
             return
-
         }
-
         val habilitado = pasoActual == pasos.lastIndex
-
         binding.btnRecetaTerminada.isEnabled = habilitado
-
         binding.btnRecetaTerminada.alpha =
             if (habilitado) 1f else 0.5f
-
     }
     private fun cargarMiComentario() {
-
         lifecycleScope.launch {
-
             try {
-
                 val response =
                     ApiClient.apiService.obtenerMiComentario(
-
                         ObtenerMiComentarioRequest(
-
                             CLI_ID = SesionUsuario.obtenerId(requireContext()),
-
                             REC_ID = recetaId
-
                         )
-
                     )
-
                 if (response.success && response.comentarioExiste) {
-
                     binding.editComentario.setText(
                         response.comentario
                     )
-
                     binding.ratingComentario.rating =
                         response.calificacion?.toFloat() ?: 0f
-
                     binding.btnComentar.text =
                         "Actualizar"
-
                 } else {
-
                     binding.editComentario.text?.clear()
-
                     binding.ratingComentario.rating = 0f
-
-                    binding.btnComentar.text =
-                        "Comentar"
-
+                    binding.btnComentar.text = "Comentar"
                 }
-
                 validarComentario()
-
             } catch (e: Exception) {
-
                 e.printStackTrace()
-
             }
 
         }
 
     }
     private fun marcarRecetaTerminada() {
-
         val cliId = SesionUsuario.obtenerId(requireContext())
-
         if (cliId <= 0) {
-
             Toast.makeText(
                 requireContext(),
                 "Debes iniciar sesión.",

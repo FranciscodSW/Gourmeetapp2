@@ -16,14 +16,13 @@
         android:orientation="vertical">
         <!-- CardView para información principal de la receta -->
         <androidx.cardview.widget.CardView
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="260dp"
-            android:layout_margin="1dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginEnd="1dp"
+            android:layout_marginTop="20dp"
             app:cardCornerRadius="18dp"
             app:cardElevation="6dp">
-
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
@@ -55,7 +54,6 @@
                         android:gravity="center_vertical"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent">
-
                         <!-- Tiempo -->
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -63,12 +61,10 @@
                             android:layout_marginEnd="10dp"
                             android:gravity="center"
                             android:orientation="vertical">
-
                             <ImageView
                                 android:layout_width="26dp"
                                 android:layout_height="26dp"
                                 android:src="@drawable/ic_clock_bg"/>
-
                             <TextView
                                 android:id="@+id/txtTiempo"
                                 android:layout_width="wrap_content"
@@ -78,9 +74,7 @@
                                 android:textSize="10sp"
                                 android:textStyle="bold"
                                 android:fontFamily="@font/caviardreams"/>
-
                         </LinearLayout>
-
                         <!-- Nivel -->
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -216,7 +210,7 @@
                             android:numStars="5"
                             android:stepSize="1"
                             android:rating="0"
-                            android:isIndicator="false"
+                            android:isIndicator="true"
                             android:progressTint="#177AFF"
                             android:secondaryProgressTint="#177AFF"
                             android:progressBackgroundTint="#D6D6D6"/>
@@ -325,140 +319,172 @@
             android:id="@+id/cardPreparacion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="0dp"
             app:cardBackgroundColor="#177AFF"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?android:attr/selectableItemBackground"
             app:cardCornerRadius="12dp"
-            app:cardElevation="0dp"
             app:cardUseCompatPadding="true">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="0dp">
                 <!-- Cabecera con título y contador -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginBottom="16dp"
                     android:gravity="center_vertical"
-                    >
+                    android:orientation="horizontal">
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:fontFamily="@font/caviardreams"
                         android:gravity="center"
                         android:text="Preparación"
-                        android:fontFamily="@font/caviardreams"
+                        android:textColor="#FFFFFF"
                         android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:textColor="#FFFFFF"/>
+                        android:textStyle="bold" />
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnParlante"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_marginEnd="0dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:backgroundTint="#177AFF"
-                        app:cornerRadius="24dp"
-                        app:icon="@drawable/ic_audio_on"
+                        app:icon="@drawable/ic_audio_off"
                         app:iconGravity="textStart"
-                        app:iconPadding="0dp"
-                        app:iconTint="@android:color/white"/>
+                        android:layout_marginEnd="10dp"
+
+                        />
                 </LinearLayout>
                 <!-- Área para mostrar el paso actual -->
                 <LinearLayout
                     android:id="@+id/containerPasoActual"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:background="@drawable/bg_paso"
-                    >
-                        <TextView
-                            android:id="@+id/tvDescripcionPaso"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Aquí aparecerá el paso"
-                            android:textSize="18sp"
-                            android:textColor="#333333"
-                            android:gravity="center"
-                            android:fontFamily="@font/caviardreams"
-                            android:lineSpacingExtra="5dp"/>
+                    android:orientation="vertical"
+                    android:layout_margin="10dp">
+
+                    <TextView
+                        android:id="@+id/tvDescripcionPaso"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/caviardreams"
+                        android:gravity="center"
+                        android:lineSpacingExtra="5dp"
+                        android:text="paso"
+                        android:textColor="#333333"
+                        android:textSize="18sp"
+                        android:layout_marginTop="5dp"/>
                     <!-- Barra de progreso -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:layout_marginBottom="16dp"
-                        android:layoutDirection="rtl">
-                    </LinearLayout>
+                        android:layoutDirection="rtl"
+                        android:orientation="horizontal"></LinearLayout>
+
                     <LinearLayout
                         android:id="@+id/containerIndicadores"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="18dp"
                         android:gravity="center"
-                        android:orientation="horizontal"/>
+                        android:orientation="horizontal" />
+
                     <LinearLayout
                         android:id="@+id/layoutControlesPreparacion"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:layout_marginTop="1dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                        <!-- IZQUIERDA -->
+                        <!-- ESPACIO FLEXIBLE -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnVerTodo"
                             android:layout_width="wrap_content"
                             android:layout_height="42dp"
-                            android:text="Ver todo"
-                            app:iconGravity="textStart"
-                            android:textAllCaps="false"
-                            android:layout_marginStart="8dp"
+                            android:layout_marginStart="4dp"
                             android:backgroundTint="#177AFF"
-                            app:cornerRadius="22dp"/>
+                            android:text="Ver todo"
+                            android:textAllCaps="false"
+                            app:cornerRadius="22dp"
+                            app:iconGravity="textStart" />
 
-                        <!-- ESPACIO FLEXIBLE -->
                         <Space
                             android:layout_width="0dp"
                             android:layout_height="1dp"
-                            android:layout_weight="1"/>
+                            android:layout_weight="1" />
 
                         <!-- CENTRO -->
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnVoz"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:padding="0dp"
-                            android:backgroundTint="#177AFF"
-                            app:cornerRadius="20dp"
-                            app:icon="@drawable/ic_microfono"
-                            app:iconGravity="textStart"
-                            app:iconPadding="0dp"
-                            app:iconTint="@android:color/white"/>
+                        <FrameLayout
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            android:layout_gravity="center">
 
+                            <View
+                                android:id="@+id/onda1"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_gravity="center"
+                                android:alpha="0"
+                                android:background="@drawable/bg_circulo_azul" />
+
+                            <View
+                                android:id="@+id/onda2"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_gravity="center"
+                                android:alpha="0"
+                                android:background="@drawable/bg_circulo_azul" />
+
+                            <View
+                                android:id="@+id/onda3"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_gravity="center"
+                                android:alpha="0"
+                                android:background="@drawable/bg_circulo_azul" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnVoz"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_gravity="center"
+                                android:background="@drawable/bg_circulo_azul"
+                                app:backgroundTint="@null"
+                                app:icon="@drawable/ic_microfono"
+                                app:iconGravity="textStart"
+                                app:iconPadding="0dp"
+                                app:iconTint="@android:color/white" />
+                        </FrameLayout>
                         <!-- ESPACIO FLEXIBLE -->
                         <Space
                             android:layout_width="0dp"
-                            android:layout_height="1dp"
+                            android:layout_height="0dp"
                             android:layout_weight="1"/>
 
                         <!-- DERECHA -->
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
+                            android:orientation="horizontal"
+                            android:layout_marginEnd="10dp">
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnAnterior"
                                 android:layout_width="48dp"
                                 android:layout_height="48dp"
+                                android:layout_marginStart="8dp"
                                 android:backgroundTint="#177AFF"
+                                android:insetLeft="0dp"
+                                android:insetRight="0dp"
+                                android:padding="0dp"
                                 app:cornerRadius="24dp"
                                 app:icon="@drawable/ic_flecha_izquierda"
                                 app:iconGravity="textStart"
@@ -471,6 +497,9 @@
                                 android:layout_height="48dp"
                                 android:layout_marginStart="8dp"
                                 android:backgroundTint="#177AFF"
+                                android:insetLeft="0dp"
+                                android:insetRight="0dp"
+                                android:padding="0dp"
                                 app:cornerRadius="24dp"
                                 app:icon="@drawable/ic_flecha_derecha"
                                 app:iconGravity="textStart"
@@ -486,8 +515,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:orientation="vertical"
                         android:fontFamily="@font/caviardreams"
+                        android:orientation="vertical"
                         android:visibility="gone"/>
                 </LinearLayout>
 
@@ -556,26 +585,30 @@
                     app:cornerRadius="22dp"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardComentarios"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:cardCornerRadius="16dp"
+            android:layout_marginTop="1dp"
             app:cardElevation="5dp"
-            app:cardUseCompatPadding="true">
+            app:cardUseCompatPadding="false"
+            app:cardBackgroundColor="@android:color/transparent"
+            >
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                app:cardBackgroundColor="@android:color/transparent"
+               >
 
                 <!-- Encabezado -->
                 <LinearLayout
+                    app:cardBackgroundColor="@android:color/transparent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:padding="16dp">
+                    android:background="@color/azulgourmeet">
 
                     <ImageView
                         android:id="@+id/imgUsuarioComentario"
@@ -589,18 +622,21 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:layout_marginStart="12dp"
-                        android:background="@android:color/transparent"
+                        android:layout_marginVertical="10dp"
+                        android:layout_marginStart="1dp"
+                        android:layout_marginEnd="25dp"
+                        android:background="@drawable/bg_rectangulo_blanco"
                         android:hint="¿Qué te pareció esta receta?"
                         android:textColor="#333333"
                         android:textColorHint="#A0A0A0"
                         android:textSize="16sp"
                         android:maxLength="150"
-                        android:minLines="1"
+                        android:minLines="2"
                         android:maxLines="3"
                         android:gravity="center_vertical"
                         android:imeOptions="actionDone"
-                        android:inputType="textCapSentences|textMultiLine"/>
+                        android:inputType="textCapSentences|textMultiLine"
+                        />
                 </LinearLayout>
                 <!-- Estrellas + botón -->
                 <LinearLayout
@@ -609,7 +645,8 @@
                     android:gravity="center_vertical"
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp"
-                    android:paddingBottom="16dp">
+                    android:paddingBottom="0dp"
+                    android:background="@drawable/bg_rectangulo_azul_recto">
                     <RatingBar
                         android:id="@+id/ratingComentario"
                         style="?android:attr/ratingBarStyleSmall"
@@ -619,7 +656,7 @@
                         android:stepSize="1"
                         android:rating="0"
                         android:isIndicator="false"
-                        android:progressTint="#177AFF"
+                        android:progressTint="#FFFFFF"
                         android:secondaryProgressTint="#177AFF"
                         android:progressBackgroundTint="#D6D6D6"/>
                     <Space
@@ -635,19 +672,22 @@
                         android:alpha="0.5"
                         android:textAllCaps="false"
                         android:textSize="14sp"
-                        android:textColor="@android:color/white"
-                        android:backgroundTint="#177AFF"
+                        android:textColor="@color/azulgourmeet"
+                        android:backgroundTint="@android:color/white"
                         app:cornerRadius="20dp"/>
                 </LinearLayout>
-
-                <!-- Separador -->
-                <View
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvComentarios"
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#E6E6E6"/>
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/white"
+                    android:visibility="gone"
+                    android:padding="12dp"
+                    android:nestedScrollingEnabled="false"/>
 
                 <!-- Ver comentarios -->
                 <LinearLayout
+                    app:cardBackgroundColor="@android:color/transparent"
                     android:id="@+id/layoutVerComentarios"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
@@ -656,7 +696,8 @@
                     android:paddingEnd="16dp"
                     android:clickable="true"
                     android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground">
+                    android:background="@drawable/bg_tapa_inferior"
+                    >
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnVerComentarios"
                         android:layout_width="0dp"
@@ -675,7 +716,8 @@
                         app:iconPadding="8dp"/>
                 </LinearLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
+
         <androidx.cardview.widget.CardView
             android:id="@+id/cardComplementar"
             android:layout_width="match_parent"

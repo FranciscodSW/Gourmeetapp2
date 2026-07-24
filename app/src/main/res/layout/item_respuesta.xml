@@ -1,92 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/bg_respuesta"
     android:orientation="vertical"
-    android:layout_marginBottom="10dp">
+    android:padding="10dp">
 
-    <!-- 🔥 Usuario -->
-    <LinearLayout
+    <!-- Encabezado -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:layout_height="wrap_content">
 
         <ImageView
-            android:id="@+id/imgUserRespuesta"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:id="@+id/imgUsuarioRespuesta"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:scaleType="centerCrop"
             android:src="@drawable/ic_user"
-            android:layout_marginEnd="8dp"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/txtNombreRespuesta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_marginStart="8dp"
+            android:text="Usuario respondió:"
+            android:textColor="@color/azulgourmeet"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/imgUsuarioRespuesta"
+            app:layout_constraintTop_toTopOf="@id/imgUsuarioRespuesta" />
 
-            <TextView
-                android:id="@+id/tvNombreUsuarioRespuesta"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Usuario"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="#333333"
-                android:fontFamily="@font/caviardreams"/>
+        <LinearLayout
+            android:id="@+id/layoutEditarRespuesta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:id="@+id/tvFechaRespuesta"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Hace 2 días"
-                android:textSize="11sp"
-                android:textColor="#888888"
-                android:fontFamily="@font/caviardreams"/>
+            <ImageButton
+                android:id="@+id/btnEditarRespuesta"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@null"
+                android:padding="4dp"
+                android:src="@drawable/ic_lapiz_editar" />
+
+            <ImageButton
+                android:id="@+id/btnEliminarRespuesta"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@null"
+                android:padding="4dp"
+                android:src="@drawable/ic_basura_azul" />
 
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/layoutEditarComentarioRespuesta"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtNombreRespuesta">
 
-    </LinearLayout>
+            <EditText
+                android:id="@+id/edtEditarRespuesta"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="Editar comentario..."
+                android:maxLines="5"
+                android:minLines="2"
+                android:textSize="15sp"/>
 
-    <!-- 🔥 Texto respuesta -->
-    <TextView
-        android:id="@+id/tvTextoRespuesta"
+            <ImageButton
+                android:id="@+id/btnConfirmarRespuesta"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_send"/>
+        </LinearLayout>
+
+        <!-- Texto normal -->
+
+        <TextView
+            android:id="@+id/txtComentarioRespuesta"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Comentario"
+            android:textColor="#333333"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/txtNombreRespuesta"
+            app:layout_constraintTop_toBottomOf="@id/txtNombreRespuesta" />
+
+        <!-- Editar respuesta -->
+
+
+
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Acciones -->
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Totalmente de acuerdo contigo 👍"
-        android:textSize="14sp"
-        android:textColor="#555555"
-        android:fontFamily="@font/caviardreams"
-        android:layout_marginTop="4dp"
-        android:layout_marginStart="40dp"/>
+        android:layout_marginTop="8dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:id="@+id/layoutLikeRespuesta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:padding="4dp">
+            <ImageView
+                android:id="@+id/imgLikeRespuesta"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_like" />
+        </LinearLayout>
 
-    <!-- 🔥 Botones -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="6dp"
-        android:layout_marginStart="40dp">
+        <LinearLayout
+            android:id="@+id/layoutDislikeRespuesta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:gravity="center_vertical"
+            android:padding="4dp">
 
-        <ImageView
-            android:id="@+id/btnLikeRespuesta"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:src="@drawable/ic_like"
-            android:layout_marginEnd="14dp"/>
-
-        <ImageView
-            android:id="@+id/btnDislikeRespuesta"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:src="@drawable/ic_dislike"
-            android:layout_marginEnd="14dp"/>
-
-        <ImageView
-            android:id="@+id/btnReportarRespuesta"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_warning"/>
-
+            <ImageView
+                android:id="@+id/imgDislikeRespuesta"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_dislike" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/layoutReportarRespuesta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:gravity="center_vertical"
+            android:padding="4dp">
+            <ImageView
+                android:id="@+id/imgReportarRespuesta"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_reportar" />
+        </LinearLayout>
     </LinearLayout>
-
 </LinearLayout>

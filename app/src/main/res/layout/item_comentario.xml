@@ -1,107 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:layout_marginBottom="14dp">
+    android:padding="12dp">
 
-    <!-- 🔥 Usuario + Rating -->
+    <!-- Comentario principal -->
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:layout_height="wrap_content">
 
         <ImageView
-            android:id="@+id/imgUser"
+            android:id="@+id/imgUsuario"
             android:layout_width="42dp"
             android:layout_height="42dp"
             android:src="@drawable/ic_user"
-            android:layout_marginEnd="10dp"/>
+            android:scaleType="centerCrop"/>
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_marginStart="8dp">
 
             <TextView
-                android:id="@+id/tvNombreUsuario"
+                android:id="@+id/txtNombre"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nombre"
-                android:textSize="15sp"
                 android:textStyle="bold"
-                android:textColor="#333333"
-                android:fontFamily="@font/caviardreams"/>
+                android:textColor="@color/azulgourmeet"
+                android:textSize="15sp"
+                android:text="Francisco dijo:"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"/>
 
-            <!-- ⭐ Rating -->
-            <FrameLayout
+            <RatingBar
+                android:id="@+id/ratingComentario"
+                style="?android:attr/ratingBarStyleSmall"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:isIndicator="true"
+                android:numStars="5"
+                android:rating="5"
+                android:stepSize="0.5"
+                android:scaleX="0.85"
+                android:scaleY="0.85"
+                app:layout_constraintBottom_toBottomOf="@id/txtNombre"
+                app:layout_constraintStart_toEndOf="@id/txtNombre"
+                app:layout_constraintTop_toTopOf="@id/txtNombre"
+                android:progressTint="#177AFF"
+                android:secondaryProgressTint="#FFFFFF"
+                android:progressBackgroundTint="#D6D6D6"/>
+            <LinearLayout
+                android:id="@+id/layoutAccionesComentario"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
-                <ImageView
+                <ImageButton
+                    android:id="@+id/btnEditarComentario"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:src="@drawable/ic_star"/>
-                <TextView
-                    android:id="@+id/tvRating"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="4.5"
-                    android:textSize="10sp"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:layout_gravity="center"/>
-            </FrameLayout>
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/ic_lapiz_editar"/>
 
+                <ImageButton
+                    android:id="@+id/btnEliminarComentario"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/ic_basura_azul"/>
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/layoutEditarComentario"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txtNombre">
+
+                <EditText
+                    android:id="@+id/edtEditarComentario"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="Editar comentario..."
+                    android:maxLines="5"
+                    android:minLines="2"
+                    android:textSize="15sp"/>
+
+                <ImageButton
+                    android:id="@+id/btnConfirmarComentario"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/ic_send"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/txtComentario"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Comentario"
+                android:textColor="#333333"
+                android:textSize="15sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txtNombre"/>
+
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </LinearLayout>
+
+    <!-- Botones -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:layout_marginTop="8dp">
+
+        <ImageButton
+            android:id="@+id/btnResponder"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_responder_comentario"/>
+
+        <ImageButton
+            android:id="@+id/btnLike"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_like"/>
+
+        <ImageButton
+            android:id="@+id/btnDislike"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_dislike"/>
+
+        <ImageButton
+            android:id="@+id/btnReportar"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_reportar_on"/>
+
+    </LinearLayout>
+    <LinearLayout android:id="@+id/layoutContenedorRespuesta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="42dp"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+        <TextView android:id="@+id/txtResponderA"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Respondiendo a..."
+            android:textStyle="bold"
+            android:textColor="@color/azulgourmeet"
+            android:textSize="13sp"
+            android:layout_marginBottom="6dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <ImageView android:id="@+id/imgMiFoto"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_user"
+                android:scaleType="centerCrop"/>
+            <EditText android:id="@+id/edtRespuesta"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:hint="Escribe una respuesta..."
+                android:maxLines="4"
+                android:minHeight="48dp"
+                android:padding="10dp"/>
+
+            <ImageButton
+                android:id="@+id/btnEnviarRespuesta"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="6dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_send"/>
         </LinearLayout>
     </LinearLayout>
 
 
+    <!-- Respuesta -->
 
-    <!-- 🔥 Botones -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp">
-
-        <ImageView
-            android:id="@+id/btnLike"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:src="@drawable/ic_like"
-            android:layout_marginEnd="18dp"/>
-
-        <ImageView
-            android:id="@+id/btnDislike"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:src="@drawable/ic_dislike"
-            android:layout_marginEnd="18dp"/>
-
-        <ImageView
-            android:id="@+id/btnReportar"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_warning"/>
-    </LinearLayout>
-    <!-- 🔥 Comentario -->
-    <TextView
-        android:id="@+id/tvComentario"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Muy buena receta!"
-        android:textSize="15sp"
-        android:textColor="#555555"
-        android:fontFamily="@font/caviardreams"
-        android:layout_marginTop="6dp"/>
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerRespuestas"
+        android:id="@+id/rvRespuestas"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="42dp"
+        android:layout_marginTop="8dp"
         android:nestedScrollingEnabled="false"
-        android:layout_marginStart="52dp"
-        android:layout_marginTop="6dp"/>
+        android:visibility="gone"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="12dp"
+        android:background="#DDDDDD"/>
 
 </LinearLayout>

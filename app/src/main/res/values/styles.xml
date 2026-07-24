@@ -35,8 +35,7 @@
         <item name="fontFamily">@font/caviardreams</item>
     </style>
     <style name="BottomNavigationItemStyle" parent="Widget.Design.BottomNavigationView">
-
-
         <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
     </style>
+
 </resources>

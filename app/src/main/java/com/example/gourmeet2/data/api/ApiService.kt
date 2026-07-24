@@ -76,4 +76,24 @@ interface ApiService {
     suspend fun verificarRecetaTerminada(
         @Body request: VerificarRecetaTerminadaRequest
     ): VerificarRecetaTerminadaResponse
+    @POST("comentarios/listar_comentarios.php")
+    suspend fun listarComentarios(
+        @Body request: ListarComentariosRequest
+    ): ListarComentariosResponse
+    @POST("comentarios/reaccionar_comentario.php")
+    suspend fun reaccionarComentario(
+        @Body request: ReaccionComentarioRequest
+    ): ReaccionComentarioResponse
+    @POST("comentarios/responder_comentario.php")
+    suspend fun responderComentario(
+        @Body request: RespuestaComentarioRequest
+    ): RespuestaComentarioResponse
+    @POST("comentarios/eliminar_comentario.php")
+    suspend fun eliminarComentario(
+        @Body request: EliminarComentarioRequest
+    ): EliminarComentarioResponse
+    @POST("comentarios/reaccionar_comentario_respuesta.php")
+    suspend fun reaccionarRespuesta(
+        @Body request: ReaccionRespuestaRequest
+    ): ReaccionRespuestaResponse
 }
