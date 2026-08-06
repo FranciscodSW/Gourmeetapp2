@@ -416,6 +416,8 @@ class Login : AppCompatActivity() {
                         puntos = usuario.puntos ?:0,
                         edad = usuario.edad ?: 0
                     )
+                    Log.d("LOGIN", "Nivel: ${usuario.nivel}")
+                    Log.d("LOGIN", "Puntos: ${usuario.puntos}")
                     //--------------------------------------------------
                     // MENSAJE
                     //--------------------------------------------------

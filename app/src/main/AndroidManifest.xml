@@ -76,6 +76,13 @@
         <activity
             android:name=".Trancicion_de_carga_para_menu_free"
             android:exported="false" />
+        <activity
+            android:name=".MisColeccionesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DetalleRecetaActivity"
+            android:exported="false" />
+
 
         <activity
             android:name=".MainActivity"

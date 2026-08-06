@@ -17,10 +17,21 @@ import com.example.gourmeet2.data.models.SeccionResultados
 import com.example.gourmeet2.databinding.ActivityMenuPrincipalFreeBinding
 import kotlinx.coroutines.launch
 import android.content.Context
+import android.content.Intent
 import android.util.Log
+import android.view.Gravity
+import android.view.Menu
 import android.view.inputmethod.InputMethodManager
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.core.view.GravityCompat
 import com.bumptech.glide.Glide
+import com.example.gourmeet2.data.models.Nivel
 import com.example.gourmeet2.data.models.RecetasInicioRequest
+import com.example.gourmeet2.utils.SesionUsuario
+import android.widget.ImageView
+import android.widget.Toast
+
 
 class Menu_principal_free : AppCompatActivity() {
     private var menuAbierto = false
@@ -38,11 +49,16 @@ class Menu_principal_free : AppCompatActivity() {
     private var categoriaSeleccionada: Int? = null
     private lateinit var adapterResultados: AdapterResultados
     private lateinit var adapter: IngredienteAdapter
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMenuPrincipalFreeBinding.inflate(layoutInflater)
         setContentView(binding.root)
         cargarUsuario()
+        cargarInformacionUsuario()
+        inicializarMenuLateral()
+
         supportFragmentManager.addOnBackStackChangedListener {
             if (supportFragmentManager.backStackEntryCount == 0) {
                 binding.containerDetalleReceta.visibility = View.GONE
@@ -164,6 +180,111 @@ class Menu_principal_free : AppCompatActivity() {
             binding.panelBusqueda.translationY = -(imeHeight - extraOffset)
             binding.panelingredietes.translationY = -(imeHeight - extraOffset)
             insets
+        }
+        binding.btnPerfil.setOnClickListener {
+            cargarInformacionUsuario()
+            binding.drawerLayout.openDrawer(GravityCompat.END)
+        }
+        binding.navigationView.setNavigationItemSelectedListener { item ->
+
+            when (item.itemId) {
+
+                R.id.menu_preferencias -> {
+
+                    Toast.makeText(
+                        this,
+                        "Preferencias de cuenta",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                R.id.menu_administrar_hogar -> {
+
+                    Toast.makeText(
+                        this,
+                        "Administrar mi hogar",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                R.id.menu_mis_colecciones -> {
+
+                    val intent = Intent(
+                        this,
+                        MisColeccionesActivity::class.java
+                    )
+
+                    startActivity(intent)
+
+                }
+
+                R.id.menu_todas_colecciones -> {
+
+                    Toast.makeText(
+                        this,
+                        "Abrir todas las colecciones",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                R.id.menu_recetas_realizadas -> {
+
+                    Toast.makeText(
+                        this,
+                        "Recetas realizadas",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                R.id.menu_planeador_semanal -> {
+
+                    Toast.makeText(
+                        this,
+                        "Planeador semanal",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                R.id.menu_mi_alacena -> {
+
+                    Toast.makeText(
+                        this,
+                        "Mi alacena",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                R.id.menu_premium -> {
+
+                    Toast.makeText(
+                        this,
+                        "GourMeet Premium",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                else -> {
+
+                    // Aquí entran las colecciones dinámicas
+
+                    Toast.makeText(
+                        this,
+                        "Colección ID: ${item.itemId}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+            }
+            false
+
         }
         cargarRecetasInicio()
     }
@@ -459,4 +580,181 @@ class Menu_principal_free : AppCompatActivity() {
 
         }
     }
+    private fun cargarInformacionUsuario() {
+
+        val encabezado = binding.navigationView.getHeaderView(0)
+
+        val imgFotoPerfil =
+            encabezado.findViewById<ImageView>(R.id.imgFotoPerfil)
+
+        val txtNombreUsuario =
+            encabezado.findViewById<TextView>(R.id.txtNombreUsuario)
+
+        val txtNivel =
+            encabezado.findViewById<TextView>(R.id.txtNivel)
+
+        val txtExperiencia =
+            encabezado.findViewById<TextView>(R.id.txtExperiencia)
+
+        val progresoNivel =
+            encabezado.findViewById<ProgressBar>(R.id.progresoNivel)
+
+        //------------------------------------------------------
+
+        val nombre = SesionUsuario.obtenerNombre(this)
+
+        val nivelActual = SesionUsuario.obtenerNivel(this)
+
+        val puntos = SesionUsuario.obtenerPuntos(this)
+        Log.d("SESION", "Puntos guardados: $puntos")
+
+        val nivel = obtenerInformacionNivel(nivelActual)
+
+        txtNombreUsuario.text = nombre
+
+        txtNivel.text = nivel.nombre
+
+        if (nivelActual == 5) {
+
+            txtExperiencia.text = "$puntos pts"
+
+            progresoNivel.max = nivel.minimo
+
+            progresoNivel.progress = nivel.minimo
+
+        } else {
+
+            txtExperiencia.text = "$puntos / ${nivel.maximo} pts"
+
+            progresoNivel.max = nivel.maximo
+
+            progresoNivel.progress = puntos
+
+        }
+
+        val foto = SesionUsuario.obtenerFoto(this)
+
+        if (!foto.isNullOrEmpty()) {
+
+            Glide.with(this)
+                .load(foto)
+                .placeholder(R.drawable.ic_icono_usuario)
+                .error(R.drawable.ic_icono_usuario)
+                .circleCrop()
+                .into(imgFotoPerfil)
+
+        } else {
+            imgFotoPerfil.setImageResource(R.drawable.ic_icono_usuario)
+        }
+
+
+    }
+    private fun obtenerInformacionNivel(
+        nivel: Int
+    ): Nivel {
+
+        return when (nivel) {
+
+            1 -> Nivel("Novato", 0, 250)
+
+            2 -> Nivel("Principiante", 250, 700)
+
+            3 -> Nivel("Experto", 700, 2500)
+
+            4 -> Nivel("Experimentado", 2500, 4000)
+
+            else -> Nivel("Especialista", 4000, Int.MAX_VALUE)
+        }
+
+    }
+
+    private fun inicializarMenuLateral() {
+
+        binding.navigationView.setNavigationItemSelectedListener { item ->
+
+            when (item.itemId) {
+
+                R.id.menu_preferencias -> {
+
+                    Toast.makeText(
+                        this,
+                        "Preferencias de cuenta",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                R.id.menu_administrar_hogar -> {
+
+                    Toast.makeText(
+                        this,
+                        "Administrar mi hogar",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                R.id.menu_mis_colecciones -> {
+
+                    startActivity(
+
+                        Intent(
+                            this,
+                            MisColeccionesActivity::class.java
+                        )
+
+                    )
+
+                }
+
+                R.id.menu_recetas_realizadas -> {
+
+                    Toast.makeText(
+                        this,
+                        "Recetas realizadas",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                R.id.menu_planeador_semanal -> {
+
+                    Toast.makeText(
+                        this,
+                        "Planeador semanal",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                R.id.menu_mi_alacena -> {
+
+                    Toast.makeText(
+                        this,
+                        "Mi alacena",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+                R.id.menu_premium -> {
+
+                    Toast.makeText(
+                        this,
+                        "GourMeet Premium",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+
+            }
+
+            binding.drawerLayout.closeDrawer(GravityCompat.END)
+
+            true
+
+        }
+
+    }
+
 }

@@ -6,6 +6,15 @@
         <item name="cornerSize">50%</item>
 
     </style>
+    <style name="TextoMenuLateral">
+
+        <item name="android:textSize">20sp</item>
+
+        <item name="android:textStyle">bold</item>
+
+        <item name="android:fontFamily">@font/caviardreams</item>
+
+    </style>
 
     <style name="BottomNavigationTheme" parent="Widget.MaterialComponents.BottomNavigationView">
         <item name="itemIconSize">25dp</item> <!-- Iconos más grandes -->

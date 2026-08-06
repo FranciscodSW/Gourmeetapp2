@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/menu_preferencias"
+            android:icon="@drawable/ic_configuracion"
+            android:title="Preferencias de cuenta"/>
+
+        <item
+            android:id="@+id/menu_administrar_hogar"
+            android:icon="@drawable/ic_casa_azul"
+            android:title="Administrar mi hogar"/>
+
+        <item
+            android:id="@+id/menu_mis_colecciones"
+            android:icon="@drawable/ic_guardar"
+            android:title="Mis colecciones">
+
+        </item>
+
+        <item
+            android:id="@+id/menu_recetas_realizadas"
+            android:icon="@drawable/ic_gorrito_con_flechas"
+            android:title="Recetas que ya hice"/>
+
+        <item
+            android:id="@+id/menu_planeador_semanal"
+            android:icon="@drawable/ic_calendario"
+            android:title="Planeador semanal"/>
+
+        <item
+            android:id="@+id/menu_mi_alacena"
+            android:icon="@drawable/ic_refri_azul"
+            android:title="Mi alacena"/>
+
+        <item
+            android:id="@+id/menu_premium"
+            android:icon="@drawable/ic_diamante_azul"
+            android:title="Vuélvete Premium"/>
+
+    </group>
+
+</menu>

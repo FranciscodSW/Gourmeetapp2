@@ -1,5 +1,6 @@
 package com.example.gourmeet2.data.api
 
+import com.android.volley.Response
 import  com.example.gourmeet2.data.models.*
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -96,4 +97,17 @@ interface ApiService {
     suspend fun reaccionarRespuesta(
         @Body request: ReaccionRespuestaRequest
     ): ReaccionRespuestaResponse
+    @POST("recetas/reportar_receta_api.php")
+    suspend fun reportarReceta(
+        @Body request: ReportarRecetaRequest
+    ): ReportarRecetaResponse
+    @POST("colecciones/listar_mis_colecciones.php")
+    suspend fun listarMisColecciones(
+        @Body request: ListarColeccionesRequest
+    ): ListarColeccionesResponse
+
+    @POST("colecciones/listar_colecciones_con_recetas.php")
+    suspend fun listarColeccionesConRecetas(
+        @Body request: ListarColeccionesRecetasRequest
+    ): ListarColeccionesRecetasResponse
 }

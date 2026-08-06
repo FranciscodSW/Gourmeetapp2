@@ -1,6 +1,7 @@
 package com.example.gourmeet2.utils
 
 import android.content.Context
+import android.util.Log
 
 object SesionUsuario {
 
@@ -103,6 +104,7 @@ object SesionUsuario {
             .putInt("nivel", nivel)
             .apply()
 
+
     }
 
     fun actualizarPuntos(
@@ -114,6 +116,7 @@ object SesionUsuario {
             .edit()
             .putInt("puntos", puntos)
             .apply()
+        Log.d("SESION", "Puntos guardados: $puntos")
 
     }
 

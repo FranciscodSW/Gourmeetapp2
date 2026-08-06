@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="0dp"
+    android:layout_marginTop="0dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="1dp"
+    android:backgroundTint="@color/white"
+    app:strokeColor="#ffffff">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <!-- ======================= -->
+        <!-- ENCABEZADO -->
+        <!-- ======================= -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:paddingHorizontal="15dp">
+            <ImageView
+                android:id="@+id/imgIconoColeccion"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_favoritos"
+                app:tint="@color/azulgourmeet"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+            <TextView
+                android:id="@+id/txtNombreColeccion"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:gravity="center"
+                android:fontFamily="@font/caviardreams"
+                android:text="Mis recetas favoritas"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                app:layout_constraintStart_toEndOf="@id/imgIconoColeccion"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/imgEditar"/>
+            <ImageView
+                android:id="@+id/imgEditar"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_marginEnd="12dp"
+                android:src="@drawable/ic_lapiz_editar"
+                app:layout_constraintEnd_toStartOf="@id/imgEliminar"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+            <ImageView
+                android:id="@+id/imgEliminar"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@drawable/ic_basura_azul"
+
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- ======================= -->
+        <!-- RECETAS -->
+        <!-- ======================= -->
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerRecetasColeccion"
+            android:layout_width="match_parent"
+            android:layout_height="360dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:clipToPadding="false"
+            android:overScrollMode="never"/>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

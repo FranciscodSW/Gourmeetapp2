@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="65dp"
+    android:background="@drawable/bg_rectangulo_azul_margen_negro"
+    android:padding="8dp">
+    <ImageView
+        android:id="@+id/imgFotoPerfil"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="2dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_icono_usuario"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+    <TextView
+        android:id="@+id/txtNombreUsuario"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:fontFamily="@font/caviardreams"
+        android:text="Job Gutiérrez"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@id/imgFotoPerfil"
+        app:layout_constraintTop_toTopOf="@id/imgFotoPerfil"
+        app:layout_constraintEnd_toStartOf="@id/imgNivel"/>
+
+    <ImageView
+        android:id="@+id/imgNivel"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:src="@drawable/ic_gorrito_nuevo"
+        android:layout_marginEnd="10dp"
+        app:tint="@android:color/white"
+        app:layout_constraintTop_toTopOf="@id/txtNombreUsuario"
+        app:layout_constraintEnd_toStartOf="@id/txtNivel"/>
+
+    <TextView
+        android:id="@+id/txtNivel"
+        android:layout_width="wrap_content"
+        android:layout_height="22dp"
+        android:fontFamily="@font/caviardreams"
+        android:text="Principiante"
+        android:translationY="20dp"
+        android:textColor="@android:color/white"
+        android:textSize="15sp"
+        android:layout_marginStart="30dp"
+        app:layout_constraintBaseline_toBaselineOf="@id/imgNivel"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/txtExperiencia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:text="30 pts / 250 pts"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        android:fontFamily="@font/caviardreams"
+        app:layout_constraintStart_toStartOf="@id/txtNombreUsuario"
+        app:layout_constraintTop_toBottomOf="@id/txtNombreUsuario"/>
+
+    <ProgressBar
+        android:id="@+id/progresoNivel"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="100dp"
+        android:layout_height="12dp"
+        android:layout_marginTop="25dp"
+        android:max="250"
+        android:progress="30"
+        android:progressDrawable="@drawable/bg_barra_experiencia"
+        app:layout_constraintTop_toBottomOf="@id/txtNivel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/imgNivel"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

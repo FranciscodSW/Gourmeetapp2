@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    app:cardCornerRadius="20dp"
+    android:backgroundTint="@color/white"
+    app:cardElevation="8dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:background="@drawable/bg_rectangulo_azul_recto">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Reportar receta"
+            android:textStyle="bold"
+            android:textSize="22sp"
+            android:fontFamily="@font/caviardreams"
+            android:textColor="@android:color/white"
+            android:gravity="center"/>
+
+
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:fontFamily="@font/caviardreams"
+            android:text="Ayúdanos a mejorar GourMeet reportando cualquier problema encontrado en esta receta."
+            android:textSize="14sp"
+            android:textColor="#666666"/>
+
+        <!-- Motivo -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutMotivo"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/caviardreams"
+            android:hint="Selecciona un motivo"
+            app:boxStrokeColor="#177AFF"
+            app:hintTextColor="#177AFF"
+            app:endIconTint="#177AFF">
+
+            <AutoCompleteTextView
+                android:id="@+id/spMotivo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Descripción -->
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutDescripcion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/caviardreams"
+            android:hint="Describe el problema"
+            app:boxStrokeColor="#177AFF"
+            app:hintTextColor="#177AFF"
+            app:endIconTint="#177AFF"
+            >
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtDescripcion"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:gravity="top|start"
+                android:maxLength="300"
+                android:inputType="textMultiLine"
+                android:minLines="5"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/txtContador"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0 / 300"
+            android:textAlignment="viewEnd"
+            android:textColor="#888888"
+            android:textSize="12sp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelar"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/azulgourmeet"
+                android:backgroundTint="@color/white"
+                android:text="Cancelar"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEnviarReporte"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Enviar"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/azulgourmeet"
+                app:cornerRadius="18dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

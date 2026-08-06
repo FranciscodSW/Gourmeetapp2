@@ -1,13 +1,12 @@
 package com.example.gourmeet2
 
-import android.Manifest
+import android.text.TextWatcher
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.Context
 import android.os.Bundle
 import android.view.GestureDetector
 import android.view.LayoutInflater
@@ -24,7 +23,6 @@ import com.example.gourmeet2.data.models.DetalleRecetaRequest
 import com.example.gourmeet2.data.models.PasoPreparacion
 import kotlin.math.abs
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
@@ -33,17 +31,17 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import android.telecom.Call
+import android.text.Editable
 import android.util.Log
 import android.view.Gravity
 import android.view.Window
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -51,12 +49,10 @@ import com.example.gourmeet2.adapters.ComentarioAdapter
 import com.example.gourmeet2.adapters.OnComentarioClickListener
 import com.example.gourmeet2.data.models.*
 import com.example.gourmeet2.databinding.DialogReportarComentarioBinding
-
+import com.example.gourmeet2.databinding.DialogReportarRecetaBinding
 import com.example.gourmeet2.utils.SesionUsuario
-import com.facebook.appevents.codeless.internal.UnityReflection
-import com.google.android.gms.cast.framework.SessionManager
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.util.Locale
-
 
 class DetalleRecetaFragment : Fragment() {
     private lateinit var gestureDetector: GestureDetector
@@ -161,6 +157,7 @@ class DetalleRecetaFragment : Fragment() {
             gestureDetector.onTouchEvent(event)
             true
         }
+
         binding.btnRecetaTerminada.setOnClickListener{
             marcarRecetaTerminada()
         }
@@ -242,6 +239,10 @@ class DetalleRecetaFragment : Fragment() {
             }
 
         }
+        binding.btnReportarProblema.setOnClickListener {
+            mostrarDialogoReporte()
+        }
+
 
 
 
@@ -671,6 +672,13 @@ class DetalleRecetaFragment : Fragment() {
                         response.mensaje,
                         Toast.LENGTH_SHORT
                     ).show()
+                    binding.editComentario.text?.clear()
+                    binding.ratingComentario.rating = 0f
+                    binding.btnComentar.text = "Comentar"
+
+                    comentarioSeleccionado = null
+
+                    validarComentario()
 
                     cargarComentarios()
 
@@ -1025,16 +1033,10 @@ class DetalleRecetaFragment : Fragment() {
                                     )
                                     startActivity(intent)
                                 }
-
                             }
-
                         }
-
                     }
-
-                    // Aquí comenzaremos a llenar el layout
                 }
-
             }
             catch (e: Exception){
 
@@ -1480,8 +1482,160 @@ class DetalleRecetaFragment : Fragment() {
         }
 
     }
+    private fun mostrarDialogoReporte() {
+        val bindingDialog = DialogReportarRecetaBinding.inflate(layoutInflater)
+        val dialog = BottomSheetDialog(requireContext())
+        dialog.setContentView(bindingDialog.root)
+        val adapter = ArrayAdapter(
+            requireContext(),
+            R.layout.item_reporte_motivo,
+            motivosReporte
+        )
+        bindingDialog.spMotivo.setAdapter(adapter)
+        bindingDialog.btnCancelar.setOnClickListener {
+            dialog.dismiss()
+        }
+        bindingDialog.edtDescripcion.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(
+                s: CharSequence?,
+                start: Int,
+                count: Int,
+                after: Int
+            ) {
+            }
+            override fun onTextChanged(
+                s: CharSequence?,
+                start: Int,
+                before: Int,
+                count: Int
+            ) {
+                bindingDialog.txtContador.text = "${s?.length ?: 0} / 300"
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        bindingDialog.btnEnviarReporte.setOnClickListener {
 
+            val motivo = bindingDialog.spMotivo.text.toString().trim()
 
+            val descripcion = bindingDialog.edtDescripcion.text.toString().trim()
+
+            if (motivo.isEmpty()) {
+                bindingDialog.layoutMotivo.error = "Seleccione un motivo"
+                return@setOnClickListener
+            } else {
+                bindingDialog.layoutMotivo.error = null
+            }
+            if (descripcion.isEmpty()) {
+                bindingDialog.layoutDescripcion.error = "Describe el problema"
+                return@setOnClickListener
+            } else {
+                bindingDialog.layoutDescripcion.error = null
+            }
+            val codigoProblema = obtenerCodigoProblema(motivo)
+            reportarReceta(
+                codigoProblema,
+                descripcion,
+                dialog
+            )
+        }
+        dialog.show()
+    }
+    private fun reportarReceta(
+        problema: String,
+        descripcion: String,
+        dialog: BottomSheetDialog
+    ) {
+
+        lifecycleScope.launch {
+
+            try {
+
+                val request = ReportarRecetaRequest(
+                    cliId = SesionUsuario.obtenerId(requireContext()),
+                    recId = recetaId,
+                    problema = problema,
+                    descripcion = descripcion
+                )
+                val response =
+                    ApiClient.apiService.reportarReceta(request)
+
+                if (response.success) {
+                    Toast.makeText(
+                        requireContext(),
+                        response.mensaje,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    dialog.dismiss()
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        response.mensaje,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                Toast.makeText(
+                    requireContext(),
+                    "Error de conexión.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            }
+
+        }
+
+    }
+    private fun obtenerCodigoProblema(motivo: String): String {
+
+        return when (motivo) {
+
+            "Información incorrecta o engañosa" -> "INFORMACION_INCORRECTA"
+
+            "Ingredientes erróneos o incompletos" -> "INGREDIENTES_ERRONEOS"
+
+            "Pasos incompletos o desordenados" -> "PASOS_INCOMPLETOS"
+
+            "Faltas ortográficas" -> "FALTAS_ORTOGRAFICAS"
+
+            "Contenido inapropiado" -> "CONTENIDO_INAPROPIADO"
+
+            "Fotografías engañosas" -> "FOTOGRAFIAS_ENGANOSAS"
+
+            "Receta duplicada" -> "RECETA_DUPLICADA"
+
+            "Sabor desagradable" -> "SABOR_DESAGRADABLE"
+
+            "Mala redacción de la receta" -> "MALA_REDACCION"
+
+            else -> ""
+        }
+
+    }
+    private val motivosReporte = listOf(
+
+        "Información incorrecta o engañosa",
+
+        "Ingredientes erróneos o incompletos",
+
+        "Pasos incompletos o desordenados",
+
+        "Faltas ortográficas",
+
+        "Contenido inapropiado",
+
+        "Fotografías engañosas",
+
+        "Receta duplicada",
+
+        "Sabor desagradable",
+
+        "Mala redacción de la receta"
+
+    )
     private fun actualizarBotonRecetaTerminada() {
         if (recetaTerminada) {
             binding.btnRecetaTerminada.apply {

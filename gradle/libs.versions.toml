@@ -13,6 +13,7 @@ activity = "1.8.0"
 common = "0.10.0"
 playServicesMaps = "20.0.0"
 playServicesCastFramework = "22.3.1"
+playServicesMaps3d = "0.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -28,6 +29,7 @@ androidx-activity = { group = "androidx.activity", name = "activity", version.re
 common = { group = "com.google.ai.client.generativeai", name = "common", version.ref = "common" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 play-services-cast-framework = { group = "com.google.android.gms", name = "play-services-cast-framework", version.ref = "playServicesCastFramework" }
+play-services-maps3d = { group = "com.google.android.gms", name = "play-services-maps3d", version.ref = "playServicesMaps3d" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
