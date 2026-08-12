@@ -1,7 +1,11 @@
 package com.example.gourmeet2.data.models
 
-data class IngredienteSeleccionado(
+data class IngredienteBusqueda(
+
     val id: Int,
+
     val nombre: String,
-    val imagenUrl: String?
+
+    val foto: String?
+
 )

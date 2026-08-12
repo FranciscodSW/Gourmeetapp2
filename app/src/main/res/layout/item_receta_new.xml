@@ -64,16 +64,13 @@
                     android:background="@drawable/degradado_azul"/>
             </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
-
-
-
         <!-- ========================= -->
         <!-- CONTENEDOR ESTADISTICAS -->
         <!-- ========================= -->
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardStats"
-            android:layout_width="200dp"
+            android:layout_width="140dp"
             android:layout_height="30dp"
             android:layout_marginTop="35dp"
             app:cardElevation="1dp"

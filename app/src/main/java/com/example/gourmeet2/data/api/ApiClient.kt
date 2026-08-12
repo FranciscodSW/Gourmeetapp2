@@ -7,7 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 object ApiClient {
     //val BASE_URL = "https://www.gourmeet.com.mx/api/"
-    val BASE_URL = "http://192.168.1.74:3001/api/"
+    val BASE_URL = "http://192.168.1.72:3001/api/"
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }

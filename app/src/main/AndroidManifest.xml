@@ -82,8 +82,6 @@
         <activity
             android:name=".DetalleRecetaActivity"
             android:exported="false" />
-
-
         <activity
             android:name=".MainActivity"
             android:exported="true"

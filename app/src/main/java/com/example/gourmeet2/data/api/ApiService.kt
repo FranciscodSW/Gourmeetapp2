@@ -110,4 +110,21 @@ interface ApiService {
     suspend fun listarColeccionesConRecetas(
         @Body request: ListarColeccionesRecetasRequest
     ): ListarColeccionesRecetasResponse
+
+    @POST("colecciones/crear_coleccion.php")
+    suspend fun crearColeccion(
+
+        @Body request: CrearColeccionRequest
+
+    ): CrearColeccionResponse
+
+    @POST("colecciones/buscar_contenido_coleccion.php")
+    suspend fun buscarContenidoColeccion(
+        @Body request: BuscarContenidoColeccionRequest
+    ): BuscarContenidoColeccionResponse
+
+    @POST("ingredientes/buscar_recetas_por_ingredientes.php")
+    suspend fun buscarRecetasPorIngredientes(
+        @Body request: BuscarRecetasPorIngredientesRequest
+    ): BuscarRecetasPorIngredientesResponse
 }

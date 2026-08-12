@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <!-- TÍTULO -->
+
+    <TextView
+        android:id="@+id/txtTituloRecetas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="6dp"
+        android:text="RECETAS"
+        android:textColor="#177AFF"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/caviardreams"/>
+
+
+    <!-- RECETAS HORIZONTALES -->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerRecetas"
+        android:layout_width="match_parent"
+        android:layout_height="365dp"
+        android:clipToPadding="false"
+        android:paddingStart="0dp"
+        android:paddingEnd="4dp"
+        android:overScrollMode="never"
+        android:orientation="horizontal"/>
+
+</LinearLayout>

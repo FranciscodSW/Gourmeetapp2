@@ -219,17 +219,6 @@ class Menu_principal_free : AppCompatActivity() {
                     startActivity(intent)
 
                 }
-
-                R.id.menu_todas_colecciones -> {
-
-                    Toast.makeText(
-                        this,
-                        "Abrir todas las colecciones",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                }
-
                 R.id.menu_recetas_realizadas -> {
 
                     Toast.makeText(

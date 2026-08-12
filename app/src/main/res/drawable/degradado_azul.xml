@@ -5,11 +5,15 @@
     android:viewportWidth="320"
     android:viewportHeight="308">
 
-  <!-- Fondo completo -->
+  <!-- ====================================== -->
+  <!-- GRADIENTE PRINCIPAL -->
+  <!-- ====================================== -->
+
   <path
       android:pathData="M22,0L298,0A22,22 0,0 1,320 22L320,286A22,22 0,0 1,298 308L22,308A22,22 0,0 1,0 286L0,22A22,22 0,0 1,22 0z">
 
     <aapt:attr name="android:fillColor">
+
       <gradient
           android:type="linear"
           android:startX="0"
@@ -17,29 +21,36 @@
           android:endX="0"
           android:endY="120">
 
-        <!-- Azul uniforme en la parte superior -->
+        <!-- Azul muy transparente -->
         <item
             android:offset="0.00"
-            android:color="#22177AFF"/>
+            android:color="#55177AFF"/>
 
         <item
             android:offset="0.35"
-            android:color="#11177AFF"/>
+            android:color="#33177AFF"/>
 
+        <!-- Transparente -->
         <item
             android:offset="1.00"
             android:color="#00177AFF"/>
 
       </gradient>
+
     </aapt:attr>
 
   </path>
 
-  <!-- Refuerzo en la esquina superior izquierda -->
+
+  <!-- ====================================== -->
+  <!-- REFUERZO SUPERIOR IZQUIERDO -->
+  <!-- ====================================== -->
+
   <path
       android:pathData="M22,0L298,0A22,22 0,0 1,320 22L320,286A22,22 0,0 1,298 308L22,308A22,22 0,0 1,0 286L0,22A22,22 0,0 1,22 0z">
 
     <aapt:attr name="android:fillColor">
+
       <gradient
           android:type="linear"
           android:startX="0"
@@ -47,23 +58,25 @@
           android:endX="115"
           android:endY="70">
 
+        <!-- Antes: EE = demasiado fuerte -->
         <item
             android:offset="0.00"
-            android:color="#EE177AFF"/>
+            android:color="#55177AFF"/>
 
         <item
             android:offset="0.15"
-            android:color="#11177AFF"/>
+            android:color="#33177AFF"/>
 
         <item
             android:offset="0.45"
-            android:color="#66177AFF"/>
+            android:color="#22177AFF"/>
 
         <item
             android:offset="1.00"
             android:color="#00177AFF"/>
 
       </gradient>
+
     </aapt:attr>
 
   </path>

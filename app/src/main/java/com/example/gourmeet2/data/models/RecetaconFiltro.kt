@@ -28,6 +28,9 @@ data class RecetaconFiltro(
     @SerializedName("coincidencias")
     val coincidencias: Int? = null,
 
+    @SerializedName("total_ingredientes_buscados")
+    val totalIngredientesBuscados: Int? = null,
+
     @SerializedName("calorias")
     val calorias: Double? = null,
 

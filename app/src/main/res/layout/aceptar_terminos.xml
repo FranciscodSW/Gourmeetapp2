@@ -52,7 +52,7 @@
         android:text="Continuar"
         android:fontFamily="@font/caviardreams"
         android:enabled="false"
-        android:backgroundTint="#0E90E4"
+        android:backgroundTint="@color/azulgourmeet"
         android:textColor="#FFFFFF"
         android:layout_gravity="center_horizontal"/>
 

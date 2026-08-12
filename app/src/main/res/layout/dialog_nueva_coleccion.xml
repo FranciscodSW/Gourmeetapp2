@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/bg_regtangulo_con_borde_negro"
+    android:clipToPadding="false">
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="5dp"
+    android:background="@drawable/bg_regtangulo_con_borde_negro">
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardHeader"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:backgroundTint="@color/azulgourmeet"
+        app:cardCornerRadius="18dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/txtTitulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Añadir nueva colección"
+
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:textSize="22sp"
+                android:fontFamily="@font/caviardreams"
+                android:layout_centerInParent="true"/>
+
+            <ImageView
+                android:id="@+id/imgCerrar"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_marginEnd="16dp"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                android:src="@drawable/ic_cerrar_blanco"/>
+
+        </RelativeLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <LinearLayout
+        android:id="@+id/layoutDatos"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/cardHeader"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="20dp"
+            android:gravity="center">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardIconoColeccion"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardCornerRadius="35dp"
+                app:cardBackgroundColor="@color/azulgourmeet"
+                app:cardElevation="3dp">
+
+                <ImageView
+                    android:id="@+id/imgIcono"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="16dp"
+                    android:src="@drawable/ic_nuevo_icono"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/txtSeleccionarIcono"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Seleccionar icono"
+                android:textSize="12sp"
+                android:textColor="@android:color/black"
+                android:fontFamily="@font/caviardreams"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/edtNombre"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="18dp"
+            android:layout_marginEnd="18dp"
+            android:layout_marginTop="-9dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_rectangulo_blanco"
+            android:hint="Nombre de la colección"
+            android:maxLength="50"
+            android:radius="18dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@android:color/black"
+            android:textColorHint="#808080"
+            android:textSize="16sp"
+            android:fontFamily="@font/caviardreams"
+            android:singleLine="true"/>
+
+    </LinearLayout>
+    <!--===========================-->
+    <!-- BOTONES -->
+    <!--===========================-->
+    <FrameLayout
+        android:id="@+id/contenedorAcciones"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+
+        app:layout_constraintTop_toBottomOf="@id/layoutDatos"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+    <LinearLayout
+        android:id="@+id/layoutBotones"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        android:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/layoutDatos"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        <!-- Buscar -->
+        <LinearLayout
+            android:id="@+id/btnBuscarRecetas"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_lupa"
+                app:tint="@color/azulgourmeet"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Buscar recetas"
+                android:textSize="12sp"
+                android:textColor="@android:color/black"
+                android:fontFamily="@font/caviardreams"
+                android:gravity="center"/>
+        </LinearLayout>
+
+        <!-- Invitar -->
+        <LinearLayout
+            android:id="@+id/btnInvitar"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_casa_azul"
+                app:tint="@color/azulgourmeet"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Agregar al hogar"
+                android:textSize="12sp"
+                android:textColor="@android:color/black"
+                android:fontFamily="@font/caviardreams"
+                android:gravity="center"/>
+        </LinearLayout>
+        <!-- Agregar -->
+        <LinearLayout
+            android:id="@+id/btnAgregar"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_icono_usuario"
+                app:tint="@color/azulgourmeet"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Invitar a un usuario"
+                android:textSize="12sp"
+                android:textColor="@android:color/black"
+                android:fontFamily="@font/caviardreams"
+                android:gravity="center"/>
+        </LinearLayout>
+
+        <!-- Guardar -->
+        <LinearLayout
+            android:id="@+id/btnGuardar"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_guardar"
+                app:tint="@color/azulgourmeet"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Guardar colección"
+                android:textSize="12sp"
+                android:textColor="@android:color/black"
+                android:fontFamily="@font/caviardreams"
+                android:gravity="center"/>
+        </LinearLayout>
+
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/layoutBuscar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:background="@drawable/bg_rectangulo_blanco"
+        android:padding="8dp"
+        android:gravity="center_vertical"
+
+        app:layout_constraintTop_toBottomOf="@id/layoutDatos"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_lupa"
+            app:tint="@color/azulgourmeet"/>
+
+        <EditText
+            android:id="@+id/edtBuscarRecetas"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:hint="Buscar recetas..."
+            android:maxLines="1"
+            android:paddingStart="10dp"
+            android:textColor="@android:color/black"
+            android:textColorHint="#808080"
+            android:fontFamily="@font/caviardreams"/>
+
+        <ImageView
+            android:id="@+id/imgCerrarBusqueda"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_cerrar_blanco"
+            app:tint="@color/azulgourmeet"/>
+
+    </LinearLayout>
+    </FrameLayout>
+    <!--===========================-->
+    <!-- RESULTADOS DE BÚSQUEDA -->
+    <!--===========================-->
+
+    <TextView
+        android:id="@+id/txtResultadosBusqueda"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Resultados de búsqueda"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/contenedorAcciones"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerResultadosBusqueda"
+        android:layout_width="0dp"
+        android:layout_height="360dp"
+        android:layout_marginTop="12dp"
+        android:clipToPadding="false"
+        android:paddingBottom="12dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/txtResultadosBusqueda"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+    <!--===========================-->
+    <!-- MIS INGREDIENTES -->
+    <!--===========================-->
+
+    <LinearLayout
+        android:id="@+id/layoutIngredientesSeleccionados"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/recyclerResultadosBusqueda"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/txtMisIngredientes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mis ingredientes"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:fontFamily="@font/caviardreams"
+            android:textColor="@android:color/black"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerIngredientesSeleccionados"
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"/>
+
+        <!-- RECETAS CON MIS INGREDIENTES -->
+
+        <TextView
+            android:id="@+id/txtRecetasMisIngredientes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Recetas con mis ingredientes"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:fontFamily="@font/caviardreams"
+            android:textColor="@android:color/black"
+            android:visibility="gone"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerRecetasMisIngredientes"
+            android:layout_width="match_parent"
+            android:layout_height="360dp"
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:paddingBottom="8dp"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+
+
+    <!--===========================-->
+    <!-- TÍTULO -->
+    <!--===========================-->
+
+
+    <TextView
+        android:id="@+id/txtRecetas"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Recetas de la colección"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/layoutIngredientesSeleccionados"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!--===========================-->
+    <!-- RECETAS -->
+    <!--===========================-->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerRecetas"
+        android:layout_width="0dp"
+        android:layout_height="360dp"
+        android:layout_marginTop="12dp"
+        android:clipToPadding="false"
+        android:paddingBottom="12dp"
+        android:nestedScrollingEnabled="false"
+        app:layout_constraintTop_toBottomOf="@id/txtRecetas"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>
