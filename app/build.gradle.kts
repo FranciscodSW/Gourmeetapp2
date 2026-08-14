@@ -84,4 +84,6 @@ dependencies {
     implementation("com.facebook.android:facebook-login:16.3.0")
     // facebook
     implementation("com.facebook.android:facebook-android-sdk:[4,5)")
+    // animaciones
+    implementation("com.airbnb.android:lottie:6.6.7")
 }

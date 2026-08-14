@@ -779,6 +779,7 @@
                     android:orientation="horizontal"
                     android:gravity="center">
                     <!-- Guardar colección -->
+
                     <LinearLayout
                         android:id="@+id/layoutColeccion"
                         android:layout_width="0dp"
@@ -792,11 +793,13 @@
                         android:foreground="?attr/selectableItemBackgroundBorderless">
 
                         <ImageView
+                            android:id="@+id/imagenguardar"
                             android:layout_width="54dp"
                             android:layout_height="54dp"
                             android:src="@drawable/ic_guardar"/>
 
                         <TextView
+                            android:id="@+id/texguardar"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
@@ -806,6 +809,41 @@
                             android:textSize="14sp"
                             android:textStyle="bold"/>
                     </LinearLayout>
+                    <FrameLayout
+                        android:id="@+id/rectanguloColeccion"
+                        android:layout_width="250dp"
+                        android:layout_height="100dp"
+                        android:layout_gravity="center_vertical|start"
+                        android:translationX="-20dp"
+                        android:scaleX="0"
+                        android:transformPivotX="0dp"
+                        android:visibility="gone"
+                        android:background="@color/white">
+
+                        <HorizontalScrollView
+                            android:id="@+id/scrollColecciones"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scrollbars="none"
+                            android:visibility="visible"
+                            android:fillViewport="true">
+
+                            <LinearLayout
+                                android:id="@+id/contenedorColecciones"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:paddingStart="8dp"
+                                android:paddingEnd="8dp"
+                                android:paddingTop="5dp"
+                                android:paddingBottom="5dp" />
+
+                        </HorizontalScrollView>
+
+                    </FrameLayout>
+
+
                     <!-- Compartir -->
                     <LinearLayout
                         android:id="@+id/layoutCompartir"
@@ -874,6 +912,7 @@
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackgroundBorderless">
                         <ImageView
+                            android:id="@+id/imgFavorito"
                             android:layout_width="54dp"
                             android:layout_height="54dp"
                             android:src="@drawable/ic_favorito"/>

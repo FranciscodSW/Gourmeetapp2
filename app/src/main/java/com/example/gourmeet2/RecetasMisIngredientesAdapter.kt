@@ -12,14 +12,29 @@ class RecetasMisIngredientesAdapter(
 
     private val recetas: MutableList<RecetaconFiltro>,
 
-    private val onRecetaClick: (RecetaconFiltro) -> Unit
+    private val recetasSeleccionadas:
+    MutableList<RecetaconFiltro>,
+
+    private val onRecetaClick:
+        (RecetaconFiltro) -> Unit,
+
+    private val onSeleccionarReceta:
+        (RecetaconFiltro, Boolean) -> Unit
 
 ) : RecyclerView.Adapter<RecetasMisIngredientesAdapter.ViewHolder>() {
 
+
     inner class ViewHolder(
-        val binding: ItemRecetaSeleccionableBinding
+
+        val binding:
+        ItemRecetaSeleccionableBinding
+
     ) : RecyclerView.ViewHolder(binding.root)
 
+
+    // =====================================================
+    // CREAR VIEW HOLDER
+    // =====================================================
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -37,6 +52,10 @@ class RecetasMisIngredientesAdapter(
     }
 
 
+    // =====================================================
+    // BIND
+    // =====================================================
+
     override fun onBindViewHolder(
         holder: ViewHolder,
         position: Int
@@ -47,41 +66,41 @@ class RecetasMisIngredientesAdapter(
 
         with(holder.binding) {
 
-            // =========================
+            // =================================================
             // NOMBRE
-            // =========================
+            // =================================================
 
             txtTitulo.text =
                 receta.REC_NOMBRE
 
 
-            // =========================
+            // =================================================
             // TIEMPO
-            // =========================
+            // =================================================
 
             txtTiempo.text =
                 receta.REC_TIEMPO_PREPARACION ?: "--"
 
 
-            // =========================
+            // =================================================
             // DIFICULTAD
-            // =========================
+            // =================================================
 
             txtNivel.text =
                 receta.Dificultad ?: "--"
 
 
-            // =========================
+            // =================================================
             // CATEGORIA
-            // =========================
+            // =================================================
 
             txtTipo.text =
                 receta.Categoria ?: "--"
 
 
-            // =========================
+            // =================================================
             // COSTO
-            // =========================
+            // =================================================
 
             txtCosto.text =
                 receta.gasto?.let {
@@ -94,9 +113,9 @@ class RecetasMisIngredientesAdapter(
                 } ?: "--"
 
 
-            // =========================
+            // =================================================
             // COINCIDENCIA
-            // =========================
+            // =================================================
 
             val coincidencias =
                 receta.coincidencias ?: 0
@@ -118,9 +137,9 @@ class RecetasMisIngredientesAdapter(
                 "$porcentaje%"
 
 
-            // =========================
+            // =================================================
             // IMAGEN
-            // =========================
+            // =================================================
 
             if (!receta.FotoReceta.isNullOrEmpty()) {
 
@@ -137,9 +156,9 @@ class RecetasMisIngredientesAdapter(
             }
 
 
-            // =========================
+            // =================================================
             // INGREDIENTES
-            // =========================
+            // =================================================
 
             rvIngredientes.apply {
 
@@ -159,22 +178,78 @@ class RecetasMisIngredientesAdapter(
             }
 
 
-            // =========================
-            // CLICK
-            // =========================
+            // =================================================
+            // ESTADO DE SELECCIÓN
+            // =================================================
+
+            val seleccionada =
+                recetasSeleccionadas.any {
+
+                    it.REC_ID == receta.REC_ID
+
+                }
+
+
+            if (seleccionada) {
+
+                btnSeleccionar.setImageResource(
+                    R.drawable.ic_check_white
+                )
+
+            } else {
+
+                btnSeleccionar.setImageResource(
+                    R.drawable.bg_circulo_seleccion
+                )
+            }
+
+
+            // =================================================
+            // CLICK EN CÍRCULO
+            // =================================================
+
+            btnSeleccionar.setOnClickListener {
+
+                val estaSeleccionada =
+                    recetasSeleccionadas.any {
+
+                        it.REC_ID == receta.REC_ID
+
+                    }
+
+
+                onSeleccionarReceta(
+                    receta,
+                    !estaSeleccionada
+                )
+            }
+
+
+            // =================================================
+            // CLICK EN TARJETA
+            // =================================================
 
             root.setOnClickListener {
 
-                onRecetaClick(receta)
-
+                onRecetaClick(
+                    receta
+                )
             }
         }
     }
 
 
+    // =====================================================
+    // CANTIDAD
+    // =====================================================
+
     override fun getItemCount(): Int =
         recetas.size
 
+
+    // =====================================================
+    // ACTUALIZAR
+    // =====================================================
 
     fun actualizar(
         nuevasRecetas: List<RecetaconFiltro>
@@ -190,9 +265,23 @@ class RecetasMisIngredientesAdapter(
     }
 
 
+    // =====================================================
+    // LIMPIAR
+    // =====================================================
+
     fun limpiar() {
 
         recetas.clear()
+
+        notifyDataSetChanged()
+    }
+
+
+    // =====================================================
+    // ACTUALIZAR SELECCIÓN
+    // =====================================================
+
+    fun actualizarSeleccionadas() {
 
         notifyDataSetChanged()
     }

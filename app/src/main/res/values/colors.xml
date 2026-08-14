@@ -23,6 +23,7 @@
     <color name="ripple_blue">#402196F3</color> <!-- Azul con 25% de opacidad -->
     <color name="chip_color">#03A9F4</color>
     <color name="chip_stroke">#03A9F4</color>
+    <color name="rojo">#FF0000</color>
 
     <color  name="azulgourmeet">#177AFF</color>
 </resources>

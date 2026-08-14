@@ -1,6 +1,5 @@
 package com.example.gourmeet2.data.api
 
-import com.android.volley.Response
 import  com.example.gourmeet2.data.models.*
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -105,26 +104,40 @@ interface ApiService {
     suspend fun listarMisColecciones(
         @Body request: ListarColeccionesRequest
     ): ListarColeccionesResponse
-
     @POST("colecciones/listar_colecciones_con_recetas.php")
     suspend fun listarColeccionesConRecetas(
         @Body request: ListarColeccionesRecetasRequest
     ): ListarColeccionesRecetasResponse
-
     @POST("colecciones/crear_coleccion.php")
     suspend fun crearColeccion(
-
         @Body request: CrearColeccionRequest
-
     ): CrearColeccionResponse
-
     @POST("colecciones/buscar_contenido_coleccion.php")
     suspend fun buscarContenidoColeccion(
         @Body request: BuscarContenidoColeccionRequest
     ): BuscarContenidoColeccionResponse
-
     @POST("ingredientes/buscar_recetas_por_ingredientes.php")
     suspend fun buscarRecetasPorIngredientes(
         @Body request: BuscarRecetasPorIngredientesRequest
     ): BuscarRecetasPorIngredientesResponse
+    @POST("colecciones/eliminar_coleccion.php")
+    suspend fun eliminarColeccion(
+        @Body request: EliminarColeccionRequest
+    ): EliminarColeccionResponse
+    @POST("colecciones/actualizar_coleccion.php")
+    suspend fun actualizarColeccion(
+        @Body request: ActualizarColeccionRequest
+    ): ActualizarColeccionResponse
+    @POST("colecciones/gestionar_favorito.php")
+    suspend fun gestionarFavorito(
+        @Body request: GestionarFavoritoRequest
+    ): GestionarFavoritoResponse
+    @POST("colecciones/verificar_favorito.php")
+    suspend fun verificarFavorito(
+        @Body request: VerificarFavoritoRequest
+    ): VerificarFavoritoResponse
+    @POST("colecciones/gestionar_receta_coleccion.php")
+    suspend fun gestionarRecetaColeccion(
+        @Body request: GestionarRecetaColeccionRequest
+    ): GestionarRecetaColeccionResponse
 }

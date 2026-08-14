@@ -42,6 +42,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContentProviderCompat
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -51,8 +52,11 @@ import com.example.gourmeet2.data.models.*
 import com.example.gourmeet2.databinding.DialogReportarComentarioBinding
 import com.example.gourmeet2.databinding.DialogReportarRecetaBinding
 import com.example.gourmeet2.utils.SesionUsuario
+import com.example.gourmeet2.utils.SesionUsuario.obtenerId
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import kotlinx.coroutines.delay
 import java.util.Locale
+import kotlin.compareTo
 
 class DetalleRecetaFragment : Fragment() {
     private lateinit var gestureDetector: GestureDetector
@@ -70,10 +74,8 @@ class DetalleRecetaFragment : Fragment() {
     private var recetaTerminada = false
     private var textToSpeech: TextToSpeech? = null
     private var animatorSet: AnimatorSet? = null
-    private var leyendo = false
     private var comentariosVisibles = false
     private val administradorComandosVoz = AdministradorComandosVoz()
-    private var textoActualLeido = ""
     private lateinit var comentarioAdapter: ComentarioAdapter
     private var comentarioSeleccionado: Comentarios? = null
     private var respuestaSeleccionada: RespuestaComentario? = null
@@ -113,6 +115,7 @@ class DetalleRecetaFragment : Fragment() {
         cargarFotoUsuario()
         cargarMiComentario()
         cargarDetalle()
+        verificarFavorito()
         inicializarTextToSpeech()
         inicializarReconocimiento()
         inicializarRecyclerComentarios()
@@ -242,19 +245,111 @@ class DetalleRecetaFragment : Fragment() {
         binding.btnReportarProblema.setOnClickListener {
             mostrarDialogoReporte()
         }
+        binding.rvComentarios.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvComentarios.adapter = comentarioAdapter
+        binding.layoutFavoritos.setOnClickListener { cambiarFavorito()}
+        binding.layoutColeccion.setOnClickListener {
+
+            if (binding.scrollColecciones.visibility == View.VISIBLE) {
+
+                // =========================
+                // CERRAR
+                // =========================
+
+                binding.imagenguardar.setImageResource(
+                    R.drawable.ic_guardar
+                )
+
+                ocultarColeccionesAnimadas {
+
+                    // Ya desaparecieron todas las colecciones
+
+                    binding.rectanguloColeccion
+                        .animate()
+                        .scaleX(0f)
+                        .setDuration(300)
+                        .withEndAction {
+
+                            binding.rectanguloColeccion.visibility =
+                                View.GONE
+
+                            binding.scrollColecciones.visibility =
+                                View.GONE
+
+                            // Guardar vuelve a normal
+                            binding.layoutColeccion
+                                .animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(150)
+                                .start()
+
+                            // Mostrar botones
+                            binding.layoutPlaneador.visibility =
+                                View.VISIBLE
+
+                            binding.layoutCompartir.visibility =
+                                View.VISIBLE
+
+                            binding.layoutFavoritos.visibility =
+                                View.VISIBLE
+
+                            binding.texguardar.visibility =
+                                View.VISIBLE
+                        }
+                        .start()
+                }
+            }else {
+
+                // =========================
+                // ABRIR
+                // =========================
+
+                // Ocultar los otros botones ANTES
+                binding.layoutPlaneador.visibility = View.GONE
+                binding.layoutCompartir.visibility = View.GONE
+                binding.layoutFavoritos.visibility = View.GONE
+                binding.texguardar.visibility = View.GONE
+
+                // Mostrar rectángulo
+                binding.rectanguloColeccion.visibility = View.VISIBLE
+
+                // Reiniciar posición de animación
+                binding.rectanguloColeccion.scaleX = 0f
+
+                // Expandir rectángulo
+                binding.rectanguloColeccion
+                    .animate()
+                    .scaleX(1f)
+                    .setDuration(300)
+                    .start()
+
+                // Comprimir Guardar
+                binding.layoutColeccion
+                    .animate()
+                    .scaleX(0.75f)
+                    .scaleY(0.85f)
+                    .setDuration(300)
+                    .start()
+
+                // Cambiar icono
+                binding.imagenguardar.setImageResource(
+                    R.drawable.ic_guardar_on
+                )
+
+                // Mostrar colecciones
+                mostrarColecciones()
+
+                binding.scrollColecciones.visibility = View.VISIBLE
+            }
+        }
 
 
 
-
-        binding.rvComentarios.layoutManager =
-            LinearLayoutManager(requireContext())
-
-        binding.rvComentarios.adapter =
-            comentarioAdapter
     }
     private fun cargarComentarios() {
 
-        val usuarioId = SesionUsuario.obtenerId(requireContext())
+        val usuarioId = obtenerId(requireContext())
 
         lifecycleScope.launch {
             val response = ApiClient.apiService.listarComentarios(
@@ -280,7 +375,7 @@ class DetalleRecetaFragment : Fragment() {
                 val request = RespuestaComentarioRequest(
                     accion = "CREAR",
                     receta = recetaId,   // <-- tu id de la receta
-                    usuario = SesionUsuario.obtenerId(requireContext()),
+                    usuario = obtenerId(requireContext()),
                     comentarioPadre = comentarioPadre,
                     comentario = texto
                 )
@@ -322,7 +417,7 @@ class DetalleRecetaFragment : Fragment() {
 
                     accion = "EDITAR",
 
-                    usuario = SesionUsuario.obtenerId(requireContext()),
+                    usuario = obtenerId(requireContext()),
 
                     respuesta = respuestaId,
 
@@ -549,7 +644,7 @@ class DetalleRecetaFragment : Fragment() {
         respuestaId: Int,
         tipo: String
     ) {
-        val usuarioId = SesionUsuario.obtenerId(requireContext())
+        val usuarioId = obtenerId(requireContext())
 
         lifecycleScope.launch {
 
@@ -657,7 +752,7 @@ class DetalleRecetaFragment : Fragment() {
 
                         EliminarComentarioRequest(
 
-                            CLI_ID = SesionUsuario.obtenerId(requireContext()),
+                            CLI_ID = obtenerId(requireContext()),
 
                             REC_ID = recetaId
 
@@ -715,11 +810,8 @@ class DetalleRecetaFragment : Fragment() {
             comentario.id
         )
     }
-    private fun reaccionarComentario(
-        comentarioId: Int,
-        tipo: String
-    ) {
-        val usuarioId = SesionUsuario.obtenerId(requireContext())
+    private fun reaccionarComentario(comentarioId: Int, tipo: String) {
+        val usuarioId = obtenerId(requireContext())
         if (usuarioId == 0) {
             Toast.makeText(
                 requireContext(),
@@ -787,9 +879,7 @@ class DetalleRecetaFragment : Fragment() {
         }
 
     }
-    private fun eliminarRespuesta(
-        respuestaId: Int
-    ) {
+    private fun eliminarRespuesta(respuestaId: Int) {
 
         viewLifecycleOwner.lifecycleScope.launch {
 
@@ -799,7 +889,7 @@ class DetalleRecetaFragment : Fragment() {
 
                     accion = "ELIMINAR",
 
-                    usuario = SesionUsuario.obtenerId(requireContext()),
+                    usuario = obtenerId(requireContext()),
 
                     respuesta = respuestaId
 
@@ -1047,9 +1137,7 @@ class DetalleRecetaFragment : Fragment() {
         }
 
     }
-    private fun ejecutarComandoVoz(
-        comando: ComandoVoz
-    ) {
+    private fun ejecutarComandoVoz(comando: ComandoVoz) {
         when (comando) {
             ComandoVoz.SIGUIENTE -> {
                 Log.d("VOZ", "Comando: SIGUIENTE")
@@ -1422,10 +1510,7 @@ class DetalleRecetaFragment : Fragment() {
         )
 
     }
-    private fun guardarComentario(
-        comentario: String,
-        calificacion: Double
-    ) {
+    private fun guardarComentario(comentario: String, calificacion: Double) {
 
         lifecycleScope.launch {
 
@@ -1434,7 +1519,7 @@ class DetalleRecetaFragment : Fragment() {
                 val response =
                     ApiClient.apiService.comentarCalificarReceta(
                         ComentarCalificarRequest(
-                            CLI_ID = SesionUsuario.obtenerId(requireContext()),
+                            CLI_ID = obtenerId(requireContext()),
                             REC_ID = recetaId,
                             COMENTARIO = comentario,
                             CALIFICACION = calificacion
@@ -1540,18 +1625,14 @@ class DetalleRecetaFragment : Fragment() {
         }
         dialog.show()
     }
-    private fun reportarReceta(
-        problema: String,
-        descripcion: String,
-        dialog: BottomSheetDialog
-    ) {
+    private fun reportarReceta(problema: String,descripcion: String, dialog: BottomSheetDialog) {
 
         lifecycleScope.launch {
 
             try {
 
                 val request = ReportarRecetaRequest(
-                    cliId = SesionUsuario.obtenerId(requireContext()),
+                    cliId = obtenerId(requireContext()),
                     recId = recetaId,
                     problema = problema,
                     descripcion = descripcion
@@ -1656,7 +1737,7 @@ class DetalleRecetaFragment : Fragment() {
                 val response =
                     ApiClient.apiService.obtenerMiComentario(
                         ObtenerMiComentarioRequest(
-                            CLI_ID = SesionUsuario.obtenerId(requireContext()),
+                            CLI_ID = obtenerId(requireContext()),
                             REC_ID = recetaId
                         )
                     )
@@ -1682,7 +1763,7 @@ class DetalleRecetaFragment : Fragment() {
 
     }
     private fun marcarRecetaTerminada() {
-        val cliId = SesionUsuario.obtenerId(requireContext())
+        val cliId = obtenerId(requireContext())
         if (cliId <= 0) {
             Toast.makeText(
                 requireContext(),
@@ -1833,7 +1914,7 @@ class DetalleRecetaFragment : Fragment() {
     }
     private fun verificarRecetaTerminada() {
 
-        val cliId = SesionUsuario.obtenerId(requireContext())
+        val cliId = obtenerId(requireContext())
 
         if (cliId <= 0) return
 
@@ -1883,7 +1964,456 @@ class DetalleRecetaFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+    private val Int.dp: Int get() = (this * resources.displayMetrics.density).toInt()
+    private fun cambiarFavorito() {
 
-    private val Int.dp: Int
-        get() = (this * resources.displayMetrics.density).toInt()
+        val cliId =
+            obtenerId(requireContext())
+
+        if (cliId <= 0) {
+
+            Toast.makeText(
+                requireContext(),
+                "No se encontró el usuario",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        if (recetaId <= 0) {
+
+            Toast.makeText(
+                requireContext(),
+                "Receta inválida",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        lifecycleScope.launch {
+
+            try {
+
+                val request =
+                    GestionarFavoritoRequest(
+
+                        CLI_ID = cliId,
+
+                        REC_ID = recetaId
+
+                    )
+
+                val response =
+                    ApiClient.apiService
+                        .gestionarFavorito(request)
+
+
+                if (response.success) {
+
+                    // ==========================================
+                    // ACTUALIZAR ICONO
+                    // ==========================================
+
+                    if (response.guardada) {
+
+                        binding.imgFavorito.setImageResource(
+                            R.drawable.ic_favorito_on
+                        )
+
+                    } else {
+
+                        binding.imgFavorito.setImageResource(
+                            R.drawable.ic_favorito
+                        )
+                    }
+
+
+                    Toast.makeText(
+                        requireContext(),
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                } else {
+
+                    Toast.makeText(
+                        requireContext(),
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                Toast.makeText(
+                    requireContext(),
+                    "Error al actualizar favoritos",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+    private fun verificarFavorito() {
+
+        val cliId =
+            obtenerId(
+                requireContext()
+            )
+
+        if (cliId <= 0 || recetaId <= 0) {
+            return
+        }
+
+        lifecycleScope.launch {
+
+            try {
+
+                Log.d(
+                    "FAVORITO",
+                    "Verificando favorito - CLI_ID: $cliId REC_ID: $recetaId"
+                )
+
+                val response =
+                    ApiClient.apiService.verificarFavorito(
+
+                        VerificarFavoritoRequest(
+
+                            CLI_ID = cliId,
+
+                            REC_ID = recetaId
+
+                        )
+
+                    )
+
+                if (!response.success) {
+
+                    Log.d(
+                        "FAVORITO",
+                        "No se pudo verificar: ${response.message}"
+                    )
+
+                    return@launch
+                }
+
+                if (response.guardada) {
+
+                    binding.imgFavorito.setImageResource(
+                        R.drawable.ic_favorito_on
+                    )
+
+                    Log.d(
+                        "FAVORITO",
+                        "Receta guardada en favoritos"
+                    )
+
+                } else {
+
+                    binding.imgFavorito.setImageResource(
+                        R.drawable.ic_favorito
+                    )
+
+                    Log.d(
+                        "FAVORITO",
+                        "Receta no está guardada en favoritos"
+                    )
+                }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                Log.e(
+                    "FAVORITO",
+                    "Error verificando favorito",
+                    e
+                )
+            }
+        }
+    }
+    private fun mostrarColecciones() {
+
+        binding.contenedorColecciones.removeAllViews()
+
+        lifecycleScope.launch {
+
+            try {
+
+                val cliId = obtenerId(requireContext())
+
+                if (cliId <= 0) {
+                    return@launch
+                }
+
+                val response =
+                    ApiClient.apiService.listarColeccionesConRecetas(
+                        ListarColeccionesRecetasRequest(cliId)
+                    )
+
+                if (!response.success) {
+                    return@launch
+                }
+
+                response.colecciones.forEachIndexed { index, coleccion ->
+
+                    // Crear el elemento pero inicialmente invisible
+                    val item = crearColeccionVisual(coleccion)
+
+                    item.alpha = 0f
+                    item.scaleX = 0.7f
+                    item.scaleY = 0.7f
+
+                    binding.contenedorColecciones.addView(item)
+
+                    // Tiempo entre cada colección
+                    delay(index * 80L)
+
+                    // Aparece
+                    item.animate()
+                        .alpha(1f)
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(180)
+                        .start()
+                }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                Toast.makeText(
+                    requireContext(),
+                    "No fue posible cargar las colecciones",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+    private fun crearColeccionVisual(
+        coleccion: ColeccionConRecetas
+    ): View {
+
+        val item =
+            layoutInflater.inflate(
+                R.layout.item_seleccionado_con_circulo_azul,
+                binding.contenedorColecciones,
+                false
+            )
+
+        val img =
+            item.findViewById<ImageView>(
+                R.id.img
+            )
+
+        val txt =
+            item.findViewById<TextView>(
+                R.id.txt
+            )
+
+        val circuloAzul =
+            item.findViewById<View>(
+                R.id.circuloAzul
+            )
+
+        txt.text = coleccion.COL_NOMBRE
+
+        // ==========================================
+        // ICONO
+        // ==========================================
+
+        val icono =
+            when (coleccion.COL_PORTADA) {
+
+                "Favoritos" ->
+                    R.drawable.ic_favoritos
+
+                "Desayuno" ->
+                    R.drawable.ic_desayuno
+
+                "Pasta" ->
+                    R.drawable.ic_pasta
+
+                "Guardar" ->
+                    R.drawable.ic_guardar
+
+                else ->
+                    R.drawable.ic_nuevo_icono
+            }
+
+        img.setImageResource(icono)
+
+        // ==========================================
+        // ¿YA ESTÁ GUARDADA ESTA RECETA?
+        // ==========================================
+
+        val estaGuardada =
+            coleccion.RECETAS.any {
+                it.REC_ID == recetaId
+            }
+
+        if (estaGuardada) {
+
+            circuloAzul.visibility =
+                View.VISIBLE
+
+        } else {
+
+            circuloAzul.visibility =
+                View.GONE
+        }
+
+        // ==========================================
+        // CLICK
+        // ==========================================
+
+        item.setOnClickListener {
+
+            gestionarRecetaEnColeccion(
+                coleccion
+            )
+        }
+
+        return item
+    }
+    private fun ocultarColeccionesAnimadas(
+        onComplete: () -> Unit
+    ) {
+        val contenedor = binding.contenedorColecciones
+
+        val cantidad = contenedor.childCount
+
+        if (cantidad == 0) {
+            onComplete()
+            return
+        }
+
+        var terminadas = 0
+
+        for (i in cantidad - 1 downTo 0) {
+
+            val item = contenedor.getChildAt(i)
+
+            item.animate()
+                .alpha(0f)
+                .scaleX(0.7f)
+                .scaleY(0.7f)
+                .setStartDelay((cantidad - 1 - i) * 60L)
+                .setDuration(150)
+                .withEndAction {
+
+                    terminadas++
+
+                    if (terminadas == cantidad) {
+                        contenedor.removeAllViews()
+                        onComplete()
+                    }
+                }
+                .start()
+        }
+    }
+    private fun gestionarRecetaEnColeccion(
+        coleccion: ColeccionConRecetas
+    ) {
+
+        val cliId =
+            obtenerId(requireContext())
+
+        if (cliId <= 0 || recetaId <= 0) {
+            return
+        }
+
+        val yaEstaGuardada =
+            coleccion.RECETAS.any {
+                it.REC_ID == recetaId
+            }
+
+        lifecycleScope.launch {
+
+            try {
+
+                Log.d(
+                    "COLECCION",
+                    "Colección: ${coleccion.COL_ID}"
+                )
+
+                Log.d(
+                    "COLECCION",
+                    "Receta: $recetaId"
+                )
+
+                Log.d(
+                    "COLECCION",
+                    "Ya guardada: $yaEstaGuardada"
+                )
+
+                val request =
+                    GestionarRecetaColeccionRequest(
+
+                        CLI_ID = cliId,
+
+                        COL_ID = coleccion.COL_ID,
+
+                        REC_ID = recetaId,
+
+                        ACCION =
+                            if (yaEstaGuardada) {
+                                "ELIMINAR"
+                            } else {
+                                "AGREGAR"
+                            }
+                    )
+
+                val response =
+                    ApiClient.apiService.gestionarRecetaColeccion(
+                        request
+                    )
+
+                if (!response.success) {
+
+                    Toast.makeText(
+                        requireContext(),
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@launch
+                }
+
+                // ==========================================
+                // ACTUALIZAR CÍRCULO AZUL
+                // ==========================================
+
+                mostrarColecciones()
+
+                Toast.makeText(
+                    requireContext(),
+                    if (yaEstaGuardada)
+                        "Receta eliminada de ${coleccion.COL_NOMBRE}"
+                    else
+                        "Receta agregada a ${coleccion.COL_NOMBRE}",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                Log.e(
+                    "COLECCION",
+                    "Error gestionando receta",
+                    e
+                )
+
+                Toast.makeText(
+                    requireContext(),
+                    "No fue posible actualizar la colección",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
 }

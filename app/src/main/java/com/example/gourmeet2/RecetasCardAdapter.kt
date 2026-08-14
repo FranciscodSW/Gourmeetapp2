@@ -342,10 +342,7 @@ class RecetasCardAdapter(
     // ==================================================
 
     fun actualizar(
-
-        nuevasRecetas:
-        List<RecetaconFiltro>
-
+        nuevasRecetas: List<RecetaconFiltro>
     ) {
 
         recetas.clear()
