@@ -19,7 +19,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.launch
 import android.os.Handler
 import android.util.Log
-import androidx.core.content.ContentProviderCompat.requireContext
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 
 class MisColeccionesActivity :
     AppCompatActivity() {
@@ -30,9 +30,11 @@ class MisColeccionesActivity :
     private lateinit var adapterBusqueda:BusquedaColeccionAdapter
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var adapterIngredientes: IngredientesSeleccionadosAdapter
+    private lateinit var adapterRecetasRealizadas: RecetaCarrAdapterSelec
+    private val recetasRealizadas = mutableListOf<RecetaconFiltro>()
     private val ingredientesSeleccionados = mutableListOf<ResultadoBusqueda>()
     private var runnableBusqueda: Runnable? = null
-    private lateinit var adapterRecetasSeleccionadas: RecetasCardAdapter
+    private lateinit var adapterRecetasSeleccionadas: RecetasCardAdapterSelec
 
     private lateinit var adapterRecetasMisIngredientes: RecetasMisIngredientesAdapter
     override fun onCreate(
@@ -42,8 +44,11 @@ class MisColeccionesActivity :
         binding = ActivityMisColeccionesBinding.inflate(layoutInflater)
         setContentView(binding.root)
         inicializarRecycler()
+        inicializarRecyclerRecetasRealizadas()
+        cargarRecetasRealizadas()
         cargarColecciones()
         eventos()
+
     }
     private fun inicializarRecyclerRecetasSeleccionadas(
         bindingDialog: DialogNuevaColeccionBinding,
@@ -51,7 +56,7 @@ class MisColeccionesActivity :
     ) {
 
         adapterRecetasSeleccionadas =
-            RecetasCardAdapter(
+            RecetasCardAdapterSelec(
 
                 // ==========================================
                 // LISTA QUE SE MOSTRARÁ EN EL RECYCLER
@@ -292,6 +297,9 @@ class MisColeccionesActivity :
 
         val dialog =
             BottomSheetDialog(this)
+        bindingDialog.imgCerrar.setOnClickListener {
+            dialog.dismiss()
+        }
 
 
         // =====================================================
@@ -769,6 +777,11 @@ class MisColeccionesActivity :
         // =====================================================
 
         dialog.show()
+        dialog.behavior.state =
+            BottomSheetBehavior.STATE_EXPANDED
+        dialog.behavior.isDraggable = false
+
+
     }
 
     private fun actualizarRecetasSeleccionadas() {
@@ -1566,7 +1579,7 @@ class MisColeccionesActivity :
         // =====================================================
 
         adapterRecetasSeleccionadas =
-            RecetasCardAdapter(
+            RecetasCardAdapterSelec(
 
                 // Lista independiente para mostrar
                 recetasEdicion.toMutableList(),
@@ -2320,7 +2333,96 @@ class MisColeccionesActivity :
             }
         }
     }
+    private fun inicializarRecyclerRecetasRealizadas() {
 
+        adapterRecetasRealizadas =
+            RecetaCarrAdapterSelec(
+                mutableListOf()
+            ) { receta ->
 
+                val intent =
+                    Intent(
+                        this@MisColeccionesActivity,
+                        DetalleRecetaActivity::class.java
+                    )
 
+                intent.putExtra(
+                    "REC_ID",
+                    receta.REC_ID
+                )
+
+                startActivity(intent)
+            }
+
+        binding.recyclerRecetasRealizadas.apply {
+
+            layoutManager =
+                LinearLayoutManager(
+                    this@MisColeccionesActivity,
+                    LinearLayoutManager.HORIZONTAL,
+                    false
+                )
+
+            adapter =
+                adapterRecetasRealizadas
+
+            isNestedScrollingEnabled = false
+        }
+    }
+    private fun cargarRecetasRealizadas() {
+
+        lifecycleScope.launch {
+
+            try {
+
+                val cliId =
+                    SesionUsuario.obtenerId(
+                        this@MisColeccionesActivity
+                    )
+
+                if (cliId <= 0) {
+                    return@launch
+                }
+
+                val response =
+                    ApiClient.apiService
+                        .listarRecetasRealizadas(
+                            RecetasRealizadasRequest(
+                                CLI_ID = cliId
+                            )
+                        )
+
+                if (!response.success) {
+
+                    Toast.makeText(
+                        this@MisColeccionesActivity,
+                        "No fue posible cargar las recetas realizadas",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@launch
+                }
+
+                recetasRealizadas.clear()
+
+                recetasRealizadas.addAll(
+                    response.recetas
+                )
+
+                adapterRecetasRealizadas.actualizar(
+                    recetasRealizadas
+                )
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                Toast.makeText(
+                    this@MisColeccionesActivity,
+                    "Error al cargar recetas realizadas",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
 }

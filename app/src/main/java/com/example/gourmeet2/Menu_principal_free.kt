@@ -219,15 +219,6 @@ class Menu_principal_free : AppCompatActivity() {
                     startActivity(intent)
 
                 }
-                R.id.menu_recetas_realizadas -> {
-
-                    Toast.makeText(
-                        this,
-                        "Recetas realizadas",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                }
 
                 R.id.menu_planeador_semanal -> {
 
@@ -696,15 +687,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                 }
 
-                R.id.menu_recetas_realizadas -> {
 
-                    Toast.makeText(
-                        this,
-                        "Recetas realizadas",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                }
 
                 R.id.menu_planeador_semanal -> {
 

@@ -140,4 +140,8 @@ interface ApiService {
     suspend fun gestionarRecetaColeccion(
         @Body request: GestionarRecetaColeccionRequest
     ): GestionarRecetaColeccionResponse
+    @POST("recetas_realizadas/listar_recetas_realizadas.php")
+    suspend fun listarRecetasRealizadas(
+        @Body request: RecetasRealizadasRequest
+    ): RecetasRealizadasResponse
 }

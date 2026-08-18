@@ -18,6 +18,8 @@
         android:layout_height="55dp"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="35dp"
+        android:background="@color/azulgourmeet"
+        android:backgroundTint="@color/azulgourmeet"
         android:text="Continuar"/>
 
 </FrameLayout>

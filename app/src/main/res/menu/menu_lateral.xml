@@ -21,10 +21,6 @@
 
         </item>
 
-        <item
-            android:id="@+id/menu_recetas_realizadas"
-            android:icon="@drawable/ic_gorrito_con_flechas"
-            android:title="Recetas que ya hice"/>
 
         <item
             android:id="@+id/menu_planeador_semanal"

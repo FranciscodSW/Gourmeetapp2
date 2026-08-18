@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.gourmeet2.data.models.RecetaconFiltro
 import com.example.gourmeet2.data.models.ResultadoBusqueda
 import com.example.gourmeet2.databinding.ItemResultadoBusquedaBinding
@@ -240,7 +241,7 @@ class BusquedaColeccionAdapter(
                         )
 
                     adapter =
-                        RecetasCardAdapter(
+                        RecetasCardAdapterSelec(
 
                             item.recetas.toMutableList(),
 
@@ -285,9 +286,11 @@ class BusquedaColeccionAdapter(
 
                     ResultadoBusqueda.INGREDIENTE -> {
 
-                        holder.binding.imgIcono.setImageResource(
-                            R.drawable.ic_ingredientes
-                        )
+                        Glide.with(holder.itemView.context)
+                            .load(item.foto)
+                            .placeholder(R.drawable.ic_ingredientes)
+                            .error(R.drawable.ic_ingredientes)
+                            .into(holder.binding.imgIcono)
 
                     }
 

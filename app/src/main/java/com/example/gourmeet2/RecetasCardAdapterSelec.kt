@@ -8,7 +8,7 @@ import com.bumptech.glide.Glide
 import com.example.gourmeet2.data.models.RecetaconFiltro
 import com.example.gourmeet2.databinding.ItemRecetaSeleccionableBinding
 
-class RecetasCardAdapter(
+class RecetasCardAdapterSelec(
 
     // ==================================================
     // RECETAS QUE ESTE ADAPTER DEBE MOSTRAR
@@ -38,7 +38,7 @@ class RecetasCardAdapter(
     private val onSeleccionarReceta:
     ((RecetaconFiltro, Boolean) -> Unit)? = null
 
-) : RecyclerView.Adapter<RecetasCardAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<RecetasCardAdapterSelec.ViewHolder>() {
 
 
     // ==================================================
