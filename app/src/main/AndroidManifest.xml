@@ -82,6 +82,9 @@
         <activity
             android:name=".DetalleRecetaActivity"
             android:exported="false" />
+        <activity
+            android:name=".MapaProveedoresActivity"
+            android:exported="false" />
 
         <activity
             android:name=".MainActivity"

@@ -1,47 +1,62 @@
 package com.example.gourmeet2
+
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
+import android.util.Log
+import android.view.Gravity
 import android.view.KeyEvent
+import android.view.Menu
 import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.gourmeet2.data.api.ApiClient
-import com.example.gourmeet2.data.models.BuscarIngredientes
-import com.example.gourmeet2.data.models.BuscarRecetas
-import com.example.gourmeet2.data.models.FiltrosRecetasNombreRequest
-import com.example.gourmeet2.data.models.FiltrosRecetasRequest
-import com.example.gourmeet2.data.models.SeccionResultados
-import com.example.gourmeet2.databinding.ActivityMenuPrincipalFreeBinding
-import kotlinx.coroutines.launch
-import android.content.Context
-import android.content.Intent
-import android.util.Log
-import android.view.Gravity
-import android.view.Menu
-import android.view.inputmethod.InputMethodManager
-import android.widget.ProgressBar
-import android.widget.TextView
-import androidx.core.view.GravityCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.gourmeet2.data.models.Nivel
-import com.example.gourmeet2.data.models.RecetasInicioRequest
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.example.gourmeet2.data.api.ApiClient
+import com.example.gourmeet2.data.models.*
+import com.example.gourmeet2.databinding.ActivityMenuPrincipalFreeBinding
 import com.example.gourmeet2.utils.SesionUsuario
-import android.widget.ImageView
-import android.widget.Toast
-
+import kotlinx.coroutines.launch
+import android.Manifest
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.widget.FrameLayout
+import android.widget.ScrollView
+import androidx.core.view.children
+import com.facebook.appevents.codeless.internal.ViewHierarchy.setOnClickListener
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
+import androidx.core.widget.doAfterTextChanged
 
 class Menu_principal_free : AppCompatActivity() {
     private var menuAbierto = false
     private lateinit var binding: ActivityMenuPrincipalFreeBinding
     private var modoActual = Modo.INGREDIENTES
     enum class Modo {INGREDIENTES,RECETAS }
+    private val listaProveedores = mutableListOf<Proveedor>()
+    private lateinit var adapterProveedores: ProveedorAdapter
     enum class Seccion { BUSCADOR, ALACENA, PLANEADOR}
     private var panelBusquedaAbierto = false
     private var seccionActual = Seccion.BUSCADOR
     private var textoBusqueda = ""
+    private var busquedaProveedorAbierta = false
     private val ingredientesSeleccionados = mutableListOf<BuscarIngredientes>()
     private lateinit var seleccionadosAdapter: SeleccionadosAdapter
     private val recetasSeleccionadas = mutableListOf<BuscarRecetas>()
@@ -49,8 +64,10 @@ class Menu_principal_free : AppCompatActivity() {
     private var categoriaSeleccionada: Int? = null
     private lateinit var adapterResultados: AdapterResultados
     private lateinit var adapter: IngredienteAdapter
-
-
+    private lateinit var adapterSeccionesProveedores: SeccionesProveedoresAdapter
+    private var latitudUsuario: Double? = null
+    private var longitudUsuario: Double? = null
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMenuPrincipalFreeBinding.inflate(layoutInflater)
@@ -58,6 +75,12 @@ class Menu_principal_free : AppCompatActivity() {
         cargarUsuario()
         cargarInformacionUsuario()
         inicializarMenuLateral()
+        fusedLocationClient =
+            LocationServices.getFusedLocationProviderClient(this)
+        inicializarProveedores()
+        configurarBusquedaProveedores()
+        obtenerUbicacionUsuario()
+
 
         supportFragmentManager.addOnBackStackChangedListener {
             if (supportFragmentManager.backStackEntryCount == 0) {
@@ -76,6 +99,53 @@ class Menu_principal_free : AppCompatActivity() {
                 } else {
                     buscarRecetas(texto)
                 }
+            }
+        }
+        binding.btnProveedores.setOnClickListener {
+
+            if (binding.panelProveedores.visibility == View.VISIBLE) {
+
+                // ==========================================
+                // CERRAR → SALE HACIA LA IZQUIERDA
+                // ==========================================
+
+                binding.panelProveedores.animate()
+                    .translationX(
+                        -binding.panelProveedores.width.toFloat()
+                    )
+                    .setDuration(300)
+                    .withEndAction {
+
+                        binding.panelProveedores.visibility =
+                            View.GONE
+
+                        binding.panelProveedores.translationX =
+                            0f
+                    }
+                    .start()
+
+            } else {
+
+                // ==========================================
+                // ABRIR → ENTRA DESDE LA IZQUIERDA
+                // ==========================================
+
+                binding.panelProveedores.visibility =
+                    View.VISIBLE
+
+                binding.panelProveedores.post {
+
+                    // Comienza fuera de la pantalla, a la izquierda
+                    binding.panelProveedores.translationX =
+                        -binding.panelProveedores.width.toFloat()
+
+                    // Entra hasta su posición original
+                    binding.panelProveedores.animate()
+                        .translationX(0f)
+                        .setDuration(300)
+                        .start()
+                }
+                cargarProveedores()
             }
         }
         binding.editBusqueda.setOnKeyListener { _, keyCode, event ->
@@ -165,14 +235,92 @@ class Menu_principal_free : AppCompatActivity() {
             } else {cerrarPanelBusqueda() }
             panelBusquedaAbierto = !panelBusquedaAbierto
         }
+        binding.headerProveedores.btnbuscar.setOnClickListener {
+            if (busquedaProveedorAbierta) {
+                cerrarBusquedaProveedor()
+            } else {
+                abrirBusquedaProveedor()
+            }
+        }
+        binding.headerProveedores.btnubicaion.setOnClickListener {
+
+            val proveedoresMapa =
+                listaProveedores.mapNotNull { proveedor ->
+
+                    val latitud =
+                        proveedor.Pro_Latitud?.toDoubleOrNull()
+
+                    val longitud =
+                        proveedor.Pro_Longitud?.toDoubleOrNull()
+
+                    if (
+                        latitud != null &&
+                        longitud != null
+                    ) {
+
+                        ProveedorMapa(
+                            id = proveedor.Id_Proveedor.toString(),
+                            nombre = proveedor.Pro_nombre ?: "Proveedor",
+                            latitud = latitud,
+                            longitud = longitud,
+                            fotoPerfil = proveedor.Pro_Foto_Perfil
+                        )
+
+                    } else {
+
+                        null
+                    }
+                }
+
+            val intent =
+                Intent(
+                    this,
+                    MapaProveedoresActivity::class.java
+                )
+
+            intent.putExtra(
+                MapaProveedoresActivity.EXTRA_PROVEEDORES,
+                ArrayList(proveedoresMapa)
+            )
+
+            startActivity(intent)
+        }
+        binding.headerProveedores.btnfiltros.setOnClickListener {
+
+            if (
+                binding.panelFiltrosProveedores.visibility ==
+                View.VISIBLE
+            ) {
+
+                cerrarFiltrosProveedores()
+                binding.headerProveedores.btnfiltros
+                    .setImageResource(R.drawable.ic_filtro)
+
+            } else {
+                binding.headerProveedores.btnfiltros
+                    .setImageResource(R.drawable.ic_filtro_on)
+                abrirFiltrosProveedores()
+            }
+        }
+        binding.panelFiltrosProveedores.findViewById<ImageView>(R.id.btnCerrarFiltros).setOnClickListener {
+
+                cerrarFiltrosProveedores()
+            }
+        binding.panelFiltrosProveedores.findViewById<MaterialButton>(R.id.btnLimpiarFiltros).setOnClickListener {
+
+                limpiarFiltrosProveedores()
+            }
+        binding.panelFiltrosProveedores.findViewById<MaterialButton>(R.id.btnAplicarFiltros).setOnClickListener {
+
+                aplicarFiltrosProveedores()
+            }
         seleccionadosAdapter = SeleccionadosAdapter(
             ingredientesSeleccionados
         ) { ingrediente ->
             ingredientesSeleccionados.remove(ingrediente)
             seleccionadosAdapter.notifyDataSetChanged()
         }
-        binding.rvSeleccionados.layoutManager =
-            GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
+        binding.rvSeleccionados.layoutManager = GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
         binding.rvSeleccionados.adapter = seleccionadosAdapter
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom.toFloat()
@@ -629,9 +777,7 @@ class Menu_principal_free : AppCompatActivity() {
 
 
     }
-    private fun obtenerInformacionNivel(
-        nivel: Int
-    ): Nivel {
+    private fun obtenerInformacionNivel(nivel: Int): Nivel {
 
         return when (nivel) {
 
@@ -647,7 +793,6 @@ class Menu_principal_free : AppCompatActivity() {
         }
 
     }
-
     private fun inicializarMenuLateral() {
 
         binding.navigationView.setNavigationItemSelectedListener { item ->
@@ -728,5 +873,964 @@ class Menu_principal_free : AppCompatActivity() {
         }
 
     }
+    private fun abrirBusquedaProveedor() {
+
+        val buscador =
+            binding.headerProveedores.layoutBusquedaProveedor
+
+        // ==========================================
+        // OCULTAR 📍 💾 ⚙
+        // ==========================================
+
+        binding.headerProveedores.btnubicaion.visibility =
+            View.GONE
+
+        binding.headerProveedores.btnmiscoleccionesprovedor.visibility =
+            View.GONE
+
+        binding.headerProveedores.btnfiltros.visibility =
+            View.GONE
+
+
+        // ==========================================
+        // MOSTRAR BUSCADOR
+        // ==========================================
+
+        buscador.visibility =
+            View.VISIBLE
+
+
+        // ==========================================
+        // ANIMACIÓN
+        // ENTRA DESDE LA DERECHA
+        // ==========================================
+
+        buscador.post {
+
+            buscador.translationX =
+                -buscador.width.toFloat()
+
+            buscador.animate()
+                .translationX(0f)
+                .setDuration(300)
+                .start()
+        }
+
+
+        busquedaProveedorAbierta = true
+
+
+        // ==========================================
+        // ENFOCAR CAMPO
+        // ==========================================
+
+        binding.headerProveedores.edtBuscarProveedor.requestFocus()
+
+
+        // ==========================================
+        // MOSTRAR TECLADO
+        // ==========================================
+
+        val imm =
+            getSystemService(
+                Context.INPUT_METHOD_SERVICE
+            ) as InputMethodManager
+
+        imm.showSoftInput(
+            binding.headerProveedores.edtBuscarProveedor,
+            InputMethodManager.SHOW_IMPLICIT
+        )
+    }
+    private fun cerrarBusquedaProveedor() {
+
+        val buscador =
+            binding.headerProveedores.layoutBusquedaProveedor
+
+
+        // ==========================================
+        // ANIMACIÓN
+        // SALE HACIA LA DERECHA
+        // ==========================================
+
+        buscador.animate()
+            .translationX(
+                buscador.width.toFloat()
+            )
+            .setDuration(300)
+            .withEndAction {
+
+                // ==================================
+                // OCULTAR BUSCADOR
+                // ==================================
+
+                buscador.visibility =
+                    View.GONE
+
+                buscador.translationX =
+                    0f
+
+
+                // ==================================
+                // MOSTRAR 📍 💾 ⚙
+                // ==================================
+
+                binding.headerProveedores.btnubicaion.visibility =
+                    View.VISIBLE
+
+                binding.headerProveedores.btnmiscoleccionesprovedor.visibility =
+                    View.VISIBLE
+
+                binding.headerProveedores.btnfiltros.visibility =
+                    View.VISIBLE
+            }
+            .start()
+
+
+        busquedaProveedorAbierta = false
+
+
+        // ==========================================
+        // OCULTAR TECLADO
+        // ==========================================
+
+        val imm =
+            getSystemService(
+                Context.INPUT_METHOD_SERVICE
+            ) as InputMethodManager
+
+        imm.hideSoftInputFromWindow(
+            binding.headerProveedores
+                .edtBuscarProveedor
+                .windowToken,
+            0
+        )
+    }
+    private fun configurarRecyclerProveedores() {
+
+        binding.rvProveedores.apply {
+
+            layoutManager =
+                LinearLayoutManager(
+                    this@Menu_principal_free,
+                    LinearLayoutManager.VERTICAL,
+                    false
+                )
+
+            adapter =
+                adapterSeccionesProveedores
+
+            setHasFixedSize(false)
+
+            overScrollMode =
+                View.OVER_SCROLL_NEVER
+        }
+    }
+    private fun inicializarProveedores() {
+
+        adapterSeccionesProveedores =
+            SeccionesProveedoresAdapter(
+                mutableListOf()
+            )
+
+        configurarRecyclerProveedores()
+    }
+    private fun cargarProveedores() {
+
+        lifecycleScope.launch {
+
+            try {
+
+                val response =
+                    ApiClient.apiService.listarProveedores()
+
+                if (!response.success) {
+                    return@launch
+                }
+
+                listaProveedores.clear()
+
+                listaProveedores.addAll(
+                    response.proveedores
+                )
+
+                // ==========================================
+                // CREAR SECCIONES
+                // ==========================================
+
+                val secciones =
+                    response.categorias.mapNotNull { categoria ->
+
+                        val proveedoresCategoria =
+                            response.proveedores.filter { proveedor ->
+
+                                // --------------------------
+                                // INGREDIENTES
+                                // --------------------------
+
+                                val tieneIngrediente =
+                                    proveedor.CATEGORIAS.any { cat ->
+
+                                        cat.trim().equals(
+                                            categoria.trim(),
+                                            ignoreCase = true
+                                        )
+                                    }
+
+                                // --------------------------
+                                // RECETAS
+                                // --------------------------
+
+                                val tieneReceta =
+                                    proveedor.RECETAS.isNotEmpty() &&
+                                            proveedor.Pro_Des_Giro
+                                                ?.trim()
+                                                ?.equals(
+                                                    categoria.trim(),
+                                                    ignoreCase = true
+                                                ) == true
+
+                                // --------------------------
+                                // PERTENECE A LA SECCIÓN
+                                // --------------------------
+
+                                tieneIngrediente || tieneReceta
+                            }
+
+                        if (proveedoresCategoria.isNotEmpty()) {
+
+                            SeccionProveedores(
+                                categoria = categoria,
+                                proveedores = proveedoresCategoria
+                            )
+
+                        } else {
+                            null
+                        }
+                    }
+
+                adapterSeccionesProveedores.actualizar(
+                    secciones
+                )
+                mostrarEstadoProveedores(
+                        secciones.isNotEmpty()
+                        )
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "PROVEEDORES",
+                    "Error cargando proveedores",
+                    e
+                )
+            }
+        }
+    }
+    private fun obtenerUbicacionUsuario() {
+
+        // ==========================================
+        // VERIFICAR PERMISOS
+        // ==========================================
+
+        if (
+            ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+            &&
+            ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                1001
+            )
+
+            return
+        }
+
+
+        // ==========================================
+        // OBTENER ÚLTIMA UBICACIÓN
+        // ==========================================
+
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location ->
+
+                if (location != null) {
+
+                    latitudUsuario = location.latitude
+                    longitudUsuario = location.longitude
+
+                    Log.d(
+                        "UBICACION",
+                        "Ubicación obtenida: $latitudUsuario, $longitudUsuario"
+                    )
+
+                    adapterSeccionesProveedores.actualizarUbicacion(
+                        latitudUsuario!!,
+                        longitudUsuario!!
+                    )
+                }
+            }
+            // ==========================================
+            // ERROR AL OBTENER UBICACIÓN
+            // ==========================================
+            .addOnFailureListener { error ->
+                Log.e(
+                    "UBICACION",
+                    "Error obteniendo ubicación: ${error.message}",
+                    error
+                )
+            }
+    }
+    private fun abrirFiltrosProveedores() {
+
+        val panel = binding.panelFiltrosProveedores
+
+        panel.visibility = View.VISIBLE
+
+        panel.post {
+
+            val vista =
+                panel.getChildAt(0)
+
+            vista.translationY =
+                vista.height.toFloat()
+
+            vista.animate()
+                .translationY(0f)
+                .setDuration(350)
+                .setInterpolator(
+                    DecelerateInterpolator()
+                )
+                .start()
+        }
+    }
+    private fun cerrarFiltrosProveedores() {
+
+        val panel =
+            binding.panelFiltrosProveedores
+
+        val vista =
+            panel.getChildAt(0)
+
+        vista.animate()
+            .translationY(vista.height.toFloat())
+            .setDuration(300)
+            .setInterpolator(
+                AccelerateInterpolator()
+            )
+            .withEndAction {
+
+                panel.visibility =
+                    View.GONE
+
+                vista.translationY = 0f
+            }
+            .start()
+    }
+    private fun limpiarFiltrosProveedores() {
+
+        binding.panelFiltrosProveedores
+            .findViewById<ChipGroup>(
+                R.id.chipGroupDistancia
+            )
+            .clearCheck()
+
+        binding.panelFiltrosProveedores
+            .findViewById<ChipGroup>(
+                R.id.chipGroupIngredientes
+            )
+            .clearCheck()
+
+        binding.panelFiltrosProveedores
+            .findViewById<ChipGroup>(
+                R.id.chipGroupRecetas
+            )
+            .clearCheck()
+
+
+        val secciones =
+            crearSeccionesProveedores(
+                listaProveedores
+            )
+
+        adapterSeccionesProveedores.actualizar(
+            secciones
+        )
+
+        // Volver a mostrar los proveedores
+        mostrarEstadoProveedores(
+            secciones.isNotEmpty()
+        )
+
+        Log.d(
+            "FILTROS",
+            "Filtros limpiados"
+        )
+    }
+    private fun aplicarFiltrosProveedores() {
+
+        // ==========================================
+        // DISTANCIA
+        // ==========================================
+
+        val chipDistanciaSeleccionado =
+            binding.panelFiltrosProveedores.findViewById<ChipGroup>(R.id.chipGroupDistancia)
+                .checkedChipId
+
+
+        // ==========================================
+        // INGREDIENTES
+        // ==========================================
+
+        val categoriasIngredientes =
+            obtenerChipsSeleccionados(
+                binding.panelFiltrosProveedores.findViewById<ChipGroup>(R.id.chipGroupIngredientes)
+            )
+
+
+        // ==========================================
+        // RECETAS
+        // ==========================================
+
+        val categoriasRecetas =
+            obtenerChipsSeleccionados(
+                binding.panelFiltrosProveedores.findViewById<ChipGroup>(R.id.chipGroupRecetas)
+
+            )
+
+
+        Log.d(
+            "FILTROS",
+            "Distancia: $chipDistanciaSeleccionado"
+        )
+
+        Log.d(
+            "FILTROS",
+            "Ingredientes: $categoriasIngredientes"
+        )
+
+        Log.d(
+            "FILTROS",
+            "Recetas: $categoriasRecetas"
+        )
+
+
+        // ==========================================
+        // FILTRAR
+        // ==========================================
+
+        val proveedoresFiltrados =
+            listaProveedores.filter { proveedor ->
+
+                cumpleFiltroDistancia(
+                    proveedor,
+                    chipDistanciaSeleccionado
+                ) &&
+                        cumpleFiltroIngredientes(
+                            proveedor,
+                            categoriasIngredientes
+                        ) &&
+                        cumpleFiltroRecetas(
+                            proveedor,
+                            categoriasRecetas
+                        )
+            }
+
+
+        // ==========================================
+        // ACTUALIZAR RECYCLER
+        // ==========================================
+
+        val seccionesFiltradas =
+            crearSeccionesProveedores(
+                proveedoresFiltrados
+            )
+
+        adapterSeccionesProveedores.actualizar(
+            seccionesFiltradas
+        )
+
+// Mostrar RecyclerView o mensaje de "sin resultados"
+        mostrarEstadoProveedores(
+            seccionesFiltradas.isNotEmpty()
+        )
+
+        cerrarFiltrosProveedores()
+
+
+        Log.d(
+            "FILTROS",
+            "Proveedores encontrados: ${proveedoresFiltrados.size}"
+        )
+    }
+    private fun obtenerChipsSeleccionados(
+        chipGroup: ChipGroup
+    ): List<String> {
+
+        return chipGroup.children
+            .filter { it is Chip && it.isChecked }
+            .map { (it as Chip).text.toString() }
+            .toList()
+    }
+    private fun cumpleFiltroIngredientes(
+        proveedor: Proveedor,
+        categoriasSeleccionadas: List<String>
+    ): Boolean {
+
+        // No hay filtro
+        if (categoriasSeleccionadas.isEmpty()) {
+            return true
+        }
+
+        return proveedor.INGREDIENTES.any { ingrediente ->
+
+            categoriasSeleccionadas.any { categoria ->
+
+                ingrediente.CATEGORIA
+                    ?.trim()
+                    ?.equals(
+                        categoria.trim(),
+                        ignoreCase = true
+                    ) == true
+            }
+        }
+    }
+    private fun cumpleFiltroRecetas(
+        proveedor: Proveedor,
+        categoriasSeleccionadas: List<String>
+    ): Boolean {
+
+        // No hay filtro
+        if (categoriasSeleccionadas.isEmpty()) {
+            return true
+        }
+
+        return proveedor.RECETAS.any { receta ->
+
+            categoriasSeleccionadas.any { categoria ->
+
+                receta.CATEGORIA
+                    ?.trim()
+                    ?.equals(
+                        categoria.trim(),
+                        ignoreCase = true
+                    ) == true
+            }
+        }
+    }
+    private fun cumpleFiltroDistancia(
+        proveedor: Proveedor,
+        chipDistancia: Int
+    ): Boolean {
+
+        // ==========================================
+        // SIN FILTRO DE DISTANCIA
+        // ==========================================
+
+        if (chipDistancia == View.NO_ID) {
+            return true
+        }
+
+        // ==========================================
+        // VERIFICAR UBICACIÓN DEL USUARIO
+        // ==========================================
+
+        val latUsuario = latitudUsuario
+        val lonUsuario = longitudUsuario
+
+        if (latUsuario == null || lonUsuario == null) {
+
+            Log.d(
+                "FILTROS",
+                "No hay ubicación del usuario"
+            )
+
+            return false
+        }
+
+        // ==========================================
+        // UBICACIÓN DEL PROVEEDOR
+        // ==========================================
+
+        val latProveedor =
+            proveedor.Pro_Latitud
+                ?.toDoubleOrNull()
+
+        val lonProveedor =
+            proveedor.Pro_Longitud
+                ?.toDoubleOrNull()
+
+        if (
+            latProveedor == null ||
+            lonProveedor == null
+        ) {
+
+            return false
+        }
+
+        // ==========================================
+        // CALCULAR DISTANCIA EN METROS
+        // ==========================================
+
+        val ubicacionUsuario =
+            Location("usuario").apply {
+                latitude = latUsuario
+                longitude = lonUsuario
+            }
+
+        val ubicacionProveedor =
+            Location("proveedor").apply {
+                latitude = latProveedor
+                longitude = lonProveedor
+            }
+
+        val distanciaKm =
+            ubicacionUsuario.distanceTo(
+                ubicacionProveedor
+            ) / 1000.0
+
+        // ==========================================
+        // COMPARAR CON EL CHIP
+        // ==========================================
+
+        return when (chipDistancia) {
+
+            R.id.chip0a5 -> {
+                distanciaKm >= 0 &&
+                        distanciaKm <= 5
+            }
+
+            R.id.chip5a10 -> {
+                distanciaKm > 5 &&
+                        distanciaKm <= 10
+            }
+
+            R.id.chip10a15 -> {
+                distanciaKm > 10 &&
+                        distanciaKm <= 15
+            }
+
+            R.id.chip15mas -> {
+                distanciaKm > 15
+            }
+
+            else -> true
+        }
+    }
+    private fun crearSeccionesProveedores(
+        proveedores: List<Proveedor>
+    ): List<SeccionProveedores> {
+
+        val secciones = mutableListOf<SeccionProveedores>()
+
+        // ==========================================
+        // OBTENER CATEGORÍAS
+        // ==========================================
+
+        val categorias = mutableListOf<String>()
+
+        for (proveedor in proveedores) {
+
+            // --------------------------
+            // CATEGORÍAS DE INGREDIENTES
+            // --------------------------
+
+            proveedor.CATEGORIAS.forEach { categoria ->
+
+                val categoriaLimpia =
+                    categoria.trim()
+
+                if (
+                    categoriaLimpia.isNotEmpty() &&
+                    !categorias.any {
+                        it.equals(
+                            categoriaLimpia,
+                            ignoreCase = true
+                        )
+                    }
+                ) {
+
+                    categorias.add(
+                        categoriaLimpia
+                    )
+                }
+            }
+
+            // --------------------------
+            // CATEGORÍAS DE RECETAS
+            // --------------------------
+
+            proveedor.CATEGORIAS_RECETAS.forEach { categoria ->
+
+                val categoriaLimpia =
+                    categoria.trim()
+
+                if (
+                    categoriaLimpia.isNotEmpty() &&
+                    !categorias.any {
+                        it.equals(
+                            categoriaLimpia,
+                            ignoreCase = true
+                        )
+                    }
+                ) {
+
+                    categorias.add(
+                        categoriaLimpia
+                    )
+                }
+            }
+        }
+
+        // ==========================================
+        // CREAR CADA SECCIÓN
+        // ==========================================
+
+        for (categoria in categorias) {
+
+            val proveedoresCategoria =
+                proveedores.filter { proveedor ->
+
+                    // --------------------------
+                    // INGREDIENTES
+                    // --------------------------
+
+                    val tieneIngrediente =
+                        proveedor.INGREDIENTES.any { ingrediente ->
+
+                            ingrediente.CATEGORIA
+                                ?.trim()
+                                ?.equals(
+                                    categoria.trim(),
+                                    ignoreCase = true
+                                ) == true
+                        }
+
+                    // --------------------------
+                    // RECETAS
+                    // --------------------------
+
+                    val tieneReceta =
+                        proveedor.RECETAS.any { receta ->
+
+                            receta.CATEGORIA
+                                ?.trim()
+                                ?.equals(
+                                    categoria.trim(),
+                                    ignoreCase = true
+                                ) == true
+                        }
+
+                    tieneIngrediente || tieneReceta
+                }
+
+            if (proveedoresCategoria.isNotEmpty()) {
+
+                secciones.add(
+                    SeccionProveedores(
+                        categoria = categoria,
+                        proveedores = proveedoresCategoria
+                    )
+                )
+            }
+        }
+
+        return secciones
+    }
+    private fun mostrarEstadoProveedores(
+        hayResultados: Boolean
+    ) {
+
+        if (hayResultados) {
+
+            binding.rvProveedores.visibility =
+                View.VISIBLE
+
+            binding.layoutSinProveedores.visibility =
+                View.GONE
+
+        } else {
+
+            binding.rvProveedores.visibility =
+                View.GONE
+
+            binding.layoutSinProveedores.visibility =
+                View.VISIBLE
+        }
+    }
+    private fun configurarBusquedaProveedores() {
+
+        binding.headerProveedores.edtBuscarProveedor
+            .doAfterTextChanged { textoEditable ->
+
+                val texto =
+                    textoEditable
+                        ?.toString()
+                        ?.trim()
+                        ?: ""
+
+                // ==========================================
+                // SIN TEXTO
+                // ==========================================
+
+                if (texto.isEmpty()) {
+
+                    val secciones =
+                        crearSeccionesProveedores(
+                            listaProveedores
+                        )
+
+                    adapterSeccionesProveedores.actualizar(
+                        secciones
+                    )
+
+                    mostrarEstadoProveedores(
+                        listaProveedores.isNotEmpty()
+                    )
+
+                    return@doAfterTextChanged
+                }
+
+
+                // ==========================================
+                // BUSCAR PROVEEDORES
+                // ==========================================
+
+                val proveedoresFiltrados =
+                    listaProveedores.filter { proveedor ->
+
+                        // ----------------------------------
+                        // 1. BUSCAR POR NOMBRE DEL PROVEEDOR
+                        // ----------------------------------
+
+                        val coincideNombreProveedor =
+                            proveedor.Pro_nombre
+                                ?.contains(
+                                    texto,
+                                    ignoreCase = true
+                                ) == true
+
+
+                        // ----------------------------------
+                        // 2. BUSCAR POR INGREDIENTE
+                        //    INGREDIENTES.NOMBRE
+                        // ----------------------------------
+
+                        val coincideIngrediente =
+                            proveedor.INGREDIENTES.any { ingrediente ->
+
+                                ingrediente.NOMBRE
+                                    ?.contains(
+                                        texto,
+                                        ignoreCase = true
+                                    ) == true
+                            }
+
+
+                        // ----------------------------------
+                        // 3. BUSCAR POR CATEGORÍA
+                        //    INGREDIENTES.CATEGORIA
+                        // ----------------------------------
+
+                        val coincideCategoriaIngrediente =
+                            proveedor.INGREDIENTES.any { ingrediente ->
+
+                                ingrediente.CATEGORIA
+                                    ?.contains(
+                                        texto,
+                                        ignoreCase = true
+                                    ) == true
+                            }
+                        // ----------------------------------
+                        // 4. BUSCAR POR CATEGORÍA
+                        //    Recetas.nombre
+                        // ----------------------------------
+                        val coincideRecetaNombre =
+                            proveedor.RECETAS.any{ receta ->
+                                receta.NOMBRE
+                                    ?.contains(
+                                        texto,
+                                        ignoreCase = true
+                                    )== true
+
+
+                            }
+
+
+                        // ----------------------------------
+                        // EL PROVEEDOR COINCIDE SI CUALQUIERA
+                        // DE LOS TRES CRITERIOS SE CUMPLE
+                        // ----------------------------------
+
+                        coincideNombreProveedor ||
+                                coincideIngrediente ||
+                                coincideCategoriaIngrediente ||
+                                coincideRecetaNombre
+                    }
+
+
+                // ==========================================
+                // LOG
+                // ==========================================
+
+                Log.d(
+                    "BUSQUEDA_PROVEEDOR",
+                    "Texto: $texto"
+                )
+
+                Log.d(
+                    "BUSQUEDA_PROVEEDOR",
+                    "Resultados: ${proveedoresFiltrados.size}"
+                )
+
+
+                // ==========================================
+                // MOSTRAR RESULTADOS
+                // ==========================================
+
+                if (proveedoresFiltrados.isNotEmpty()) {
+
+                    val secciones =
+                        crearSeccionesProveedores(
+                            proveedoresFiltrados
+                        )
+
+                    adapterSeccionesProveedores.actualizar(
+                        secciones
+                    )
+
+                    mostrarEstadoProveedores(
+                        true
+                    )
+
+                } else {
+
+                    // ==========================================
+                    // SIN RESULTADOS
+                    // ==========================================
+
+                    adapterSeccionesProveedores.actualizar(
+                        emptyList()
+                    )
+
+                    mostrarEstadoProveedores(
+                        false
+                    )
+                }
+            }
+    }
+
+
+
+
 
 }

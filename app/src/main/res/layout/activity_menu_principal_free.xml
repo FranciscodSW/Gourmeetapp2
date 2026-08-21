@@ -234,8 +234,6 @@
             android:padding="3dp"
             app:chipSpacing="2dp"/>
     </LinearLayout>
-
-
     <!-- PANEL DE BÚSQUEDA -->
     <LinearLayout
         android:id="@+id/panelBusqueda"
@@ -420,8 +418,63 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+    <FrameLayout
+        android:id="@+id/panelProveedores"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@android:color/white"
+        android:elevation="15dp"
+        android:layout_marginTop="30dp"
+        android:translationX="400dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/barraInferior"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- ENCABEZADO -->
+        <include
+            android:id="@+id/headerProveedores"
+            layout="@layout/encabezado_ventana_proveedor"
+            android:layout_width="match_parent"
+            android:layout_height="105dp"
+            android:layout_gravity="top"/>
 
+        <!-- LISTA DE PROVEEDORES -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvProveedores"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="105dp"
+            android:clipToPadding="false"
+            android:overScrollMode="never"/>
+
+        <!-- ========================================= -->
+        <!-- SIN RESULTADOS -->
+        <!-- ========================================= -->
+
+        <LinearLayout
+            android:id="@+id/layoutSinProveedores"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="105dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="30dp"
+            android:visibility="gone"
+            android:background="@color/white">
+
+            <ImageView
+                android:id="@+id/imgSinProveedores"
+                android:layout_width="280dp"
+                android:layout_height="280dp"
+                android:src="@drawable/ic_no_se_encontro_provedor"
+                android:scaleType="fitCenter"
+                android:contentDescription="No se encontraron proveedores"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigationView"
@@ -436,4 +489,23 @@
         app:itemHorizontalPadding="5dp"
         app:itemTextAppearance="@style/TextoMenuLateral"
         app:menu="@menu/menu_lateral"/>
+    <FrameLayout
+        android:id="@+id/panelFiltrosProveedores"
+        android:layout_width="match_parent"
+        android:layout_height="350dp"
+        android:elevation="30dp"
+        android:layout_marginTop="440dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        <include
+            layout="@layout/panel_filtros_proveedores"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom"/>
+
+    </FrameLayout>
+
+
 </androidx.drawerlayout.widget.DrawerLayout>

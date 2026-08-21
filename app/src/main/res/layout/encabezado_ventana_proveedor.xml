@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="125dp"
+    android:background="@drawable/bg_rectangulo_azul_margen_negro"
+    android:paddingHorizontal="12dp">
+
+    <!-- ================================= -->
+    <!-- TÍTULO -->
+    <!-- ================================= -->
+
+    <TextView
+        android:id="@+id/txtTituloProveedores"
+        android:layout_width="0dp"
+        android:layout_height="35dp"
+        android:text="Nuestros proveedores para ti"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/caviardreams"
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+
+
+    <!-- ================================= -->
+    <!-- CONTENEDOR DE BOTONES -->
+    <!-- ================================= -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/contenedorAccionesProveedor"
+        android:layout_width="0dp"
+        android:layout_height="65dp"
+        android:clipChildren="false"
+        app:layout_constraintTop_toBottomOf="@id/txtTituloProveedores"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- ================================= -->
+        <!-- 🔎 BUSCAR - PEGADO A LA IZQUIERDA -->
+        <!-- ================================= -->
+
+        <FrameLayout
+            android:id="@+id/contenedorBuscarProveedor"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageView
+                android:id="@+id/btnbuscar"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:padding="4dp"
+                android:src="@drawable/ic_lupa"
+                android:clickable="true"
+                android:focusable="true"
+                app:tint="@android:color/white"/>
+
+        </FrameLayout>
+
+
+        <!-- ================================= -->
+        <!-- 📍 UBICACIÓN -->
+        <!-- ================================= -->
+
+        <ImageView
+            android:id="@+id/btnubicaion"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_ubicacion"
+            android:clickable="true"
+            android:focusable="true"
+            app:tint="@android:color/white"
+
+            app:layout_constraintStart_toEndOf="@id/contenedorBuscarProveedor"
+            app:layout_constraintEnd_toStartOf="@id/btnmiscoleccionesprovedor"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+
+        <!-- ================================= -->
+        <!-- 💾 MIS COLECCIONES -->
+        <!-- ================================= -->
+
+        <ImageView
+            android:id="@+id/btnmiscoleccionesprovedor"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_guardar"
+            android:clickable="true"
+            android:focusable="true"
+            app:tint="@android:color/white"
+
+            app:layout_constraintStart_toEndOf="@id/btnubicaion"
+            app:layout_constraintEnd_toStartOf="@id/btnfiltros"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+
+        <!-- ================================= -->
+        <!-- ⚙ FILTROS - PEGADO A LA DERECHA -->
+        <!-- ================================= -->
+
+        <ImageView
+            android:id="@+id/btnfiltros"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_filtro"
+            android:clickable="true"
+            android:focusable="true"
+            app:tint="@android:color/white"
+
+            app:layout_constraintStart_toEndOf="@id/btnmiscoleccionesprovedor"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+
+            app:layout_constraintHorizontal_chainStyle="spread_inside"/>
+        <!-- ================================= -->
+        <!-- BARRA DE BÚSQUEDA -->
+        <!-- ================================= -->
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/layoutBusquedaProveedor"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="55dp"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone"
+            android:translationX="-500dp"
+            app:cardCornerRadius="21dp"
+            app:cardBackgroundColor="@android:color/white">
+            <EditText
+                android:id="@+id/edtBuscarProveedor"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:hint="Buscar proveedor..."
+                android:singleLine="true"
+                android:paddingHorizontal="15dp"
+                android:textSize="13sp"
+                android:fontFamily="@font/caviardreams"/>
+
+        </androidx.cardview.widget.CardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -72,7 +72,7 @@ dependencies {
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.google.android.material:material:1.9.0")
-    implementation ("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.google.android.libraries.places:places:3.4.0")
     implementation("com.google.firebase:firebase-auth:22.3.1")
     // fire base
@@ -86,4 +86,5 @@ dependencies {
     implementation("com.facebook.android:facebook-android-sdk:[4,5)")
     // animaciones
     implementation("com.airbnb.android:lottie:6.6.7")
+
 }

@@ -144,4 +144,6 @@ interface ApiService {
     suspend fun listarRecetasRealizadas(
         @Body request: RecetasRealizadasRequest
     ): RecetasRealizadasResponse
+    @GET("proveedores/listar_proveedores.php")
+    suspend fun listarProveedores(): ProveedoresResponse
 }
