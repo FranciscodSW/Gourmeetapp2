@@ -21,14 +21,9 @@ data class Proveedor(
     val Pro_GIRO: String?,
     val Pro_Des_Giro: String?,
     val Pro_Foto_Perfil: String?,
-
     val TIPO: String?,
-
     val CATEGORIAS: List<String>,
-
     val CATEGORIAS_RECETAS: List<String>,
-
     val INGREDIENTES: List<IngredienteProveedor>,
-
     val RECETAS: List<RecetaProveedor>
 )

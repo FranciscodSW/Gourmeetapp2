@@ -85,6 +85,12 @@
         <activity
             android:name=".MapaProveedoresActivity"
             android:exported="false" />
+        <activity
+            android:name=".MisColeccionesProveedoresActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PreferenciasdeCuentaActivity"
+            android:exported="false"/>
 
         <activity
             android:name=".MainActivity"

@@ -146,4 +146,22 @@ interface ApiService {
     ): RecetasRealizadasResponse
     @GET("proveedores/listar_proveedores.php")
     suspend fun listarProveedores(): ProveedoresResponse
+    @GET("proveedores/detalle_proveedor.php")
+    suspend fun obtenerDetalleProveedor(
+        @Query("ID_PROVEEDOR") idProveedor: Int
+    ): DetalleProveedorResponse
+    @GET("proveedores/listar_recetas_proveedor.php")
+    suspend fun listarRecetasProveedor(
+        @Query("idProveedor") idProveedor: Int
+    ): RecetasProveedorResponse
+    @POST("colecciones/agregar_proveedor_coleccion.php")
+    suspend fun crearProveedorColeccion(
+        @Body datos: CrearColeccionProveedor
+    ): CrearColeccionProveedorResponse
+
+    @POST("colecciones/listar_colecciones_proveedores.php")
+    suspend fun listarColeccionesProveedores(
+        @Body datos: ConsultarColeccionesProveedor
+    ): ListarColeccionesProveedoresResponse
+
 }

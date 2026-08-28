@@ -5,26 +5,25 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.gourmeet2.data.models.Proveedor
 import com.example.gourmeet2.data.models.SeccionProveedores
 import com.example.gourmeet2.databinding.ItemSeccionProveedoresBinding
 
 class SeccionesProveedoresAdapter(
-    private val secciones: MutableList<SeccionProveedores>
+    private val secciones: MutableList<SeccionProveedores>,
+    private val onClick: (Proveedor) -> Unit
 ) : RecyclerView.Adapter<SeccionesProveedoresAdapter.SeccionViewHolder>() {
-
     // ==========================================
     // UBICACIÓN DEL USUARIO
     // ==========================================
-
     private var latitudUsuario: Double? = null
     private var longitudUsuario: Double? = null
-
-
     inner class SeccionViewHolder(
         val binding: ItemSeccionProveedoresBinding
     ) : RecyclerView.ViewHolder(binding.root)
-
-
+    // ==========================================
+    // CREAR VIEW HOLDER
+    // ==========================================
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -40,6 +39,10 @@ class SeccionesProveedoresAdapter(
         return SeccionViewHolder(binding)
     }
 
+
+    // ==========================================
+    // MOSTRAR SECCIÓN
+    // ==========================================
 
     override fun onBindViewHolder(
         holder: SeccionViewHolder,
@@ -59,7 +62,7 @@ class SeccionesProveedoresAdapter(
 
 
         // ==========================================
-        // PROVEEDORES DE ESTA CATEGORÍA
+        // ADAPTER DE PROVEEDORES
         // ==========================================
 
         val adapterProveedores =
@@ -68,9 +71,11 @@ class SeccionesProveedoresAdapter(
                 seccion.categoria
             ) { proveedor ->
 
-                // Posteriormente abriremos
-                // el detalle del proveedor
+                // ==========================================
+                // ENVIAR PROVEEDOR AL ADAPTER PRINCIPAL
+                // ==========================================
 
+                onClick(proveedor)
             }
 
 
@@ -109,6 +114,10 @@ class SeccionesProveedoresAdapter(
     }
 
 
+    // ==========================================
+    // TOTAL DE SECCIONES
+    // ==========================================
+
     override fun getItemCount(): Int =
         secciones.size
 
@@ -145,9 +154,6 @@ class SeccionesProveedoresAdapter(
 
         longitudUsuario =
             longitud
-
-        // Volvemos a crear los adapters
-        // internos con la nueva ubicación
 
         notifyDataSetChanged()
     }

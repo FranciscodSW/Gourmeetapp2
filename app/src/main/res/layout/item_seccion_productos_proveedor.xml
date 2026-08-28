@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    android:orientation="vertical"
+    android:paddingHorizontal="8dp"
+    android:paddingBottom="10dp">
+
+
+    <!-- ===================================== -->
+    <!-- ENCABEZADO DE LA SECCIÓN -->
+    <!-- ===================================== -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+
+        <!-- RECTÁNGULO AZUL -->
+
+        <TextView
+            android:id="@+id/txtTituloSeccion"
+
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+
+            android:layout_weight="1"
+
+            android:gravity="center"
+
+            android:text="Carne"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+
+            android:fontFamily="@font/caviardreams"
+
+            android:background="@drawable/bg_ovalo_azul"/>
+
+
+        <!-- BOTÓN GUARDAR PROVEEDOR -->
+
+        <ImageView
+            android:id="@+id/btnGuardarProveedorSeccion"
+
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+
+            android:layout_marginStart="6dp"
+
+            android:padding="7dp"
+
+            android:src="@drawable/ic_guardar"
+            android:contentDescription="Guardar proveedor"/>
+
+    </LinearLayout>
+
+
+    <!-- ===================================== -->
+    <!-- INGREDIENTES -->
+    <!-- ===================================== -->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvIngredientesSeccion"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="4dp"
+
+        android:clipToPadding="false"
+        android:overScrollMode="never"/>
+
+
+    <!-- ===================================== -->
+    <!-- RECETAS -->
+    <!-- ===================================== -->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvRecetasSeccion"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="4dp"
+
+        android:visibility="gone"
+
+        android:clipToPadding="false"
+        android:overScrollMode="never"/>
+
+</LinearLayout>

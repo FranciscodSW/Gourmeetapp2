@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="8dp"
+    android:paddingBottom="12dp">
+
+    <!-- ===================================== -->
+    <!-- NOMBRE DE LA COLECCIÓN -->
+    <!-- ===================================== -->
+
+    <TextView
+        android:id="@+id/txtNombreColeccion"
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:gravity="center"
+        android:text="Abarrotes"
+        android:textColor="@color/azulgourmeet"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/caviardreams"
+        android:background="@color/white"/>
+
+
+    <!-- ===================================== -->
+    <!-- PROVEEDORES -->
+    <!-- ===================================== -->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvProveedoresColeccion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:clipToPadding="false"
+        android:overScrollMode="never"/>
+
+</LinearLayout>

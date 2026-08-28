@@ -73,7 +73,7 @@
             android:layout_width="140dp"
             android:layout_height="30dp"
             android:layout_marginTop="35dp"
-            app:cardElevation="1dp"
+            app:cardElevation="0dp"
             app:cardBackgroundColor="#33FFFFFF">
 
             <LinearLayout

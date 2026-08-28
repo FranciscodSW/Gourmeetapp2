@@ -38,13 +38,14 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ScrollView
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.children
 import com.facebook.appevents.codeless.internal.ViewHierarchy.setOnClickListener
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import androidx.core.widget.doAfterTextChanged
-
+import androidx.activity.OnBackPressedCallback
 class Menu_principal_free : AppCompatActivity() {
     private var menuAbierto = false
     private lateinit var binding: ActivityMenuPrincipalFreeBinding
@@ -72,6 +73,94 @@ class Menu_principal_free : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMenuPrincipalFreeBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+
+                override fun handleOnBackPressed() {
+
+                    // ======================================
+                    // DETALLE DE RECETA ABIERTO
+                    // ======================================
+
+                    if (
+                        binding.containerDetalleReceta.visibility ==
+                        View.VISIBLE
+                    ) {
+
+                        cerrarDetalleReceta()
+
+                        return
+                    }
+
+
+                    // ======================================
+                    // DETALLE DE PROVEEDOR ABIERTO
+                    // ======================================
+
+                    if (
+                        binding.containerDetalleProveedor.visibility ==
+                        View.VISIBLE
+                    ) {
+
+                        cerrarDetalleProveedor()
+
+                        return
+                    }
+
+
+                    // ======================================
+                    // MIS COLECCIONES ABIERTAS
+                    // ======================================
+
+                    if (
+                        binding.rvMisColeccionesProveedores.visibility ==
+                        View.VISIBLE
+                    ) {
+
+                        cerrarMisColeccionesProveedores()
+
+                        return
+                    }
+
+
+                    // ======================================
+                    // FILTROS ABIERTOS
+                    // ======================================
+
+                    if (
+                        binding.panelFiltrosProveedores.visibility ==
+                        View.VISIBLE
+                    ) {
+
+                        cerrarFiltrosProveedores()
+
+                        return
+                    }
+                    // ======================================
+                    // BÚSQUEDA DE PROVEEDOR ABIERTA
+                    // ======================================
+                    if (busquedaProveedorAbierta) {
+
+                        cerrarBusquedaProveedor()
+
+                        return
+                    }
+
+
+                    // ======================================
+                    // SI NO HAY NINGÚN PANEL ABIERTO
+                    // DEJAMOS QUE ANDROID REGRESE
+                    // ======================================
+
+                    isEnabled = false
+
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        )
+
+
         cargarUsuario()
         cargarInformacionUsuario()
         inicializarMenuLateral()
@@ -85,6 +174,8 @@ class Menu_principal_free : AppCompatActivity() {
         supportFragmentManager.addOnBackStackChangedListener {
             if (supportFragmentManager.backStackEntryCount == 0) {
                 binding.containerDetalleReceta.visibility = View.GONE
+                binding.containerDetalleProveedor.visibility =
+                    View.GONE
             }
         }
         actualizarModo()
@@ -127,7 +218,37 @@ class Menu_principal_free : AppCompatActivity() {
             } else {
 
                 // ==========================================
-                // ABRIR → ENTRA DESDE LA IZQUIERDA
+                // CERRAR MIS COLECCIONES
+                // ==========================================
+
+                binding.rvMisColeccionesProveedores.visibility =
+                    View.GONE
+
+
+                // ==========================================
+                // MOSTRAR LISTA NORMAL DE PROVEEDORES
+                // ==========================================
+
+                if (listaProveedores.isNotEmpty()) {
+
+                    binding.rvProveedores.visibility =
+                        View.VISIBLE
+
+                    binding.layoutSinProveedores.visibility =
+                        View.GONE
+
+                } else {
+
+                    binding.rvProveedores.visibility =
+                        View.GONE
+
+                    binding.layoutSinProveedores.visibility =
+                        View.VISIBLE
+                }
+
+
+                // ==========================================
+                // ABRIR PANEL DE PROVEEDORES
                 // ==========================================
 
                 binding.panelProveedores.visibility =
@@ -145,6 +266,12 @@ class Menu_principal_free : AppCompatActivity() {
                         .setDuration(300)
                         .start()
                 }
+
+
+                // ==========================================
+                // CARGAR PROVEEDORES
+                // ==========================================
+
                 cargarProveedores()
             }
         }
@@ -285,7 +412,14 @@ class Menu_principal_free : AppCompatActivity() {
 
             startActivity(intent)
         }
+        binding.headerProveedores.btnmiscoleccionesprovedor.setOnClickListener {
+            mostrarMisColeccionesProveedores()
+        }
         binding.headerProveedores.btnfiltros.setOnClickListener {
+
+            // ==========================================
+            // SI LOS FILTROS YA ESTÁN ABIERTOS
+            // ==========================================
 
             if (
                 binding.panelFiltrosProveedores.visibility ==
@@ -293,12 +427,41 @@ class Menu_principal_free : AppCompatActivity() {
             ) {
 
                 cerrarFiltrosProveedores()
+
                 binding.headerProveedores.btnfiltros
-                    .setImageResource(R.drawable.ic_filtro)
+                    .setImageResource(
+                        R.drawable.ic_filtro
+                    )
 
             } else {
+
+                // ==========================================
+                // CERRAR MIS COLECCIONES
+                // ==========================================
+
+                if (
+                    binding.rvMisColeccionesProveedores.visibility ==
+                    View.VISIBLE
+                ) {
+
+                    cerrarMisColeccionesProveedores()
+                }
+
+
+                // ==========================================
+                // CAMBIAR ICONO
+                // ==========================================
+
                 binding.headerProveedores.btnfiltros
-                    .setImageResource(R.drawable.ic_filtro_on)
+                    .setImageResource(
+                        R.drawable.ic_filtro_on
+                    )
+
+
+                // ==========================================
+                // ABRIR FILTROS
+                // ==========================================
+
                 abrirFiltrosProveedores()
             }
         }
@@ -333,87 +496,7 @@ class Menu_principal_free : AppCompatActivity() {
             cargarInformacionUsuario()
             binding.drawerLayout.openDrawer(GravityCompat.END)
         }
-        binding.navigationView.setNavigationItemSelectedListener { item ->
 
-            when (item.itemId) {
-
-                R.id.menu_preferencias -> {
-
-                    Toast.makeText(
-                        this,
-                        "Preferencias de cuenta",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                }
-
-                R.id.menu_administrar_hogar -> {
-
-                    Toast.makeText(
-                        this,
-                        "Administrar mi hogar",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                }
-
-                R.id.menu_mis_colecciones -> {
-
-                    val intent = Intent(
-                        this,
-                        MisColeccionesActivity::class.java
-                    )
-
-                    startActivity(intent)
-
-                }
-
-                R.id.menu_planeador_semanal -> {
-
-                    Toast.makeText(
-                        this,
-                        "Planeador semanal",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                }
-
-                R.id.menu_mi_alacena -> {
-
-                    Toast.makeText(
-                        this,
-                        "Mi alacena",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                }
-
-                R.id.menu_premium -> {
-
-                    Toast.makeText(
-                        this,
-                        "GourMeet Premium",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                }
-
-                else -> {
-
-                    // Aquí entran las colecciones dinámicas
-
-                    Toast.makeText(
-                        this,
-                        "Colección ID: ${item.itemId}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                }
-
-            }
-            false
-
-        }
         cargarRecetasInicio()
     }
     private fun cerrarMenu() {
@@ -658,24 +741,106 @@ class Menu_principal_free : AppCompatActivity() {
         }
 
     }
-    private fun abrirDetalleReceta(recetaId: Int) {
-        // Ocultar teclado
+    fun abrirDetalleReceta(recetaId: Int) {
+
+        // ==========================================
+        // VALIDAR RECETA
+        // ==========================================
+
+        if (recetaId <= 0) {
+            return
+        }
+
+
+        // ==========================================
+        // OCULTAR TECLADO
+        // ==========================================
+
         currentFocus?.let { view ->
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE)
-                    as InputMethodManager
+
+            val imm =
+                getSystemService(
+                    Context.INPUT_METHOD_SERVICE
+                ) as InputMethodManager
+
             imm.hideSoftInputFromWindow(
                 view.windowToken,
                 0
             )
+
             view.clearFocus()
         }
-        binding.containerDetalleReceta.visibility = View.VISIBLE
+
+
+        // ==========================================
+        // OCULTAR DETALLE DEL PROVEEDOR
+        // ==========================================
+
+        binding.containerDetalleProveedor.visibility =
+            View.GONE
+
+
+        // ==========================================
+        // MOSTRAR DETALLE DE RECETA
+        // ==========================================
+
+        binding.containerDetalleReceta.visibility =
+            View.VISIBLE
+
+
+        // ==========================================
+        // CREAR DETALLE DE RECETA
+        // ==========================================
+
         val fragment =
-            DetalleRecetaFragment.newInstance(recetaId)
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.containerDetalleReceta, fragment)
+            DetalleRecetaFragment.newInstance(
+                recetaId
+            )
+
+
+        // ==========================================
+        // ABRIR FRAGMENT
+        // ==========================================
+
+        supportFragmentManager
+            .beginTransaction()
+            .replace(
+                R.id.containerDetalleReceta,
+                fragment
+            )
             .addToBackStack(null)
             .commit()
+    }
+    private fun cerrarDetalleProveedor() {
+
+        // ==========================================
+        // OCULTAR DETALLE DEL PROVEEDOR
+        // ==========================================
+
+        binding.containerDetalleProveedor.visibility =
+            View.GONE
+
+
+        // ==========================================
+        // MOSTRAR PANEL DE PROVEEDORES
+        // ==========================================
+
+        binding.panelProveedores.visibility =
+            View.VISIBLE
+
+
+        // ==========================================
+        // ELIMINAR FRAGMENT DEL DETALLE
+        // ==========================================
+
+        supportFragmentManager.findFragmentById(
+            R.id.containerDetalleProveedor
+        )?.let { fragment ->
+
+            supportFragmentManager.beginTransaction()
+                .remove(fragment)
+                .commit()
+        }
     }
     private fun cargarUsuario() {
 
@@ -801,11 +966,12 @@ class Menu_principal_free : AppCompatActivity() {
 
                 R.id.menu_preferencias -> {
 
-                    Toast.makeText(
-                        this,
-                        "Preferencias de cuenta",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    startActivity(
+                        Intent(
+                            this,
+                            PreferenciasdeCuentaActivity::class.java
+                        )
+                    )
 
                 }
 
@@ -875,8 +1041,22 @@ class Menu_principal_free : AppCompatActivity() {
     }
     private fun abrirBusquedaProveedor() {
 
+        // ==========================================
+        // CERRAR MIS COLECCIONES SI ESTÁN ABIERTAS
+        // ==========================================
+
+        if (
+            binding.rvMisColeccionesProveedores.visibility ==
+            View.VISIBLE
+        ) {
+
+            cerrarMisColeccionesProveedores()
+        }
+
+
         val buscador =
             binding.headerProveedores.layoutBusquedaProveedor
+
 
         // ==========================================
         // OCULTAR 📍 💾 ⚙
@@ -902,7 +1082,6 @@ class Menu_principal_free : AppCompatActivity() {
 
         // ==========================================
         // ANIMACIÓN
-        // ENTRA DESDE LA DERECHA
         // ==========================================
 
         buscador.post {
@@ -924,7 +1103,8 @@ class Menu_principal_free : AppCompatActivity() {
         // ENFOCAR CAMPO
         // ==========================================
 
-        binding.headerProveedores.edtBuscarProveedor.requestFocus()
+        binding.headerProveedores.edtBuscarProveedor
+            .requestFocus()
 
 
         // ==========================================
@@ -1005,6 +1185,42 @@ class Menu_principal_free : AppCompatActivity() {
             0
         )
     }
+    private fun cerrarMisColeccionesProveedores() {
+
+        // ==========================================
+        // OCULTAR COLECCIONES
+        // ==========================================
+
+        binding.rvMisColeccionesProveedores.visibility =
+            View.GONE
+
+
+        // ==========================================
+        // MOSTRAR LISTA DE PROVEEDORES
+        // ==========================================
+
+        binding.rvProveedores.visibility =
+            View.VISIBLE
+
+
+        // ==========================================
+        // SI NO HAY PROVEEDORES
+        // ==========================================
+
+        if (listaProveedores.isEmpty()) {
+
+            binding.rvProveedores.visibility =
+                View.GONE
+
+            binding.layoutSinProveedores.visibility =
+                View.VISIBLE
+
+        } else {
+
+            binding.layoutSinProveedores.visibility =
+                View.GONE
+        }
+    }
     private fun configurarRecyclerProveedores() {
 
         binding.rvProveedores.apply {
@@ -1030,7 +1246,12 @@ class Menu_principal_free : AppCompatActivity() {
         adapterSeccionesProveedores =
             SeccionesProveedoresAdapter(
                 mutableListOf()
-            )
+            ) { proveedor ->
+
+                abrirDetalleProveedor(
+                    proveedor
+                )
+            }
 
         configurarRecyclerProveedores()
     }
@@ -1828,9 +2049,301 @@ class Menu_principal_free : AppCompatActivity() {
                 }
             }
     }
+    private fun abrirDetalleProveedor(
+        proveedor: Proveedor
+    ) {
+
+        // ==========================================
+        // OCULTAR TECLADO
+        // ==========================================
+
+        currentFocus?.let { view ->
+
+            val imm =
+                getSystemService(
+                    Context.INPUT_METHOD_SERVICE
+                ) as InputMethodManager
+
+            imm.hideSoftInputFromWindow(
+                view.windowToken,
+                0
+            )
+
+            view.clearFocus()
+        }
 
 
+        // ==========================================
+        // MOSTRAR CONTENEDOR
+        // ==========================================
+
+        binding.containerDetalleProveedor.visibility =
+            View.VISIBLE
 
 
+        // ==========================================
+        // CREAR FRAGMENT
+        // ==========================================
 
+        val fragment =
+            DetalleProveedorFragment.newInstance(
+
+                proveedor.Id_Proveedor.toString(),
+
+                latitudUsuario,
+
+                longitudUsuario
+            )
+
+
+        // ==========================================
+        // MOSTRAR DETALLE
+        // ==========================================
+
+        supportFragmentManager
+            .beginTransaction()
+            .setCustomAnimations(
+                android.R.anim.fade_in,
+                android.R.anim.fade_out
+            )
+            .replace(
+                R.id.containerDetalleProveedor,
+                fragment
+            )
+            .addToBackStack(
+                "detalle_proveedor"
+            )
+            .commit()
+    }
+    private fun mostrarMisColeccionesProveedores() {
+
+        // ==========================================
+        // CERRAR BUSCADOR SI ESTÁ ABIERTO
+        // ==========================================
+
+        if (busquedaProveedorAbierta) {
+
+            cerrarBusquedaProveedor()
+        }
+
+
+        // ==========================================
+        // CERRAR FILTROS SI ESTÁN ABIERTOS
+        // ==========================================
+
+        if (
+            binding.panelFiltrosProveedores.visibility ==
+            View.VISIBLE
+        ) {
+
+            cerrarFiltrosProveedores()
+
+            binding.headerProveedores.btnfiltros
+                .setImageResource(
+                    R.drawable.ic_filtro
+                )
+        }
+
+
+        // ==========================================
+        // OCULTAR LISTA NORMAL
+        // ==========================================
+
+        binding.rvProveedores.visibility =
+            View.GONE
+
+        binding.layoutSinProveedores.visibility =
+            View.GONE
+
+
+        // ==========================================
+        // MOSTRAR MIS COLECCIONES
+        // ==========================================
+
+        binding.rvMisColeccionesProveedores.visibility =
+            View.VISIBLE
+
+
+        // ==========================================
+        // CONFIGURAR RECYCLER
+        // ==========================================
+
+        binding.rvMisColeccionesProveedores.apply {
+
+            layoutManager =
+                LinearLayoutManager(
+                    this@Menu_principal_free,
+                    LinearLayoutManager.VERTICAL,
+                    false
+                )
+
+            setHasFixedSize(false)
+
+            isNestedScrollingEnabled =
+                true
+
+            overScrollMode =
+                RecyclerView.OVER_SCROLL_NEVER
+        }
+
+
+        // ==========================================
+        // CARGAR COLECCIONES
+        // ==========================================
+
+        cargarColeccionesProveedores()
+    }
+    private fun cargarColeccionesProveedores() {
+
+        // ==========================================
+        // OBTENER USUARIO
+        // ==========================================
+
+        val clienteId =
+            SesionUsuario.obtenerId(this)
+
+        if (clienteId <= 0) {
+
+            Toast.makeText(
+                this,
+                "Debes iniciar sesión.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+
+        // ==========================================
+        // CREAR PETICIÓN
+        // ==========================================
+
+        val datos =
+            ConsultarColeccionesProveedor(
+                CLI_ID = clienteId
+            )
+
+
+        // ==========================================
+        // CONSULTAR API
+        // ==========================================
+
+        lifecycleScope.launch {
+
+            try {
+
+                val respuesta =
+                    ApiClient.apiService
+                        .listarColeccionesProveedores(
+                            datos
+                        )
+
+
+                // ======================================
+                // RESPUESTA
+                // ======================================
+
+                if (respuesta.success) {
+
+                    val colecciones =
+                        respuesta.colecciones
+                            ?: emptyList()
+
+
+                    // ==================================
+                    // MOSTRAR COLECCIONES
+                    // ==================================
+
+                    mostrarColeccionesProveedores(
+                        colecciones
+                    )
+
+
+                    // ==================================
+                    // SI NO HAY COLECCIONES
+                    // ==================================
+
+                    if (colecciones.isEmpty()) {
+
+                        Toast.makeText(
+                            this@Menu_principal_free,
+                            "Aún no tienes colecciones de proveedores.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+
+                } else {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        respuesta.mensaje
+                            ?: "No se pudieron cargar las colecciones.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                Toast.makeText(
+                    this@Menu_principal_free,
+                    "Error al consultar las colecciones.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+    private fun mostrarColeccionesProveedores(
+        colecciones: List<ColeccionProveedor>
+    ) {
+
+        val adapter =
+            ColeccionesProveedoresAdapter(
+                colecciones
+            ) { proveedor ->
+
+                // ======================================
+                // CLICK EN PROVEEDOR
+                // ======================================
+
+                abrirDetalleProveedor(
+                    proveedor
+                )
+            }
+
+
+        binding.rvMisColeccionesProveedores.apply {
+
+            layoutManager =
+                LinearLayoutManager(
+                    this@Menu_principal_free,
+                    LinearLayoutManager.VERTICAL,
+                    false
+                )
+
+            this.adapter =
+                adapter
+
+            setHasFixedSize(false)
+
+            isNestedScrollingEnabled =
+                true
+
+            overScrollMode =
+                View.OVER_SCROLL_NEVER
+        }
+    }
+    fun cerrarDetalleReceta() {
+
+        binding.containerDetalleReceta.visibility =
+            View.GONE
+
+        binding.containerDetalleProveedor.visibility =
+            View.VISIBLE
+
+        supportFragmentManager.popBackStack()
+    }
 }

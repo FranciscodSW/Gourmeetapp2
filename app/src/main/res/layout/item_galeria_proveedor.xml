@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    android:layout_margin="8dp"
+
+    app:cardCornerRadius="18dp"
+    app:cardElevation="3dp">
+
+    <!-- ========================================== -->
+    <!-- CONTENEDOR HORIZONTAL -->
+    <!-- ========================================== -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:orientation="horizontal"
+        android:padding="5dp"
+        android:background="@android:color/white">
+
+        <!-- ========================================== -->
+        <!-- IMAGEN 1 -->
+        <!-- ========================================== -->
+
+        <ImageView
+            android:id="@+id/imgGaleriaProveedor1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+
+            android:src="@drawable/ic_proximamente"
+
+            android:scaleType="centerCrop"
+
+            android:contentDescription="Galería del proveedor"/>
+
+
+        <!-- ========================================== -->
+        <!-- ESPACIO DE 5DP -->
+        <!-- ========================================== -->
+
+        <Space
+            android:layout_width="10dp"
+            android:layout_height="match_parent"/>
+
+
+        <!-- ========================================== -->
+        <!-- IMAGEN 2 -->
+        <!-- ========================================== -->
+
+        <ImageView
+            android:id="@+id/imgGaleriaProveedor2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+
+            android:src="@drawable/ic_proximamente_1"
+
+            android:scaleType="centerCrop"
+
+            android:contentDescription="Galería del proveedor"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

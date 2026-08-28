@@ -1,7 +1,6 @@
 package com.example.gourmeet2
 
 import android.location.Location
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,18 +12,30 @@ import com.bumptech.glide.Glide
 
 class ProveedorAdapter(
     private val proveedores: List<Proveedor>,
-    private val categoriaActual: String,
+    private val categoriaActual: String = "",
     private val onClick: (Proveedor) -> Unit
 ) : RecyclerView.Adapter<ProveedorAdapter.ProveedorViewHolder>() {
+
+    // ==========================================
+    // UBICACIÓN DEL USUARIO
+    // ==========================================
 
     var latitudUsuario: Double? = null
     var longitudUsuario: Double? = null
 
 
+    // ==========================================
+    // VIEW HOLDER
+    // ==========================================
+
     inner class ProveedorViewHolder(
         val binding: ItemProveedorBinding
     ) : RecyclerView.ViewHolder(binding.root)
 
+
+    // ==========================================
+    // CREAR VIEW HOLDER
+    // ==========================================
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -42,6 +53,10 @@ class ProveedorAdapter(
     }
 
 
+    // ==========================================
+    // BIND
+    // ==========================================
+
     override fun onBindViewHolder(
         holder: ProveedorViewHolder,
         position: Int
@@ -52,17 +67,20 @@ class ProveedorAdapter(
 
 
         // ==========================================
-        // INFORMACIÓN
+        // INFORMACIÓN DEL PROVEEDOR
         // ==========================================
 
         holder.binding.txtTitulo.text =
-            proveedor.Pro_nombre ?: "Proveedor"
+            proveedor.Pro_nombre
+                ?: "Proveedor"
 
         holder.binding.txtgiro.text =
-            proveedor.Pro_Des_Giro ?: ""
+            proveedor.Pro_Des_Giro
+                ?: ""
 
         holder.binding.txtProGIRO.text =
-            proveedor.Pro_GIRO ?: ""
+            proveedor.Pro_GIRO
+                ?: ""
 
 
         // ==========================================
@@ -72,7 +90,9 @@ class ProveedorAdapter(
         Glide.with(
             holder.itemView.context
         )
-            .load(proveedor.Pro_Foto_Perfil)
+            .load(
+                proveedor.Pro_Foto_Perfil
+            )
             .placeholder(
                 R.drawable.logo_blanco_negro
             )
@@ -80,48 +100,75 @@ class ProveedorAdapter(
                 R.drawable.logo_blanco_negro
             )
             .centerCrop()
-            .into(holder.binding.imgprovedor)
+            .into(
+                holder.binding.imgprovedor
+            )
 
 
         // ==========================================
-        // INGREDIENTES
+        // OBTENER CATEGORÍAS DE RECETAS
         // ==========================================
+        //
+        // Puede venir null cuando el proveedor
+        // proviene de listar_colecciones_proveedores.php
+        //
+
+        val categoriasRecetas =
+            proveedor.CATEGORIAS_RECETAS
+                ?: emptyList()
+
 
         // ==========================================
-// CONTENIDO SEGÚN CATEGORÍA
-// ==========================================
+        // OBTENER INGREDIENTES
+        // ==========================================
+        //
+        // Puede venir null cuando el proveedor
+        // no tiene ingredientes asociados.
+        //
+
+        val ingredientes =
+            proveedor.INGREDIENTES
+                ?: emptyList()
+
+
+        // ==========================================
+        // DETERMINAR SI ES CATEGORÍA DE RECETA
+        // ==========================================
 
         val esCategoriaReceta =
-            proveedor.CATEGORIAS_RECETAS.any { categoria ->
+            categoriaActual.isNotEmpty() &&
+                    categoriasRecetas.any { categoria ->
 
-                categoria.trim().equals(
-                    categoriaActual.trim(),
-                    ignoreCase = true
-                )
-            }
+                        categoria.trim().equals(
+                            categoriaActual.trim(),
+                            ignoreCase = true
+                        )
+                    }
 
 
-// ==========================================
-// SI LA CATEGORÍA ES DE RECETAS
-// ==========================================
+        // ==========================================
+        // CONTENIDO SEGÚN CATEGORÍA
+        // ==========================================
 
         if (esCategoriaReceta) {
 
-            // NO mostrar ingredientes
+            // ======================================
+            // ES CATEGORÍA DE RECETA
+            // ======================================
+
             holder.binding.rvIngredientes.visibility =
                 View.GONE
 
-            // Mostrar "Conoce sus platillos"
             holder.binding.layoutConocePlatillos.visibility =
                 View.VISIBLE
 
         } else {
 
-            // ==========================================
-            // CATEGORÍA DE INGREDIENTES
-            // ==========================================
+            // ======================================
+            // ES CATEGORÍA DE INGREDIENTES
+            // ======================================
 
-            if (proveedor.INGREDIENTES.isNotEmpty()) {
+            if (ingredientes.isNotEmpty()) {
 
                 holder.binding.layoutConocePlatillos.visibility =
                     View.GONE
@@ -129,10 +176,16 @@ class ProveedorAdapter(
                 holder.binding.rvIngredientes.visibility =
                     View.VISIBLE
 
+
+                // ==================================
+                // ADAPTER DE INGREDIENTES
+                // ==================================
+
                 val adapterIngredientes =
                     IngredientesProveedorAdapter(
-                        proveedor.INGREDIENTES
+                        ingredientes
                     )
+
 
                 holder.binding.rvIngredientes.apply {
 
@@ -154,6 +207,10 @@ class ProveedorAdapter(
 
             } else {
 
+                // ==================================
+                // NO HAY INGREDIENTES
+                // ==================================
+
                 holder.binding.rvIngredientes.visibility =
                     View.GONE
 
@@ -161,6 +218,7 @@ class ProveedorAdapter(
                     View.VISIBLE
             }
         }
+
 
         // ==========================================
         // DISTANCIA
@@ -173,16 +231,21 @@ class ProveedorAdapter(
 
 
         // ==========================================
-        // CLICK
+        // CLICK EN PROVEEDOR
         // ==========================================
 
         holder.itemView.setOnClickListener {
 
-            onClick(proveedor)
-
+            onClick(
+                proveedor
+            )
         }
     }
 
+
+    // ==========================================
+    // CALCULAR DISTANCIA
+    // ==========================================
 
     private fun calcularDistancia(
         holder: ProveedorViewHolder,
@@ -195,12 +258,19 @@ class ProveedorAdapter(
         val lonUsuario =
             longitudUsuario
 
+
         val latProveedor =
-            proveedor.Pro_Latitud?.toDoubleOrNull()
+            proveedor.Pro_Latitud
+                ?.toDoubleOrNull()
 
         val lonProveedor =
-            proveedor.Pro_Longitud?.toDoubleOrNull()
+            proveedor.Pro_Longitud
+                ?.toDoubleOrNull()
 
+
+        // ==========================================
+        // VALIDAR COORDENADAS
+        // ==========================================
 
         if (
             latUsuario != null &&
@@ -208,6 +278,10 @@ class ProveedorAdapter(
             latProveedor != null &&
             lonProveedor != null
         ) {
+
+            // ======================================
+            // UBICACIÓN DEL USUARIO
+            // ======================================
 
             val ubicacionUsuario =
                 Location("usuario").apply {
@@ -220,6 +294,10 @@ class ProveedorAdapter(
                 }
 
 
+            // ======================================
+            // UBICACIÓN DEL PROVEEDOR
+            // ======================================
+
             val ubicacionProveedor =
                 Location("proveedor").apply {
 
@@ -231,13 +309,22 @@ class ProveedorAdapter(
                 }
 
 
+            // ======================================
+            // CALCULAR DISTANCIA
+            // ======================================
+
             val distancia =
                 ubicacionUsuario.distanceTo(
                     ubicacionProveedor
                 )
 
 
+            // ======================================
+            // MOSTRAR DISTANCIA
+            // ======================================
+
             holder.binding.txtDistancia.text =
+
                 if (distancia < 1000) {
 
                     "A ${distancia.toInt()} m de ti"
@@ -252,11 +339,19 @@ class ProveedorAdapter(
 
         } else {
 
+            // ======================================
+            // DISTANCIA NO DISPONIBLE
+            // ======================================
+
             holder.binding.txtDistancia.text =
                 "Distancia no disponible"
         }
     }
 
+
+    // ==========================================
+    // CANTIDAD DE PROVEEDORES
+    // ==========================================
 
     override fun getItemCount(): Int =
         proveedores.size

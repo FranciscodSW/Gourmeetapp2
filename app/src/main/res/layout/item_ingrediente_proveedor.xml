@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="82dp"
+
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="4dp"
+
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="6dp">
+
+        <!-- ===================================== -->
+        <!-- FOTO -->
+        <!-- ===================================== -->
+
+        <ImageView
+            android:id="@+id/imgIngrediente"
+            android:layout_width="65dp"
+            android:layout_height="65dp"
+
+            android:layout_gravity="center_vertical"
+
+            android:scaleType="centerCrop"
+
+            android:src="@drawable/logo_blanco_negro"
+
+            android:contentDescription="Imagen del ingrediente"/>
+
+
+        <!-- ===================================== -->
+        <!-- INFORMACIÓN -->
+        <!-- ===================================== -->
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            android:layout_weight="1"
+
+            android:layout_marginStart="8dp"
+
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+
+            <!-- NOMBRE -->
+
+            <TextView
+                android:id="@+id/txtNombreIngrediente"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:text="ABULÓN"
+
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                android:textStyle="bold"
+
+                android:fontFamily="@font/caviardreams"
+
+                android:maxLines="1"
+                android:ellipsize="end"/>
+
+
+            <!-- DESCRIPCIÓN -->
+
+            <TextView
+                android:id="@+id/txtDescripcionIngrediente"
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginTop="2dp"
+
+                android:text="Abulon Fresco"
+
+                android:textColor="@color/azulgourmeet"
+                android:textSize="11sp"
+
+                android:fontFamily="@font/caviardreams"
+
+                android:maxLines="2"
+                android:ellipsize="end"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
