@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="330dp"
+    android:layout_height="wrap_content"
+
+    android:layout_margin="8dp"
+
+    app:cardCornerRadius="20dp"
+    app:cardElevation="5dp">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:orientation="vertical"
+
+        android:padding="8dp"
+
+        android:background="@android:color/white">
+
+
+        <!-- ================================= -->
+        <!-- IMAGEN DEL PLAN -->
+        <!-- ================================= -->
+
+        <ImageView
+            android:id="@+id/imgPlanPremium"
+
+            android:layout_width="match_parent"
+            android:layout_height="500dp"
+
+            android:scaleType="centerCrop"
+
+            android:contentDescription="Plan Premium"/>
+
+
+        <!-- ================================= -->
+        <!-- NOMBRE -->
+        <!-- ================================= -->
+
+        <TextView
+            android:id="@+id/txtNombrePlan"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="8dp"
+
+            android:text="Plan Básico"
+            android:textColor="@color/azulgourmeet"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"/>
+
+
+        <!-- ================================= -->
+        <!-- BOTÓN COMPRAR -->
+        <!-- ================================= -->
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnComprarPlan"
+
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="5dp"
+
+            android:text="COMPRAR"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+
+            android:textColor="@android:color/white"
+
+            app:backgroundTint="@color/azulgourmeet"
+
+            app:cornerRadius="14dp"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

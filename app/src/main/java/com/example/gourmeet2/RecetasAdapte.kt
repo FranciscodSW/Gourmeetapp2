@@ -22,6 +22,7 @@ class RecetasAdapter(
             false
         )
         return VH(binding)
+
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {

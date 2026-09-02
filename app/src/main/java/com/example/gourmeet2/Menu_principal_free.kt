@@ -1,7 +1,6 @@
 package com.example.gourmeet2
 
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -16,7 +15,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -33,7 +31,9 @@ import com.example.gourmeet2.data.models.*
 import com.example.gourmeet2.databinding.ActivityMenuPrincipalFreeBinding
 import com.example.gourmeet2.utils.SesionUsuario
 import kotlinx.coroutines.launch
-import android.Manifest
+import android.R.attr.data
+import android.app.Dialog
+import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
@@ -46,10 +46,24 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import androidx.core.widget.doAfterTextChanged
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast.makeText
+import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import com.example.gourmeet2.utils.SesionUsuario.actualizarNombre
+
 class Menu_principal_free : AppCompatActivity() {
     private var menuAbierto = false
     private lateinit var binding: ActivityMenuPrincipalFreeBinding
     private var modoActual = Modo.INGREDIENTES
+    private var nombreUsuarioActual = ""
     enum class Modo {INGREDIENTES,RECETAS }
     private val listaProveedores = mutableListOf<Proveedor>()
     private lateinit var adapterProveedores: ProveedorAdapter
@@ -69,10 +83,94 @@ class Menu_principal_free : AppCompatActivity() {
     private var latitudUsuario: Double? = null
     private var longitudUsuario: Double? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val solicitarPermisosUbicacion =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permisos ->
+
+            val fineLocation =
+                permisos[
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ] ?: false
+
+            val coarseLocation =
+                permisos[
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ] ?: false
+
+
+            Log.d(
+                "UBICACION",
+                "RESULTADO FINE = $fineLocation"
+            )
+
+            Log.d(
+                "UBICACION",
+                "RESULTADO COARSE = $coarseLocation"
+            )
+
+
+            // ==========================================
+            // PERMISO CONCEDIDO
+            // ==========================================
+
+            if (fineLocation || coarseLocation) {
+
+                Log.d(
+                    "UBICACION",
+                    "PERMISO CONCEDIDO"
+                )
+
+                obtenerUbicacionUsuario()
+
+                return@registerForActivityResult
+            }
+
+
+            // ==========================================
+            // PERMISO RECHAZADO
+            // ==========================================
+
+            Log.d(
+                "UBICACION",
+                "PERMISO RECHAZADO"
+            )
+
+
+            val puedeVolverAPreguntar =
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) ||
+                        ActivityCompat.shouldShowRequestPermissionRationale(
+                            this,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+
+
+            if (puedeVolverAPreguntar) {
+
+                // ======================================
+                // TODAVÍA PODEMOS VOLVER A SOLICITAR
+                // ======================================
+
+                mostrarDialogoPermisoUbicacion()
+
+            } else {
+
+                // ======================================
+                // ANDROID YA NO MOSTRARÁ EL PERMISO
+                // ======================================
+
+                mostrarDialogoIrConfiguracion()
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMenuPrincipalFreeBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
@@ -146,6 +244,13 @@ class Menu_principal_free : AppCompatActivity() {
 
                         return
                     }
+                    if (
+                        binding.panelPreferenciasCuenta.visibility ==
+                        View.VISIBLE
+                    ) {
+                        cerrarPreferenciasCuenta()
+                        return
+                    }
 
 
                     // ======================================
@@ -164,11 +269,24 @@ class Menu_principal_free : AppCompatActivity() {
         cargarUsuario()
         cargarInformacionUsuario()
         inicializarMenuLateral()
+        configurarPreferenciasCuenta()
         fusedLocationClient =
             LocationServices.getFusedLocationProviderClient(this)
         inicializarProveedores()
         configurarBusquedaProveedores()
-        obtenerUbicacionUsuario()
+        //obtenerUbicacionUsuario()
+        fusedLocationClient =
+            LocationServices.getFusedLocationProviderClient(this)
+
+        inicializarProveedores()
+        configurarBusquedaProveedores()
+
+
+        if (tienePermisoUbicacion()) {
+
+            obtenerUbicacionUsuario()
+
+        }
 
 
         supportFragmentManager.addOnBackStackChangedListener {
@@ -194,11 +312,14 @@ class Menu_principal_free : AppCompatActivity() {
         }
         binding.btnProveedores.setOnClickListener {
 
-            if (binding.panelProveedores.visibility == View.VISIBLE) {
+            // ==========================================
+            // CERRAR PANEL
+            // ==========================================
 
-                // ==========================================
-                // CERRAR → SALE HACIA LA IZQUIERDA
-                // ==========================================
+            if (
+                binding.panelProveedores.visibility ==
+                View.VISIBLE
+            ) {
 
                 binding.panelProveedores.animate()
                     .translationX(
@@ -215,65 +336,77 @@ class Menu_principal_free : AppCompatActivity() {
                     }
                     .start()
 
-            } else {
-
-                // ==========================================
-                // CERRAR MIS COLECCIONES
-                // ==========================================
-
-                binding.rvMisColeccionesProveedores.visibility =
-                    View.GONE
+                return@setOnClickListener
+            }
 
 
-                // ==========================================
-                // MOSTRAR LISTA NORMAL DE PROVEEDORES
-                // ==========================================
+            // ==========================================
+            // VERIFICAR UBICACIÓN
+            // ==========================================
 
-                if (listaProveedores.isNotEmpty()) {
+            if (!tienePermisoUbicacion()) {
 
-                    binding.rvProveedores.visibility =
-                        View.VISIBLE
+                mostrarDialogoPermisoUbicacion()
 
-                    binding.layoutSinProveedores.visibility =
-                        View.GONE
-
-                } else {
-
-                    binding.rvProveedores.visibility =
-                        View.GONE
-
-                    binding.layoutSinProveedores.visibility =
-                        View.VISIBLE
-                }
+                return@setOnClickListener
+            }
 
 
-                // ==========================================
-                // ABRIR PANEL DE PROVEEDORES
-                // ==========================================
+            // ==========================================
+            // CERRAR MIS COLECCIONES
+            // ==========================================
 
-                binding.panelProveedores.visibility =
+            binding.rvMisColeccionesProveedores.visibility =
+                View.GONE
+
+
+            // ==========================================
+            // MOSTRAR LISTA NORMAL
+            // ==========================================
+
+            if (listaProveedores.isNotEmpty()) {
+
+                binding.rvProveedores.visibility =
                     View.VISIBLE
 
-                binding.panelProveedores.post {
+                binding.layoutSinProveedores.visibility =
+                    View.GONE
 
-                    // Comienza fuera de la pantalla, a la izquierda
-                    binding.panelProveedores.translationX =
-                        -binding.panelProveedores.width.toFloat()
+            } else {
 
-                    // Entra hasta su posición original
-                    binding.panelProveedores.animate()
-                        .translationX(0f)
-                        .setDuration(300)
-                        .start()
-                }
+                binding.rvProveedores.visibility =
+                    View.GONE
 
-
-                // ==========================================
-                // CARGAR PROVEEDORES
-                // ==========================================
-
-                cargarProveedores()
+                binding.layoutSinProveedores.visibility =
+                    View.VISIBLE
             }
+
+
+            // ==========================================
+            // ABRIR PANEL
+            // ==========================================
+
+            binding.panelProveedores.visibility =
+                View.VISIBLE
+
+
+            binding.panelProveedores.post {
+
+                binding.panelProveedores.translationX =
+                    -binding.panelProveedores.width.toFloat()
+
+                binding.panelProveedores.animate()
+                    .translationX(0f)
+                    .setDuration(300)
+                    .start()
+            }
+
+
+            // ==========================================
+            // CARGAR PROVEEDORES
+            // ==========================================
+
+            cargarProveedores()
         }
         binding.editBusqueda.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER &&
@@ -499,6 +632,59 @@ class Menu_principal_free : AppCompatActivity() {
 
         cargarRecetasInicio()
     }
+    companion object {
+
+        private const val REQUEST_PERMISO_UBICACION = 1001
+
+    }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+
+        super.onRequestPermissionsResult(
+            requestCode,
+            permissions,
+            grantResults
+        )
+
+
+        if (
+            requestCode ==
+            REQUEST_PERMISO_UBICACION
+        ) {
+
+            if (
+                grantResults.isNotEmpty() &&
+                grantResults.any {
+                    it == PackageManager.PERMISSION_GRANTED
+                }
+            ) {
+
+                // ======================================
+                // PERMISO CONCEDIDO
+                // ======================================
+
+                obtenerUbicacionUsuario()
+
+                cargarProveedores()
+
+            } else {
+
+                // ======================================
+                // PERMISO RECHAZADO
+                // ======================================
+
+                makeText(
+                    this,
+                    "Necesitamos tu ubicación para mostrar proveedores cercanos.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
     private fun cerrarMenu() {
         menuAbierto = false
         ocultarMenuAnimado()
@@ -962,82 +1148,76 @@ class Menu_principal_free : AppCompatActivity() {
 
         binding.navigationView.setNavigationItemSelectedListener { item ->
 
+            Log.d(
+                "MENU_LATERAL",
+                "ITEM SELECCIONADO: ${item.itemId} - ${item.title}"
+            )
+
             when (item.itemId) {
 
                 R.id.menu_preferencias -> {
-
-                    startActivity(
-                        Intent(
-                            this,
-                            PreferenciasdeCuentaActivity::class.java
-                        )
+                    Log.d(
+                        "PREFERENCIAS",
+                        "ABRIENDO PREFERENCIAS"
                     )
-
+                    abrirPreferenciasCuenta()
+                    // IMPORTANTE:
+                    // no cerramos el drawer
+                    return@setNavigationItemSelectedListener true
                 }
 
                 R.id.menu_administrar_hogar -> {
 
-                    Toast.makeText(
+                    makeText(
                         this,
                         "Administrar mi hogar",
                         Toast.LENGTH_SHORT
                     ).show()
-
                 }
 
                 R.id.menu_mis_colecciones -> {
 
                     startActivity(
-
                         Intent(
                             this,
                             MisColeccionesActivity::class.java
                         )
-
                     )
-
                 }
-
-
 
                 R.id.menu_planeador_semanal -> {
 
-                    Toast.makeText(
+                    makeText(
                         this,
                         "Planeador semanal",
                         Toast.LENGTH_SHORT
                     ).show()
-
                 }
 
                 R.id.menu_mi_alacena -> {
 
-                    Toast.makeText(
+                    makeText(
                         this,
                         "Mi alacena",
                         Toast.LENGTH_SHORT
                     ).show()
-
                 }
 
                 R.id.menu_premium -> {
 
-                    Toast.makeText(
-                        this,
-                        "GourMeet Premium",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
+                    startActivity(
+                        Intent(
+                            this,
+                            PremiumActivity::class.java
+                        )
+                    )
                 }
-
             }
 
             binding.drawerLayout.closeDrawer(GravityCompat.END)
 
             true
-
         }
-
     }
     private fun abrirBusquedaProveedor() {
 
@@ -2143,6 +2323,14 @@ class Menu_principal_free : AppCompatActivity() {
                     R.drawable.ic_filtro
                 )
         }
+        binding.panelPreferenciasCuenta
+            .findViewById<ImageView>(
+                R.id.btnRegresar
+            )
+            .setOnClickListener {
+
+                cerrarPreferenciasCuenta()
+            }
 
 
         // ==========================================
@@ -2204,7 +2392,7 @@ class Menu_principal_free : AppCompatActivity() {
 
         if (clienteId <= 0) {
 
-            Toast.makeText(
+            makeText(
                 this,
                 "Debes iniciar sesión.",
                 Toast.LENGTH_SHORT
@@ -2265,7 +2453,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                     if (colecciones.isEmpty()) {
 
-                        Toast.makeText(
+                        makeText(
                             this@Menu_principal_free,
                             "Aún no tienes colecciones de proveedores.",
                             Toast.LENGTH_SHORT
@@ -2275,7 +2463,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                 } else {
 
-                    Toast.makeText(
+                    makeText(
                         this@Menu_principal_free,
                         respuesta.mensaje
                             ?: "No se pudieron cargar las colecciones.",
@@ -2288,7 +2476,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                 e.printStackTrace()
 
-                Toast.makeText(
+                makeText(
                     this@Menu_principal_free,
                     "Error al consultar las colecciones.",
                     Toast.LENGTH_SHORT
@@ -2336,6 +2524,780 @@ class Menu_principal_free : AppCompatActivity() {
                 View.OVER_SCROLL_NEVER
         }
     }
+    private fun tienePermisoUbicacion(): Boolean {
+
+        val fineLocation =
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+
+        val coarseLocation =
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+
+        Log.d(
+            "UBICACION",
+            "FINE actual = $fineLocation"
+        )
+
+        Log.d(
+            "UBICACION",
+            "COARSE actual = $coarseLocation"
+        )
+
+
+        return fineLocation || coarseLocation
+    }
+    private fun mostrarDialogoIrConfiguracion() {
+
+        AlertDialog.Builder(this)
+            .setTitle("Permiso de ubicación")
+            .setMessage(
+                "Para mostrar proveedores cercanos necesitamos " +
+                        "acceder a tu ubicación.\n\n" +
+                        "Activa el permiso desde:\n\n" +
+                        "Configuración → Aplicaciones → GourMeet → " +
+                        "Permisos → Ubicación."
+            )
+            .setNegativeButton(
+                "Cancelar",
+                null
+            )
+            .setPositiveButton(
+                "Abrir configuración"
+            ) { _, _ ->
+
+                val intent =
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    ).apply {
+
+                        data =
+                            Uri.parse(
+                                "package:$packageName"
+                            )
+                    }
+
+                startActivity(intent)
+            }
+            .show()
+    }
+    private fun solicitarPermisoUbicacion() {
+
+        Log.d(
+            "UBICACION",
+            "INICIANDO SOLICITUD DE PERMISOS"
+        )
+
+
+        // ==========================================
+        // ¿YA TIENE PERMISO?
+        // ==========================================
+
+        if (tienePermisoUbicacion()) {
+
+            Log.d(
+                "UBICACION",
+                "EL PERMISO YA ESTÁ CONCEDIDO"
+            )
+
+            obtenerUbicacionUsuario()
+
+            return
+        }
+
+
+        // ==========================================
+        // SOLICITAR PERMISOS
+        // ==========================================
+
+        solicitarPermisosUbicacion.launch(
+
+            arrayOf(
+
+                Manifest.permission.ACCESS_FINE_LOCATION,
+
+                Manifest.permission.ACCESS_COARSE_LOCATION
+
+            )
+        )
+    }
+    private fun mostrarDialogoPermisoUbicacion() {
+
+        // ==========================================
+        // CREAR DIÁLOGO
+        // ==========================================
+
+        val dialog =
+            Dialog(this)
+
+
+        // ==========================================
+        // CARGAR DISEÑO
+        // ==========================================
+
+        val vista =
+            layoutInflater.inflate(
+                R.layout.dialog_permiso_ubicacion,
+                null
+            )
+
+
+        dialog.setContentView(vista)
+
+
+        // ==========================================
+        // CONFIGURAR VENTANA
+        // ==========================================
+
+        dialog.window?.apply {
+
+            setBackgroundDrawableResource(
+                android.R.color.transparent
+            )
+
+            setDimAmount(0.6f)
+        }
+
+
+        // ==========================================
+        // BOTÓN PERMITIR
+        // ==========================================
+
+        vista.findViewById<MaterialButton>(
+            R.id.btnPermitirUbicacion
+        ).setOnClickListener {
+
+            // Primero cerramos nuestro diálogo
+            dialog.dismiss()
+
+
+            // Después solicitamos el permiso oficial
+            solicitarPermisoUbicacion()
+        }
+
+
+        // ==========================================
+        // BOTÓN CANCELAR
+        // ==========================================
+
+        vista.findViewById<MaterialButton>(
+            R.id.btnCancelarUbicacion
+        ).setOnClickListener {
+
+            dialog.dismiss()
+        }
+
+
+        // ==========================================
+        // EVITAR CERRAR TOCANDO FUERA
+        // ==========================================
+
+        dialog.setCanceledOnTouchOutside(false)
+
+
+        // ==========================================
+        // MOSTRAR
+        // ==========================================
+
+        dialog.show()
+
+
+        // ==========================================
+        // TAMAÑO
+        // ==========================================
+
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.90).toInt(),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+    }
+    private fun abrirPreferenciasCuenta() {
+
+        Log.d("PREFERENCIAS", "ENTRANDO A abrirPreferenciasCuenta()")
+
+        binding.navigationView.visibility = View.GONE
+
+        binding.panelPreferenciasCuenta.visibility = View.VISIBLE
+
+        binding.panelPreferenciasCuenta.bringToFront()
+
+        Log.d(
+            "PREFERENCIAS",
+            "panelPreferenciasCuenta VISIBLE"
+        )
+    }
+    private fun cerrarPreferenciasCuenta() {
+
+        Log.d("PREFERENCIAS", "CERRANDO PREFERENCIAS")
+
+        binding.panelPreferenciasCuenta.visibility = View.GONE
+
+        binding.navigationView.visibility = View.VISIBLE
+    }
+
+    private fun configurarPreferenciasCuenta() {
+
+        // REGRESAR
+        val btnRegresar = binding.panelPreferenciasCuenta
+            .findViewById<View>(R.id.btnRegresar)
+
+        btnRegresar?.setOnClickListener {
+            cerrarPreferenciasCuenta()
+        }
+
+
+        // CAMBIAR NOMBRE
+        val btnCambiarNombre = binding.panelPreferenciasCuenta
+            .findViewById<View>(R.id.btnCambiarNombre)
+
+        btnCambiarNombre?.setOnClickListener {
+            mostrarDialogoCambiarNombre()
+        }
+
+
+        // TÉRMINOS Y CONDICIONES
+        val btnTerminos = binding.panelPreferenciasCuenta
+            .findViewById<View>(R.id.btnTerminosCondiciones)
+
+        btnTerminos?.setOnClickListener {
+            mostrarTerminosCompletos()
+        }
+
+
+        // PREMIUM
+        val btnPremium = binding.panelPreferenciasCuenta
+            .findViewById<View>(R.id.btnPremium)
+
+        btnPremium?.setOnClickListener {
+
+            val intent = Intent(this, PremiumActivity::class.java)
+            startActivity(intent)
+        }
+
+
+        // REPORTAR PROBLEMA
+        val btnReportar = binding.panelPreferenciasCuenta
+            .findViewById<View>(R.id.btnReportarproblemas)
+
+        btnReportar?.setOnClickListener {
+
+            val intent = Intent(this, ReportarProblemaActivity::class.java)
+            startActivity(intent)
+        }
+    }
+
+    private fun mostrarDialogoCambiarNombre() {
+
+        val dialog =
+            Dialog(this)
+
+
+        // ======================================================
+        // CARGAR DISEÑO
+        // ======================================================
+
+        val vista =
+            layoutInflater.inflate(
+                R.layout.dialog_cambiar_nombre,
+                null
+            )
+
+
+        dialog.setContentView(vista)
+
+
+        // ======================================================
+        // FONDO TRANSPARENTE
+        // ======================================================
+
+        dialog.window?.setBackgroundDrawableResource(
+            android.R.color.transparent
+        )
+
+
+        // ======================================================
+        // ELEMENTOS
+        // ======================================================
+
+        val edtNombre =
+            vista.findViewById<EditText>(
+                R.id.edtNuevoNombre
+            )
+
+
+        val btnGuardar =
+            vista.findViewById<MaterialButton>(
+                R.id.btnGuardarNombre
+            )
+
+
+        val btnCancelar =
+            vista.findViewById<MaterialButton>(
+                R.id.btnCancelarNombre
+            )
+
+
+        // ======================================================
+        // NOMBRE ACTUAL
+        // ======================================================
+
+        edtNombre.setText(
+            nombreUsuarioActual
+        )
+
+        edtNombre.setSelection(
+            edtNombre.text.length
+        )
+
+
+        // ======================================================
+        // CANCELAR
+        // ======================================================
+
+        btnCancelar.setOnClickListener {
+
+            Log.d(
+                "PREFERENCIAS",
+                "CANCELAR CAMBIO DE NOMBRE"
+            )
+
+            dialog.dismiss()
+        }
+
+
+        // ======================================================
+        // GUARDAR
+        // ======================================================
+
+        btnGuardar.setOnClickListener {
+
+            val nuevoNombre =
+                edtNombre.text
+                    .toString()
+                    .trim()
+
+
+            // ==================================================
+            // VALIDAR
+            // ==================================================
+
+            if (nuevoNombre.isEmpty()) {
+
+                edtNombre.error =
+                    "Escribe un nombre"
+
+                return@setOnClickListener
+            }
+
+
+            if (nuevoNombre.length < 2) {
+
+                edtNombre.error =
+                    "El nombre debe tener al menos 2 caracteres"
+
+                return@setOnClickListener
+            }
+
+
+            if (nuevoNombre.length > 50) {
+
+                edtNombre.error =
+                    "El nombre no puede superar los 50 caracteres"
+
+                return@setOnClickListener
+            }
+
+
+            // ==================================================
+            // OBTENER ID DEL USUARIO
+            // ==================================================
+
+            val clienteId =
+                SesionUsuario.obtenerId(this)
+
+
+            if (clienteId <= 0) {
+
+                makeText(
+                    this,
+                    "No se encontró el usuario.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return@setOnClickListener
+            }
+
+
+            // ==================================================
+            // DESHABILITAR BOTÓN
+            // ==================================================
+
+            btnGuardar.isEnabled = false
+
+
+            // ==================================================
+            // CREAR REQUEST
+            // ==================================================
+
+            val datos =
+                CambiarNombreRequest(
+
+                    CLI_ID =
+                        clienteId,
+
+                    CLI_NOMBRE =
+                        nuevoNombre
+                )
+
+
+            Log.d(
+                "PREFERENCIAS",
+                "Actualizando nombre: $nuevoNombre"
+            )
+
+
+            // ==================================================
+            // LLAMAR API
+            // ==================================================
+
+            lifecycleScope.launch {
+
+                try {
+
+                    val respuesta =
+                        ApiClient.apiService
+                            .cambiarNombreUsuario(
+                                datos
+                            )
+
+
+                    // ==================================================
+                    // RESPUESTA EXITOSA
+                    // ==================================================
+
+                    if (respuesta.success) {
+
+                        val nombreActualizado =
+                            respuesta.CLI_NOMBRE
+                                ?: nuevoNombre
+
+
+                        // ==============================================
+                        // ACTUALIZAR VARIABLE
+                        // ==============================================
+
+                        nombreUsuarioActual =
+                            nombreActualizado
+
+
+                        // ==============================================
+                        // ACTUALIZAR SESIÓN
+                        // ==============================================
+
+                        actualizarNombre(
+                            context = this@Menu_principal_free,
+                            nombre = nombreActualizado
+                        )
+
+
+                        Log.d(
+                            "PREFERENCIAS",
+                            "Nombre actualizado: $nombreActualizado"
+                        )
+
+
+                        // ==============================================
+                        // MENSAJE
+                        // ==============================================
+
+                        makeText(
+                            this@Menu_principal_free,
+                            respuesta.mensaje
+                                ?: "Nombre actualizado correctamente.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+
+                        // ==============================================
+                        // CERRAR
+                        // ==============================================
+
+                        dialog.dismiss()
+
+                    } else {
+
+                        makeText(
+                            this@Menu_principal_free,
+                            respuesta.mensaje
+                                ?: "No se pudo actualizar el nombre.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+
+                        btnGuardar.isEnabled =
+                            true
+                    }
+
+                } catch (e: Exception) {
+
+                    Log.e(
+                        "PREFERENCIAS",
+                        "Error al actualizar nombre",
+                        e
+                    )
+
+
+                    makeText(
+                        this@Menu_principal_free,
+                        "Error al actualizar el nombre.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+
+                    btnGuardar.isEnabled =
+                        true
+                }
+            }
+        }
+
+
+        // ======================================================
+        // MOSTRAR DIÁLOGO
+        // ======================================================
+
+        dialog.show()
+
+
+        // ======================================================
+        // TAMAÑO
+        // ======================================================
+
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.90).toInt(),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+    }
+
+
+    // ==========================================================
+    // TÉRMINOS Y CONDICIONES
+    // ==========================================================
+
+    private fun mostrarTerminosCompletos() {
+
+        val dialogView =
+            layoutInflater.inflate(
+                R.layout.terminos_completos,
+                null
+            )
+
+
+        val builder =
+            AlertDialog.Builder(this)
+
+
+        builder.setView(dialogView)
+
+
+        // ======================================================
+        // ELEMENTOS
+        // ======================================================
+
+        val scrollView =
+            dialogView.findViewById<ScrollView>(
+                R.id.scrollView
+            )
+
+
+        val txtTerminosCompletos =
+            dialogView.findViewById<TextView>(
+                R.id.txtTerminosCompletos
+            )
+
+
+        val btnCerrar =
+            dialogView.findViewById<Button>(
+                R.id.btnCerrar
+            )
+
+
+        // ======================================================
+        // TÉRMINOS
+        // ======================================================
+
+        val terminosTexto = """
+        
+        TÉRMINOS Y CONDICIONES DE USO
+        
+        1. TÉRMINOS Y CONDICIONES DE USO DE GOURMEET
+        
+        Los presentes Términos y Condiciones de Uso (en lo sucesivo, los “TÉRMINOS Y CONDICIONES”) regulan de manera integral el acceso, navegación, uso y, en su caso, la interacción del usuario con el sitio web www.gourmeet.com.mx (en lo sucesivo, el “SITIO WEB”), el cual es propiedad y está operado por GourMeet (en lo sucesivo, el “TITULAR”).
+        
+        Al acceder, navegar o utilizar el SITIO WEB, toda persona (en lo sucesivo, el “USUARIO”) manifiesta expresa e inequívocamente que ha leído, entendido y aceptado sujetarse a lo dispuesto en los presentes TÉRMINOS Y CONDICIONES, así como al Aviso de Privacidad, la Política de Cookies y cualesquiera otras políticas, lineamientos o avisos legales complementarios que el TITULAR publique o ponga a disposición.
+        
+        El uso del SITIO WEB constituye un consentimiento expreso para vincularse jurídicamente conforme a lo aquí estipulado. En caso de no estar de acuerdo, el USUARIO deberá abstenerse de acceder o utilizar el SITIO WEB y sus funcionalidades.
+        
+        I. OBJETO
+        
+        El presente documento tiene como finalidad establecer los derechos, obligaciones, limitaciones y alcances que rigen el acceso, navegación y uso del SITIO WEB, incluyendo, de forma enunciativa pero no limitativa:
+        
+        1. Recetas de cocina de acceso libre y gratuito para consulta pública.
+        
+        2. Recomendaciones personalizadas de restaurantes y establecimientos gastronómicos cercanos al USUARIO, obtenidas mediante algoritmos y criterios del TITULAR.
+        
+        3. Contenido editorial y multimedia relacionado con gastronomía, técnicas culinarias, cultura gastronómica y estilo de vida culinario.
+        
+        El acceso general al SITIO WEB es gratuito, no obstante, algunos servicios, funcionalidades o contenidos podrían requerir registro previo, autenticación de cuenta, aceptación de condiciones particulares o pago de tarifas que se informarán previamente.
+        
+        II. TITULARIDAD Y LEGISLACIÓN APLICABLE
+        
+        Titular: Job Isaac Gutierrez Hernandez
+        
+        Dirección:
+        Francisco I. Madero 15, Delegación Santa María Totoltepec, 50240 Santa María Totoltepec, Méx.
+        
+        Página web:
+        https://www.gourmeet.com.mx
+        
+        Correo electrónico:
+        soporte@gourmeet.com.mx
+        
+        Teléfono:
+        722 889 1315
+        
+        El SITIO WEB y sus contenidos se rigen, interpretan y ejecutan de conformidad con la legislación vigente en los Estados Unidos Mexicanos.
+        
+        Cualquier acto jurídico, transacción, reclamación o controversia que derive directa o indirectamente del acceso, navegación o uso del SITIO WEB se someterá, para su interpretación y cumplimiento, a las leyes mexicanas.
+        
+        III. CONDICIÓN DE USUARIO Y RESPONSABILIDADES
+        
+        El acceso y/o uso del SITIO WEB confiere la condición de USUARIO, lo que implica la aceptación plena y sin reservas de lo aquí establecido.
+        
+        El USUARIO se compromete a:
+        
+        1. Cumplir con la ley, la moral, el orden público y las buenas costumbres.
+        
+        2. No realizar actos ilícitos, ofensivos, difamatorios, fraudulentos o lesivos.
+        
+        3. Proporcionar información veraz, completa y actualizada.
+        
+        4. No introducir virus, malware, código malicioso o cualquier mecanismo que pueda dañar el funcionamiento del SITIO WEB.
+        
+        IV. FUNCIONALIDADES DEL SITIO WEB
+        
+        1. Recetas de cocina.
+        
+        Las recetas pueden ser elaboradas por el equipo del TITULAR, usuarios colaboradores o fuentes autorizadas.
+        
+        El TITULAR no garantiza la exactitud, seguridad o resultados de la preparación.
+        
+        2. Recomendaciones gastronómicas.
+        
+        Las sugerencias de restaurantes u otros establecimientos son meramente informativas.
+        
+        V. USO DE UBICACIÓN Y DATOS
+        
+        El SITIO WEB podrá solicitar acceso a la ubicación del USUARIO para ofrecer recomendaciones personalizadas.
+        
+        Este acceso es opcional y puede deshabilitarse en la configuración del dispositivo.
+        
+        El tratamiento de datos personales se realizará conforme a lo establecido en el Aviso de Privacidad y en la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.
+        
+        VI. CONTENIDO GENERADO POR USUARIOS
+        
+        El SITIO WEB podrá permitir que los USUARIOS publiquen recetas, comentarios, fotografías u otros materiales.
+        
+        El USUARIO garantiza que posee todos los derechos necesarios sobre dicho CONTENIDO.
+        
+        VII. PROPIEDAD INTELECTUAL E INDUSTRIAL
+        
+        Todos los elementos del SITIO WEB, incluidos textos, recetas, fotografías, videos, diseños, logotipos, marcas, nombres comerciales y código fuente son propiedad del TITULAR o de terceros con licencia.
+        
+        Queda estrictamente prohibida su reproducción, distribución, modificación o explotación con fines comerciales sin autorización previa.
+        
+        VIII. DISPONIBILIDAD Y LIMITACIÓN DE RESPONSABILIDAD
+        
+        El TITULAR realizará esfuerzos razonables para mantener el SITIO WEB disponible y operativo, sin embargo, no garantiza disponibilidad ininterrumpida ni libre de errores.
+        
+        IX. POLÍTICA DE ENLACES
+        
+        El SITIO WEB puede contener enlaces a sitios externos.
+        
+        El TITULAR no es responsable de su contenido, seguridad o disponibilidad.
+        
+        X. USO DE COOKIES
+        
+        El SITIO WEB utiliza cookies y tecnologías similares para mejorar la experiencia del USUARIO.
+        
+        XI. MODIFICACIONES
+        
+        El TITULAR podrá modificar en cualquier momento los presentes TÉRMINOS Y CONDICIONES.
+        
+        XII. CONTACTO
+        
+        Para dudas, aclaraciones o comentarios:
+        
+        Correo electrónico:
+        soporte@gourmeet.com.mx
+        
+        Ubicación:
+        Francisco I. Madero 15, Delegación Santa María Totoltepec, 50240 Santa María Totoltepec, Méx.
+        
+        Teléfono:
+        722 889 1315
+        
+        Última actualización:
+        14 de agosto de 2025
+        
+        """.trimIndent()
+
+
+        txtTerminosCompletos.text =
+            terminosTexto
+
+
+        // ======================================================
+        // CREAR DIÁLOGO
+        // ======================================================
+
+        val dialog =
+            builder.create()
+
+
+        // ======================================================
+        // CERRAR
+        // ======================================================
+
+        btnCerrar.setOnClickListener {
+
+            dialog.dismiss()
+        }
+
+
+        // ======================================================
+        // MOSTRAR
+        // ======================================================
+
+        dialog.show()
+
+
+        // ======================================================
+        // TAMAÑO
+        // ======================================================
+
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            (resources.displayMetrics.heightPixels * 0.85).toInt()
+        )
+    }
+
+
     fun cerrarDetalleReceta() {
 
         binding.containerDetalleReceta.visibility =

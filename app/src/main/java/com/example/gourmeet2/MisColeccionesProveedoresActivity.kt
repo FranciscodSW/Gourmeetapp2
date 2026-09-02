@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.gourmeet2.data.api.ApiClient
 import com.example.gourmeet2.data.models.ConsultarColeccionesProveedor
 import com.example.gourmeet2.data.models.ColeccionProveedor
-import com.example.gourmeet2.data.models.ListarColeccionesProveedores
 import com.example.gourmeet2.data.models.Proveedor
 import com.example.gourmeet2.databinding.ActivityMisColeccionesProveedoresBinding
 import com.example.gourmeet2.utils.SesionUsuario

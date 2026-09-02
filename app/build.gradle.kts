@@ -6,7 +6,7 @@ plugins {
 android {
     namespace = "com.example.gourmeet2"
     compileSdk {
-        version = release(36)
+        version = release(37)
     }
 
     defaultConfig {
@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.play.services.cast.framework)
     implementation(libs.play.services.maps3d)
     implementation(libs.gms.play.services.maps3d)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

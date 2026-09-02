@@ -486,19 +486,51 @@
 
     </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navigationView"
-        android:layout_marginTop="350dp"
+    <FrameLayout
+        android:id="@+id/drawerDerecho"
         android:layout_width="310dp"
         android:layout_height="450dp"
+        android:layout_marginTop="350dp"
         android:layout_gravity="end"
-        android:background="@android:color/white"
-        app:headerLayout="@layout/encabezado_menu_lateral"
-        app:itemIconTint="@color/azulgourmeet"
-        app:itemTextColor="@android:color/black"
-        app:itemHorizontalPadding="5dp"
-        app:itemTextAppearance="@style/TextoMenuLateral"
-        app:menu="@menu/menu_lateral"/>
+        android:background="@android:color/white">
+
+        <!-- ========================================= -->
+        <!-- MENÚ LATERAL -->
+        <!-- ========================================= -->
+
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/navigationView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white"
+            app:headerLayout="@layout/encabezado_menu_lateral"
+            app:itemIconTint="@color/azulgourmeet"
+            app:itemTextColor="@android:color/black"
+            app:itemHorizontalPadding="5dp"
+            app:itemTextAppearance="@style/TextoMenuLateral"
+            app:menu="@menu/menu_lateral"/>
+
+
+        <!-- ========================================= -->
+        <!-- PREFERENCIAS DE CUENTA -->
+        <!-- ========================================= -->
+
+        <FrameLayout
+            android:id="@+id/panelPreferenciasCuenta"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white"
+            android:visibility="gone">
+
+            <include
+                android:id="@+id/includePreferenciasCuenta"
+                layout="@layout/activity_preferencias_de_cuenta"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+        </FrameLayout>
+
+    </FrameLayout>
     <FrameLayout
         android:id="@+id/panelFiltrosProveedores"
         android:layout_width="match_parent"
@@ -522,11 +554,14 @@
         android:visibility="gone"
         android:background="@color/white"
         android:elevation="30dp"
-
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+    <!-- ========================================= -->
+    <!-- PANEL PREFERENCIAS DE CUENTA -->
+    <!-- ========================================= -->
+
 
 
 </androidx.drawerlayout.widget.DrawerLayout>

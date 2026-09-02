@@ -158,10 +158,16 @@ interface ApiService {
     suspend fun crearProveedorColeccion(
         @Body datos: CrearColeccionProveedor
     ): CrearColeccionProveedorResponse
-
     @POST("colecciones/listar_colecciones_proveedores.php")
     suspend fun listarColeccionesProveedores(
         @Body datos: ConsultarColeccionesProveedor
     ): ListarColeccionesProveedoresResponse
-
+    @POST("usuario/cambiar_nombre_usuario.php")
+    suspend fun cambiarNombreUsuario(
+        @Body datos: CambiarNombreRequest
+    ): CambiarNombreResponse
+    @POST("reportes/crear_reporte_problema.php")
+    suspend fun crearReporteProblema(
+        @Body request: ReporteProblemaRequest
+    ): ReporteProblemaResponse
 }

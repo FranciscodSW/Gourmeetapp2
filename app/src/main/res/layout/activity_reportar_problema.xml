@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:background="@android:color/white">
+
+
+    <!-- ========================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ========================================= -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/headerReporte"
+
+        android:layout_width="0dp"
+        android:layout_height="65dp"
+
+        android:background="@color/azulgourmeet"
+
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+
+        <!-- REGRESAR -->
+
+        <ImageView
+            android:id="@+id/btnRegresar"
+
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+
+            android:padding="10dp"
+
+            android:src="@drawable/ic_flecha_izquierda"
+
+            android:clickable="true"
+            android:focusable="true"
+
+            app:tint="@android:color/white"
+
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+
+        <!-- TÍTULO -->
+
+        <TextView
+            android:id="@+id/txtTitulo"
+
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            android:text="Reportar un problema"
+
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+
+            android:fontFamily="@font/caviardreams"
+
+            android:gravity="center"
+
+            app:layout_constraintStart_toEndOf="@id/btnRegresar"
+            app:layout_constraintEnd_toEndOf="parent"
+
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <!-- ========================================= -->
+    <!-- CONTENIDO -->
+    <!-- ========================================= -->
+
+    <ScrollView
+
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+
+        android:fillViewport="true"
+
+        android:overScrollMode="never"
+
+        app:layout_constraintTop_toBottomOf="@id/headerReporte"
+        app:layout_constraintBottom_toBottomOf="parent"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+
+        <LinearLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:orientation="vertical"
+
+            android:padding="20dp">
+
+
+            <!-- ================================= -->
+            <!-- INTRODUCCIÓN -->
+            <!-- ================================= -->
+
+            <TextView
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:text="¿Encontraste un problema?"
+
+                android:textColor="@color/azulgourmeet"
+
+                android:textSize="19sp"
+                android:textStyle="bold"
+
+                android:fontFamily="@font/caviardreams"
+
+                android:layout_marginBottom="6dp"/>
+
+
+            <TextView
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:text="Ayúdanos a mejorar GourMeet. Selecciona el tipo de problema y cuéntanos qué ocurrió."
+
+                android:textColor="@android:color/darker_gray"
+
+                android:textSize="13sp"
+
+                android:fontFamily="@font/caviardreams"
+
+                android:layout_marginBottom="25dp"/>
+
+
+            <!-- ================================= -->
+            <!-- TIPO DE PROBLEMA -->
+            <!-- ================================= -->
+
+            <TextView
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="TIPO DE PROBLEMA"
+
+                android:textColor="@color/azulgourmeet"
+
+                android:textSize="13sp"
+                android:textStyle="bold"
+
+                android:fontFamily="@font/caviardreams"
+
+                android:layout_marginBottom="8dp"/>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilTipoProblema"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/white"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="@color/azulgourmeet"
+                app:boxStrokeColor="@color/azulgourmeet"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                android:hint="Selecciona el problema"
+                app:hintTextColor="@color/azulgourmeet">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/actTipoProblema"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:inputType="none"
+                    android:fontFamily="@font/caviardreams"
+                    android:textSize="14sp"
+                    android:textColor="@color/azulgourmeet"
+                    android:textColorHint="@color/azulgourmeet"
+                    android:background="@android:color/transparent"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- ================================= -->
+            <!-- ESPACIO -->
+            <!-- ================================= -->
+
+            <Space
+
+                android:layout_width="match_parent"
+                android:layout_height="25dp"/>
+
+
+            <!-- ================================= -->
+            <!-- DESCRIPCIÓN -->
+            <!-- ================================= -->
+
+            <TextView
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="DESCRIBE EL PROBLEMA"
+
+                android:textColor="@color/azulgourmeet"
+
+                android:textSize="13sp"
+                android:textStyle="bold"
+
+                android:fontFamily="@font/caviardreams"
+
+                android:layout_marginBottom="8dp"/>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDescripcion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+
+                android:hint="Cuéntanos qué sucedió..."
+
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/azulgourmeet"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:hintTextColor="@color/azulgourmeet"
+
+                app:counterEnabled="true"
+                app:counterMaxLength="500">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtDescripcion"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+
+                    android:gravity="top|start"
+                    android:inputType="textMultiLine"
+                    android:maxLength="500"
+                    android:padding="15dp"
+
+                    android:fontFamily="@font/caviardreams"
+                    android:textSize="14sp"
+                    android:textColor="@color/azulgourmeet"
+                    android:textColorHint="@color/azulgourmeet"
+
+                    android:background="@android:color/transparent"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- ================================= -->
+            <!-- ESPACIO -->
+            <!-- ================================= -->
+
+            <Space
+
+                android:layout_width="match_parent"
+                android:layout_height="30dp"/>
+
+
+            <!-- ================================= -->
+            <!-- ENVIAR -->
+            <!-- ================================= -->
+
+            <com.google.android.material.button.MaterialButton
+
+                android:id="@+id/btnEnviarReporte"
+
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+
+                android:text="ENVIAR REPORTE"
+
+                android:textColor="@android:color/white"
+
+                android:textSize="15sp"
+                android:textStyle="bold"
+
+                android:fontFamily="@font/caviardreams"
+
+                app:backgroundTint="@color/azulgourmeet"
+
+                app:cornerRadius="15dp"/>
+
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
