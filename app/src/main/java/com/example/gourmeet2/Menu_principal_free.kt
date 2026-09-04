@@ -5,9 +5,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
-import android.view.Gravity
 import android.view.KeyEvent
-import android.view.Menu
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
@@ -31,16 +29,12 @@ import com.example.gourmeet2.data.models.*
 import com.example.gourmeet2.databinding.ActivityMenuPrincipalFreeBinding
 import com.example.gourmeet2.utils.SesionUsuario
 import kotlinx.coroutines.launch
-import android.R.attr.data
 import android.app.Dialog
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import android.widget.FrameLayout
 import android.widget.ScrollView
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.children
-import com.facebook.appevents.codeless.internal.ViewHierarchy.setOnClickListener
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -49,15 +43,30 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import android.Manifest
+import android.app.DatePickerDialog
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.WindowManager
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.ListView
+import android.widget.PopupWindow
 import android.widget.Toast.makeText
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
+import com.example.gourmeet2.adapters.UnidadAdapter
+import com.example.gourmeet2.ui.adapters.IngredienteMiniAdapter
 import com.example.gourmeet2.utils.SesionUsuario.actualizarNombre
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import com.google.android.material.textfield.TextInputEditText
+import java.util.Calendar
 
 class Menu_principal_free : AppCompatActivity() {
     private var menuAbierto = false
@@ -67,7 +76,7 @@ class Menu_principal_free : AppCompatActivity() {
     enum class Modo {INGREDIENTES,RECETAS }
     private val listaProveedores = mutableListOf<Proveedor>()
     private lateinit var adapterProveedores: ProveedorAdapter
-    enum class Seccion { BUSCADOR, ALACENA, PLANEADOR}
+    enum class Seccion { BUSCADOR, ALACENA, PLANEADOR,LISTA_DE_COMPRAS}
     private var panelBusquedaAbierto = false
     private var seccionActual = Seccion.BUSCADOR
     private var textoBusqueda = ""
@@ -83,6 +92,9 @@ class Menu_principal_free : AppCompatActivity() {
     private var latitudUsuario: Double? = null
     private var longitudUsuario: Double? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val listaAlacenas = mutableListOf<Alacena>()
+    private var alacenaSeleccionada: Alacena? = null
+    private var ingredienteSeleccionadoId: Int? = null
     private val solicitarPermisosUbicacion =
         registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
@@ -297,6 +309,15 @@ class Menu_principal_free : AppCompatActivity() {
             }
         }
         actualizarModo()
+        val btnAgregarIngrediente =
+            binding.panelAlacena.findViewById<MaterialButton>(
+                R.id.btnAgregarIngrediente
+            )
+
+        btnAgregarIngrediente.setOnClickListener {
+
+            mostrarDialogAgregarIngrediente()
+        }
         binding.editBusqueda.setOnEditorActionListener { _, _, _ ->
             true    // Consume cualquier acción del botón del teclado
         }
@@ -436,6 +457,15 @@ class Menu_principal_free : AppCompatActivity() {
         binding.cardCentro.setOnClickListener {
             cambiarSeccion()
         }
+        binding.panelAlacena
+            .findViewById<MaterialButton>(
+                R.id.actAlacena
+            )
+            .setOnClickListener {
+
+                mostrarMenuMisAlacenas()
+            }
+
         binding.opModo.setOnClickListener {
             if (modoActual == Modo.INGREDIENTES) {
                 modoActual = Modo.RECETAS
@@ -727,20 +757,104 @@ class Menu_principal_free : AppCompatActivity() {
             .start()
     }
     private fun cambiarSeccion() {
+
         when (seccionActual) {
+
+            // ==========================================
+            // BUSCADOR → ALACENA
+            // ==========================================
+
             Seccion.BUSCADOR -> {
+
                 seccionActual = Seccion.ALACENA
+
                 binding.txtSeccionActual.text = "Alacena"
+
+                mostrarSeccionAlacena()
             }
+
+
+            // ==========================================
+            // ALACENA → PLANEADOR
+            // ==========================================
+
             Seccion.ALACENA -> {
+
                 seccionActual = Seccion.PLANEADOR
-                binding.txtSeccionActual.text = "Planeador semanal"
+
+                binding.txtSeccionActual.text =
+                    "Planeador semanal"
+
+                ocultarSeccionAlacena()
+
+                mostrarSeccionBuscador()
             }
+
+
+            // ==========================================
+            // PLANEADOR → BUSCADOR
+            // ==========================================
+
             Seccion.PLANEADOR -> {
+
                 seccionActual = Seccion.BUSCADOR
+
                 actualizarTextoBuscador()
+
+                mostrarSeccionBuscador()
+            }
+
+
+            // ==========================================
+            // LISTA DE COMPRAS
+            // ==========================================
+
+            Seccion.LISTA_DE_COMPRAS -> {
+
+                seccionActual = Seccion.LISTA_DE_COMPRAS
+
+                binding.txtSeccionActual.text =
+                    "Lista de compras"
             }
         }
+    }
+    private fun mostrarSeccionAlacena() {
+
+        binding.rvPrincipal.visibility = View.GONE
+        binding.panelingredietes.visibility = View.GONE
+        binding.panelBusqueda.visibility = View.GONE
+
+        binding.panelAlacena.visibility = View.VISIBLE
+
+        binding.panelAlacena.bringToFront()
+        binding.barraInferior.bringToFront()
+
+        cargarAlacenas()
+    }
+    private fun ocultarSeccionAlacena() {
+
+        binding.panelAlacena.visibility =
+            View.GONE
+    }
+    private fun mostrarSeccionBuscador() {
+
+        // ==========================================
+        // OCULTAR ALACENA
+        // ==========================================
+
+        binding.panelAlacena.visibility =
+            View.GONE
+
+
+        // ==========================================
+        // MOSTRAR BUSCADOR
+        // ==========================================
+
+        binding.rvPrincipal.visibility =
+            View.VISIBLE
+
+        binding.panelBusqueda.visibility =
+            View.VISIBLE
     }
     private fun actualizarTextoBuscador() {
         if (seccionActual == Seccion.BUSCADOR) {
@@ -1196,11 +1310,14 @@ class Menu_principal_free : AppCompatActivity() {
 
                 R.id.menu_mi_alacena -> {
 
-                    makeText(
+                    val intent = Intent(
                         this,
-                        "Mi alacena",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                        MiAlacenaActivity::class.java
+                    )
+
+                    startActivity(intent)
+
+                    true
                 }
 
                 R.id.menu_premium -> {
@@ -2740,7 +2857,6 @@ class Menu_principal_free : AppCompatActivity() {
 
         binding.navigationView.visibility = View.VISIBLE
     }
-
     private fun configurarPreferenciasCuenta() {
 
         // REGRESAR
@@ -2791,7 +2907,6 @@ class Menu_principal_free : AppCompatActivity() {
             startActivity(intent)
         }
     }
-
     private fun mostrarDialogoCambiarNombre() {
 
         val dialog =
@@ -3083,12 +3198,6 @@ class Menu_principal_free : AppCompatActivity() {
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
     }
-
-
-    // ==========================================================
-    // TÉRMINOS Y CONDICIONES
-    // ==========================================================
-
     private fun mostrarTerminosCompletos() {
 
         val dialogView =
@@ -3295,6 +3404,2155 @@ class Menu_principal_free : AppCompatActivity() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             (resources.displayMetrics.heightPixels * 0.85).toInt()
         )
+    }
+    private fun cargarAlacenas() {
+
+        val clienteId = SesionUsuario.obtenerId(this)
+
+        if (clienteId <= 0) {
+
+            Toast.makeText(
+                this,
+                "No se pudo obtener el usuario.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        lifecycleScope.launch {
+
+            try {
+
+                val request = ListarAlacenasRequest(
+                    ALC_CLI_ID = clienteId
+                )
+
+                Log.d(
+                    "ALACENA",
+                    "Consultando alacenas del cliente: $clienteId"
+                )
+
+                val respuesta = ApiClient.apiService
+                    .listarAlacenas(request)
+
+                Log.d(
+                    "ALACENA",
+                    "Respuesta: $respuesta"
+                )
+
+                if (respuesta.success) {
+
+                    listaAlacenas.clear()
+                    listaAlacenas.addAll(respuesta.alacenas)
+
+                    if (listaAlacenas.isEmpty()) {
+
+                        Log.d(
+                            "ALACENA",
+                            "El usuario no tiene alacenas."
+                        )
+
+                        mostrarSinAlacenas()
+
+                    } else {
+
+                        Log.d(
+                            "ALACENA",
+                            "Alacenas encontradas: ${listaAlacenas.size}"
+                        )
+
+                        mostrarAlacenas()
+                    }
+
+                } else {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        "No fue posible cargar las alacenas.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "ALACENA",
+                    "Error al cargar las alacenas",
+                    e
+                )
+
+                Toast.makeText(
+                    this@Menu_principal_free,
+                    "Error al cargar las alacenas.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+    private fun mostrarSinAlacenas() {
+
+        val panel = binding.panelAlacena
+            .findViewById<View>(R.id.panelSinAlacenas)
+
+        val selector = binding.panelAlacena
+            .findViewById<View>(R.id.tilAlacena)
+
+        val consumePrimero = binding.panelAlacena
+            .findViewById<View>(R.id.rvConsumePrimero)
+
+        val tituloConsume = binding.panelAlacena
+            .findViewById<View>(R.id.txtConsumePrimero)
+
+        val ingredientes = binding.panelAlacena
+            .findViewById<View>(R.id.rvMisIngredientes)
+
+        val tituloIngredientes = binding.panelAlacena
+            .findViewById<View>(R.id.txtMisIngredientes)
+
+        val btnAgregar = binding.panelAlacena
+            .findViewById<View>(R.id.btnAgregarIngrediente)
+
+        val btnCrear = binding.panelAlacena
+            .findViewById<View>(R.id.btnCrearPrimeraAlacena)
+
+
+        // ==========================================
+        // OCULTAR CONTENIDO DE ALACENA
+        // ==========================================
+
+        selector.visibility = View.GONE
+
+        tituloConsume.visibility = View.GONE
+        consumePrimero.visibility = View.GONE
+
+        tituloIngredientes.visibility = View.GONE
+        ingredientes.visibility = View.GONE
+
+        btnAgregar.visibility = View.GONE
+
+
+        // ==========================================
+        // MOSTRAR PANEL SIN ALACENAS
+        // ==========================================
+
+        panel.visibility = View.VISIBLE
+
+
+        // ==========================================
+        // BOTÓN CREAR
+        // ==========================================
+
+        btnCrear.setOnClickListener {
+
+            mostrarDialogCrearAlacena()
+        }
+    }
+    private fun mostrarDialogCrearAlacena() {
+
+        val bottomSheet = BottomSheetDialog(this)
+
+        val view = layoutInflater.inflate(
+            R.layout.dialog_crear_alacena,
+            null
+        )
+
+        bottomSheet.setContentView(view)
+
+        val edtNombre = view.findViewById<TextInputEditText>(
+            R.id.edtNombreAlacena
+        )
+
+        val btnCasa = view.findViewById<ImageButton>(
+            R.id.btnIconoCasa
+        )
+
+        val btnOficina = view.findViewById<ImageButton>(
+            R.id.btnIconoOficina
+        )
+
+        val btnRefrigerador = view.findViewById<ImageButton>(
+            R.id.btnIconoRefrigerador
+        )
+
+        val btnCancelar = view.findViewById<MaterialButton>(
+            R.id.btnCancelarAlacena
+        )
+
+        val btnGuardar = view.findViewById<MaterialButton>(
+            R.id.btnGuardarAlacena
+        )
+
+        var iconoSeleccionado = "CASA"
+
+        // CASA seleccionada inicialmente
+        seleccionarIcono(
+            btnSeleccionado = btnCasa,
+            btnCasa,
+            btnOficina,
+            btnRefrigerador
+        )
+
+        btnCasa.setOnClickListener {
+
+            iconoSeleccionado = "CASA"
+
+            seleccionarIcono(
+                btnCasa,
+                btnCasa,
+                btnOficina,
+                btnRefrigerador
+            )
+        }
+
+        btnOficina.setOnClickListener {
+
+            iconoSeleccionado = "OFICINA"
+
+            seleccionarIcono(
+                btnOficina,
+                btnCasa,
+                btnOficina,
+                btnRefrigerador
+            )
+        }
+
+        btnRefrigerador.setOnClickListener {
+
+            iconoSeleccionado = "REFRIGERADOR"
+
+            seleccionarIcono(
+                btnRefrigerador,
+                btnCasa,
+                btnOficina,
+                btnRefrigerador
+            )
+        }
+
+        btnCancelar.setOnClickListener {
+            bottomSheet.dismiss()
+        }
+
+        btnGuardar.setOnClickListener {
+
+            val nombre = edtNombre.text
+                ?.toString()
+                ?.trim()
+                .orEmpty()
+
+            if (nombre.isEmpty()) {
+                edtNombre.error = "Ingresa un nombre"
+                edtNombre.requestFocus()
+                return@setOnClickListener
+            }
+
+            crearAlacena(
+                nombre = nombre,
+                icono = iconoSeleccionado,
+                dialog = bottomSheet
+            )
+        }
+
+        bottomSheet.setOnShowListener {
+
+            val dialog = it as BottomSheetDialog
+
+            val bottomSheetView =
+                dialog.findViewById<View>(
+                    com.google.android.material.R.id.design_bottom_sheet
+                )
+
+            bottomSheetView?.let { sheet ->
+
+                val behavior = BottomSheetBehavior.from(sheet)
+
+                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                behavior.skipCollapsed = true
+
+                sheet.background = ContextCompat.getDrawable(
+                    this,
+                    R.drawable.bg_bottom_sheet_alacena
+                )
+            }
+        }
+
+        bottomSheet.show()
+    }
+    private fun seleccionarIcono(
+        btnSeleccionado: ImageButton,
+        btnCasa: ImageButton,
+        btnOficina: ImageButton,
+        btnRefrigerador: ImageButton
+    ) {
+
+        // Quitar selección
+        btnCasa.background =
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_icono_alacena_normal
+            )
+
+        btnOficina.background =
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_icono_alacena_normal
+            )
+
+        btnRefrigerador.background =
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_icono_alacena_normal
+            )
+
+        // Poner selección
+        btnSeleccionado.background =
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_icono_alacena_seleccionado
+            )
+    }
+    private fun crearAlacena(
+        nombre: String,
+        icono: String,
+        dialog: BottomSheetDialog
+    ) {
+
+        val clienteId = SesionUsuario.obtenerId(this)
+
+        if (clienteId <= 0) {
+            Toast.makeText(
+                this,
+                "No se pudo obtener el usuario.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        lifecycleScope.launch {
+
+            try {
+
+                val request = CrearAlacenaRequest(
+                    ALC_CLI_ID = clienteId,
+                    ALC_NOMBRE = nombre,
+                    ALC_ICONO = icono
+                )
+
+                Log.d("ALACENA", "Creando alacena: $request")
+
+                val respuesta = ApiClient.apiService.crearAlacena(request)
+
+                Log.d("ALACENA", "Respuesta: $respuesta")
+
+                if (respuesta.success) {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        respuesta.message ?: "Alacena creada correctamente",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    dialog.dismiss()
+
+                    // Volvemos a cargar las alacenas
+                    cargarAlacenas()
+
+                } else {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        respuesta.message ?: "No se pudo crear la alacena.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "ALACENA",
+                    "Error al crear la alacena",
+                    e
+                )
+
+                Toast.makeText(
+                    this@Menu_principal_free,
+                    "Error de conexión con el servidor.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+    private fun mostrarAlacenas() {
+
+        val panel = binding.panelAlacena
+            .findViewById<View>(R.id.panelSinAlacenas)
+
+        val selector = binding.panelAlacena
+            .findViewById<View>(R.id.tilAlacena)
+
+        val tituloConsume = binding.panelAlacena
+            .findViewById<View>(R.id.txtConsumePrimero)
+
+        val consumePrimero = binding.panelAlacena
+            .findViewById<View>(R.id.rvConsumePrimero)
+
+        val tituloIngredientes = binding.panelAlacena
+            .findViewById<View>(R.id.txtMisIngredientes)
+
+        val ingredientes = binding.panelAlacena
+            .findViewById<View>(R.id.rvMisIngredientes)
+
+        val btnAgregar = binding.panelAlacena
+            .findViewById<View>(R.id.btnAgregarIngrediente)
+        val btnRegresar = binding.panelAlacena.findViewById<View>(R.id.btnRegresarAlacena)
+
+
+        // ==========================================
+        // MOSTRAR CONTENIDO
+        // ==========================================
+
+        panel.visibility = View.GONE
+        btnRegresar.visibility = View.GONE
+        selector.visibility = View.VISIBLE
+
+        tituloConsume.visibility = View.VISIBLE
+        consumePrimero.visibility = View.VISIBLE
+
+
+        tituloIngredientes.visibility = View.VISIBLE
+        ingredientes.visibility = View.VISIBLE
+
+        btnAgregar.visibility = View.VISIBLE
+
+
+        // ==========================================
+        // CONFIGURAR ALACENA SELECCIONADA
+        // ==========================================
+
+        configurarSelectorAlacenas()
+    }
+    private fun configurarSelectorAlacenas() {
+
+        val btnAlacena =
+            binding.panelAlacena.findViewById<MaterialButton>(
+                R.id.actAlacena
+            )
+
+        // ==========================================
+        // VERIFICAR QUE EXISTAN ALACENAS
+        // ==========================================
+
+        if (listaAlacenas.isEmpty()) {
+            btnAlacena.text = "Seleccionar alacena"
+            return
+        }
+
+
+        // ==========================================
+        // SELECCIONAR LA PRIMERA ALACENA
+        // ==========================================
+
+        if (alacenaSeleccionada == null) {
+
+            alacenaSeleccionada = listaAlacenas[0]
+        }
+
+
+        // ==========================================
+        // MOSTRAR ALACENA ACTUAL
+        // ==========================================
+
+        btnAlacena.text =
+            alacenaSeleccionada?.ALC_NOMBRE
+                ?: "Seleccionar alacena"
+
+
+        Log.d(
+            "ALACENA",
+            "Alacena seleccionada: ${alacenaSeleccionada?.ALC_ID}"
+        )
+
+
+        // ==========================================
+        // ABRIR MIS ALACENAS
+        // ==========================================
+
+        btnAlacena.setOnClickListener {
+
+            mostrarMenuMisAlacenas()
+        }
+    }
+    private fun mostrarMenuMisAlacenas() {
+
+        val bottomSheet = BottomSheetDialog(this)
+
+        val view = layoutInflater.inflate(
+            R.layout.dialog_mis_alacenas,
+            null
+        )
+
+        bottomSheet.setContentView(view)
+
+        val rvMisAlacenas =
+            view.findViewById<RecyclerView>(
+                R.id.rvMisAlacenas
+            )
+
+        rvMisAlacenas.layoutManager =
+            LinearLayoutManager(this)
+
+        val adapter = AlacenaMenuAdapter(
+
+            lista = listaAlacenas,
+
+            // ======================================
+            // SELECCIONAR
+            // ======================================
+
+            onSeleccionar = { alacena ->
+
+                alacenaSeleccionada = alacena
+
+                val btnAlacena =
+                    binding.panelAlacena
+                        .findViewById<MaterialButton>(
+                            R.id.actAlacena
+                        )
+
+                btnAlacena.text =
+                    alacena.ALC_NOMBRE
+
+                Log.d(
+                    "ALACENA",
+                    "Nueva alacena seleccionada: ${alacena.ALC_ID}"
+                )
+
+                bottomSheet.dismiss()
+
+                // Más adelante:
+                // cargarIngredientesAlacena(alacena.ALC_ID)
+            },
+
+            // ======================================
+            // EDITAR
+            // ======================================
+
+            onEditar = { alacena ->
+
+                bottomSheet.dismiss()
+
+                mostrarDialogEditarAlacena(alacena)
+            },
+
+            // ======================================
+            // ELIMINAR
+            // ======================================
+
+            onEliminar = { alacena ->
+
+                bottomSheet.dismiss()
+
+                mostrarConfirmacionEliminarAlacena(alacena)
+            }
+        )
+
+        rvMisAlacenas.adapter = adapter
+
+
+        // ==========================================
+        // CONFIGURAR BOTTOM SHEET
+        // ==========================================
+
+        bottomSheet.setOnShowListener {
+
+            val dialog = it as BottomSheetDialog
+
+            val sheet =
+                dialog.findViewById<View>(
+                    com.google.android.material.R.id.design_bottom_sheet
+                )
+
+            sheet?.let { bottomSheetView ->
+
+                val behavior =
+                    BottomSheetBehavior.from(
+                        bottomSheetView
+                    )
+
+                behavior.state =
+                    BottomSheetBehavior.STATE_EXPANDED
+
+                behavior.skipCollapsed = true
+
+                bottomSheetView.background =
+                    ContextCompat.getDrawable(
+                        this,
+                        R.drawable.bg_bottom_sheet_alacena
+                    )
+            }
+        }
+
+        bottomSheet.show()
+    }
+    private fun mostrarDialogEditarAlacena(
+        alacena: Alacena
+    ) {
+
+        val bottomSheet = BottomSheetDialog(this)
+
+        val view = layoutInflater.inflate(
+            R.layout.dialog_crear_alacena,
+            null
+        )
+
+        bottomSheet.setContentView(view)
+
+        val txtTitulo =
+            view.findViewById<TextView>(
+                R.id.txtTituloAlacena
+            )
+
+        val edtNombre =
+            view.findViewById<TextInputEditText>(
+                R.id.edtNombreAlacena
+            )
+
+        val btnCasa =
+            view.findViewById<ImageButton>(
+                R.id.btnIconoCasa
+            )
+
+        val btnOficina =
+            view.findViewById<ImageButton>(
+                R.id.btnIconoOficina
+            )
+
+        val btnRefrigerador =
+            view.findViewById<ImageButton>(
+                R.id.btnIconoRefrigerador
+            )
+
+        val btnCancelar =
+            view.findViewById<MaterialButton>(
+                R.id.btnCancelarAlacena
+            )
+
+        val btnGuardar =
+            view.findViewById<MaterialButton>(
+                R.id.btnGuardarAlacena
+            )
+
+        // Titulo
+        txtTitulo.text = "EDITAR ALACENA"
+
+        // Cargar nombre
+        edtNombre.setText(
+            alacena.ALC_NOMBRE
+        )
+
+        // Icono actual
+        var iconoSeleccionado =
+            alacena.ALC_ICONO.uppercase()
+
+        when (iconoSeleccionado) {
+
+            "CASA" -> seleccionarIconoAlacena(
+                btnCasa,
+                btnCasa,
+                btnOficina,
+                btnRefrigerador
+            )
+
+            "OFICINA" -> seleccionarIconoAlacena(
+                btnOficina,
+                btnCasa,
+                btnOficina,
+                btnRefrigerador
+            )
+
+            "REFRIGERADOR" -> seleccionarIconoAlacena(
+                btnRefrigerador,
+                btnCasa,
+                btnOficina,
+                btnRefrigerador
+            )
+        }
+
+        // CASA
+        btnCasa.setOnClickListener {
+
+            iconoSeleccionado = "CASA"
+
+            seleccionarIconoAlacena(
+                btnCasa,
+                btnCasa,
+                btnOficina,
+                btnRefrigerador
+            )
+        }
+
+        // OFICINA
+        btnOficina.setOnClickListener {
+
+            iconoSeleccionado = "OFICINA"
+
+            seleccionarIconoAlacena(
+                btnOficina,
+                btnCasa,
+                btnOficina,
+                btnRefrigerador
+            )
+        }
+
+        // REFRIGERADOR
+        btnRefrigerador.setOnClickListener {
+
+            iconoSeleccionado = "REFRIGERADOR"
+
+            seleccionarIconoAlacena(
+                btnRefrigerador,
+                btnCasa,
+                btnOficina,
+                btnRefrigerador
+            )
+        }
+
+        // CANCELAR
+        btnCancelar.setOnClickListener {
+            bottomSheet.dismiss()
+        }
+
+        // GUARDAR
+        btnGuardar.setOnClickListener {
+
+            val nombre =
+                edtNombre.text
+                    ?.toString()
+                    ?.trim()
+                    .orEmpty()
+
+            if (nombre.isEmpty()) {
+
+                edtNombre.error =
+                    "Ingresa un nombre"
+
+                edtNombre.requestFocus()
+
+                return@setOnClickListener
+            }
+
+            editarAlacena(
+                alacena = alacena,
+                nombre = nombre,
+                icono = iconoSeleccionado,
+                dialog = bottomSheet
+            )
+        }
+
+        bottomSheet.setOnShowListener {
+
+            val dialog = it as BottomSheetDialog
+
+            val sheet =
+                dialog.findViewById<View>(
+                    com.google.android.material.R.id.design_bottom_sheet
+                )
+
+            sheet?.let {
+
+                val behavior =
+                    BottomSheetBehavior.from(it)
+
+                behavior.state =
+                    BottomSheetBehavior.STATE_EXPANDED
+
+                behavior.skipCollapsed = true
+
+                it.background =
+                    ContextCompat.getDrawable(
+                        this,
+                        R.drawable.bg_bottom_sheet_alacena
+                    )
+            }
+        }
+
+        bottomSheet.show()
+    }
+
+
+    private fun editarAlacena(
+        alacena: Alacena,
+        nombre: String,
+        icono: String,
+        dialog: BottomSheetDialog
+    ) {
+
+        val clienteId =
+            SesionUsuario.obtenerId(this)
+
+        if (clienteId <= 0) {
+
+            Toast.makeText(
+                this,
+                "No se pudo obtener el usuario.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        lifecycleScope.launch {
+
+            try {
+
+                val request =
+                    EditarAlacenaRequest(
+                        ALC_ID = alacena.ALC_ID,
+                        ALC_CLI_ID = clienteId,
+                        ALC_NOMBRE = nombre,
+                        ALC_ICONO = icono
+                    )
+
+                Log.d(
+                    "ALACENA",
+                    "Editando: $request"
+                )
+
+                val respuesta =
+                    ApiClient.apiService.editarAlacena(
+                        request
+                    )
+
+                Log.d(
+                    "ALACENA",
+                    "Respuesta: $respuesta"
+                )
+
+                if (respuesta.success) {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        respuesta.message
+                            ?: "Alacena actualizada correctamente.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    dialog.dismiss()
+
+                    cargarAlacenas()
+
+                } else {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        respuesta.message
+                            ?: "No se pudo actualizar la alacena.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "ALACENA",
+                    "Error al editar alacena",
+                    e
+                )
+
+                Toast.makeText(
+                    this@Menu_principal_free,
+                    "Error de conexión con el servidor.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+    private fun mostrarConfirmacionEliminarAlacena(
+        alacena: Alacena
+    ) {
+
+        AlertDialog.Builder(this)
+            .setTitle("ELIMINAR ALACENA")
+            .setMessage(
+                "¿Quieres eliminar la alacena " +
+                        "\"${alacena.ALC_NOMBRE}\"?\n\n" +
+                        "Esta acción no se puede deshacer."
+            )
+            .setNegativeButton("CANCELAR", null)
+            .setPositiveButton("ELIMINAR") { _, _ ->
+
+                eliminarAlacena(alacena)
+            }
+            .show()
+    }
+    private fun eliminarAlacena(
+        alacena: Alacena
+    ) {
+
+        val clienteId =
+            SesionUsuario.obtenerId(this)
+
+        if (clienteId <= 0) {
+
+            Toast.makeText(
+                this,
+                "No se pudo obtener el usuario.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        lifecycleScope.launch {
+
+            try {
+
+                val request =
+                    EliminarAlacenaRequest(
+                        ALC_ID = alacena.ALC_ID,
+                        ALC_CLI_ID = clienteId
+                    )
+
+                Log.d(
+                    "ALACENA",
+                    "Eliminando: $request"
+                )
+
+                val respuesta =
+                    ApiClient.apiService.eliminarAlacena(
+                        request
+                    )
+
+                Log.d(
+                    "ALACENA",
+                    "Respuesta: $respuesta"
+                )
+
+                if (respuesta.success) {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        respuesta.message
+                            ?: "Alacena eliminada correctamente.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    cargarAlacenas()
+
+                } else {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        respuesta.message
+                            ?: "No se pudo eliminar la alacena.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "ALACENA",
+                    "Error al eliminar alacena",
+                    e
+                )
+
+                Toast.makeText(
+                    this@Menu_principal_free,
+                    "Error de conexión con el servidor.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+    private fun seleccionarIconoAlacena(
+        btnSeleccionado: ImageButton,
+        btnCasa: ImageButton,
+        btnOficina: ImageButton,
+        btnRefrigerador: ImageButton
+    ) {
+
+        // Quitar el círculo azul de todos
+        btnCasa.background =
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_icono_alacena_normal
+            )
+
+        btnOficina.background =
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_icono_alacena_normal
+            )
+
+        btnRefrigerador.background =
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_icono_alacena_normal
+            )
+
+        // Colocar el círculo azul al icono seleccionado
+        btnSeleccionado.background =
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_icono_alacena_seleccionado
+            )
+    }
+    private fun mostrarDialogAgregarIngrediente() {
+
+        val bottomSheet = BottomSheetDialog(this)
+
+        val view = layoutInflater.inflate(
+            R.layout.dialog_agregar_ingrediente,
+            null
+        )
+
+        bottomSheet.setContentView(view)
+
+
+        // =========================================================
+        // FECHA DE COMPRA
+        // =========================================================
+
+        val txtFechaCompra =
+            view.findViewById<TextView>(R.id.txtFechadecompra)
+
+        txtFechaCompra.setOnClickListener {
+
+            val calendario = Calendar.getInstance()
+
+            val year = calendario.get(Calendar.YEAR)
+            val month = calendario.get(Calendar.MONTH)
+            val day = calendario.get(Calendar.DAY_OF_MONTH)
+
+            val datePicker = DatePickerDialog(
+                this,
+                { _, selectedYear, selectedMonth, selectedDay ->
+
+                    val fechaSeleccionada = String.format(
+                        "%02d/%02d/%04d",
+                        selectedDay,
+                        selectedMonth + 1,
+                        selectedYear
+                    )
+
+                    txtFechaCompra.text = fechaSeleccionada
+                },
+                year,
+                month,
+                day
+            )
+
+            datePicker.show()
+        }
+
+
+        // =========================================================
+        // FECHA DE CONSUMO
+        // =========================================================
+
+        val txtFechaConsumo =
+            view.findViewById<TextView>(R.id.txtFechadecon)
+
+        txtFechaConsumo.setOnClickListener {
+
+            val calendario = Calendar.getInstance()
+
+            val year = calendario.get(Calendar.YEAR)
+            val month = calendario.get(Calendar.MONTH)
+            val day = calendario.get(Calendar.DAY_OF_MONTH)
+
+            val datePicker = DatePickerDialog(
+                this,
+                { _, selectedYear, selectedMonth, selectedDay ->
+
+                    val fechaSeleccionada = String.format(
+                        "%02d/%02d/%04d",
+                        selectedDay,
+                        selectedMonth + 1,
+                        selectedYear
+                    )
+
+                    txtFechaConsumo.text = fechaSeleccionada
+                },
+                year,
+                month,
+                day
+            )
+
+            datePicker.show()
+        }
+
+
+        // =========================================================
+        // SELECTOR DE UNIDAD
+        // =========================================================
+
+        val actUnidadCantidad =
+            view.findViewById<MaterialAutoCompleteTextView>(
+                R.id.actUnidadCantidad
+            )
+
+        val imgFlechaUnidad =
+            view.findViewById<ImageView>(
+                R.id.imgFlechaUnidad
+            )
+
+
+        // =========================================================
+        // LISTA DE UNIDADES
+        // =========================================================
+
+        val unidades = listOf(
+
+            // PEQUEÑAS
+            "🥄 Pequeñas",
+            "Cucharadita",
+            "Cucharaditas",
+            "Cucharada",
+            "Cucharadas",
+            "Pizca",
+            "Pizcas",
+            "Al gusto",
+
+            // VOLUMEN
+            "🥛 Volumen",
+            "Taza",
+            "Tazas",
+            "Litro",
+            "Litros",
+            "Mililitro",
+            "Mililitros",
+
+            // PESO
+            "⚖️ Peso",
+            "Gramo",
+            "Gramos",
+            "Kilogramo",
+            "Kilogramos",
+
+            // PORCIONES
+            "🍽️ Porciones",
+            "Pieza",
+            "Piezas",
+            "Diente",
+            "Dientes",
+            "Rama",
+            "Ramas"
+        )
+
+
+        // =========================================================
+        // TÍTULOS DE LAS CATEGORÍAS
+        // NO SON SELECCIONABLES
+        // =========================================================
+
+        val titulos = setOf(
+            "🥄 Pequeñas",
+            "🥛 Volumen",
+            "⚖️ Peso",
+            "🍽️ Porciones"
+        )
+
+
+        // =========================================================
+        // ADAPTER PERSONALIZADO
+        // =========================================================
+
+        val adapterUnidades = UnidadAdapter(
+            this,
+            unidades,
+            titulos
+        )
+
+        actUnidadCantidad.setAdapter(adapterUnidades)
+
+
+        // =========================================================
+        // ANCHO DEL MENÚ
+        // =========================================================
+
+        val anchoMenu =
+            (300 * resources.displayMetrics.density).toInt()
+
+        actUnidadCantidad.dropDownWidth = anchoMenu
+
+
+        // =========================================================
+        // SELECCIÓN DE UNIDAD
+        // =========================================================
+
+        actUnidadCantidad.setOnItemClickListener {
+                _,
+                _,
+                position,
+                _ ->
+
+            val seleccion = unidades[position]
+
+            // Solo se permite seleccionar unidades,
+            // no los títulos de categoría.
+            if (seleccion !in titulos) {
+
+                actUnidadCantidad.setText(
+                    seleccion,
+                    false
+                )
+            }
+        }
+
+
+        // =========================================================
+        // BOTÓN FLECHA DE UNIDAD
+        // =========================================================
+
+        imgFlechaUnidad.setOnClickListener {
+
+            actUnidadCantidad.requestFocus()
+
+            actUnidadCantidad.showDropDown()
+        }
+
+
+        // =========================================================
+        // CLIC SOBRE LA UNIDAD
+        // =========================================================
+
+        actUnidadCantidad.setOnClickListener {
+
+            actUnidadCantidad.showDropDown()
+        }
+
+
+        // =========================================================
+        // BOTÓN CERRAR
+        // =========================================================
+
+        val btnCerrar =
+            view.findViewById<ImageButton>(
+                R.id.btnCerrarIngrediente
+            )
+
+        btnCerrar.setOnClickListener {
+
+            bottomSheet.dismiss()
+        }
+
+
+        // =========================================================
+        // BOTÓN LIMPIAR
+        // =========================================================
+
+        val btnLimpiar =
+            view.findViewById<MaterialButton>(
+                R.id.btnCancelarIngrediente
+            )
+
+        btnLimpiar.setOnClickListener {
+
+            // Ingrediente
+            val edtIngrediente =
+                view.findViewById<TextInputEditText>(
+                    R.id.edtIngrediente
+                )
+
+            // Cantidad
+            val txtCantidad =
+                view.findViewById<EditText>(
+                    R.id.txtCantidad
+                )
+
+            // Precio
+            val txtPrecioCompra =
+                view.findViewById<EditText>(
+                    R.id.txtPrecioCompra
+                )
+
+            edtIngrediente.text?.clear()
+
+            txtCantidad.setText("500")
+
+            actUnidadCantidad.setText(
+                "gr",
+                false
+            )
+
+            txtPrecioCompra.text?.clear()
+
+            txtFechaCompra.text = "09/10/2026"
+
+            txtFechaConsumo.text = "09/10/2026"
+        }
+
+
+        // =========================================================
+        // BOTÓN AGREGAR
+        // =========================================================
+
+        val btnGuardar =
+            view.findViewById<MaterialButton>(
+                R.id.btnGuardarIngrediente
+            )
+
+        btnGuardar.setOnClickListener {
+
+            val edtIngrediente =
+                view.findViewById<TextInputEditText>(
+                    R.id.edtIngrediente
+                )
+
+            val txtCantidad =
+                view.findViewById<EditText>(
+                    R.id.txtCantidad
+                )
+
+            val txtPrecioCompra =
+                view.findViewById<EditText>(
+                    R.id.txtPrecioCompra
+                )
+
+
+            val ingrediente =
+                edtIngrediente.text
+                    ?.toString()
+                    ?.trim()
+                    .orEmpty()
+
+            val cantidad =
+                txtCantidad.text
+                    ?.toString()
+                    ?.trim()
+                    .orEmpty()
+
+            val unidad =
+                actUnidadCantidad.text
+                    ?.toString()
+                    ?.trim()
+                    .orEmpty()
+
+            val precio =
+                txtPrecioCompra.text
+                    ?.toString()
+                    ?.trim()
+                    .orEmpty()
+
+
+            // =====================================================
+            // VALIDACIONES
+            // =====================================================
+
+            if (ingrediente.isEmpty()) {
+
+                edtIngrediente.error =
+                    "Ingresa un ingrediente"
+
+                edtIngrediente.requestFocus()
+
+                return@setOnClickListener
+            }
+
+
+            if (cantidad.isEmpty()) {
+
+                txtCantidad.error =
+                    "Ingresa una cantidad"
+
+                txtCantidad.requestFocus()
+
+                return@setOnClickListener
+            }
+
+
+            if (unidad.isEmpty()) {
+
+                Toast.makeText(
+                    this,
+                    "Selecciona una unidad.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return@setOnClickListener
+            }
+
+
+            // =====================================================
+            // POR AHORA SOLO MOSTRAMOS LOS DATOS
+            // =====================================================
+
+            Log.d(
+                "ALACENA_INGREDIENTE",
+                """
+            Ingrediente: $ingrediente
+            Cantidad: $cantidad
+            Unidad: $unidad
+            Precio: $precio
+            Fecha compra: ${txtFechaCompra.text}
+            Fecha consumo: ${txtFechaConsumo.text}
+            """.trimIndent()
+            )
+
+
+            Toast.makeText(
+                this,
+                "Ingrediente preparado para agregar.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+
+            // Por ahora no cerramos el BottomSheet.
+            // Posteriormente aquí conectaremos
+            // el endpoint ALACENA_INGREDIENTE.
+        }
+
+
+        // =========================================================
+        // MOSTRAR BOTTOM SHEET
+        // =========================================================
+
+        bottomSheet.setOnShowListener {
+
+            val dialog = it as BottomSheetDialog
+
+            val sheet = dialog.findViewById<View>(
+                com.google.android.material.R.id.design_bottom_sheet
+            )
+
+            sheet?.let { bottomSheetView ->
+
+                val behavior =
+                    BottomSheetBehavior.from(bottomSheetView)
+
+                behavior.state =
+                    BottomSheetBehavior.STATE_EXPANDED
+
+                behavior.skipCollapsed = true
+
+                bottomSheetView.background =
+                    ContextCompat.getDrawable(
+                        this,
+                        R.drawable.bg_bottom_sheet_alacena
+                    )
+            }
+        }
+        // =========================================================
+// SELECTOR DE TIPO DE ALMACENAMIENTO
+// =========================================================
+
+        val txtTipoAlmacenamiento =
+            view.findViewById<TextView>(
+                R.id.txtTipodealmacenamiento
+            )
+
+        val imgFlechaAlmacenamiento =
+            view.findViewById<ImageView>(
+                R.id.imgFlechaalmacenamiento
+            )
+
+
+// =========================================================
+// OPCIONES DE ALMACENAMIENTO
+// =========================================================
+
+        val tiposAlmacenamiento = listOf(
+            "Refrigerador",
+            "Ambiente",
+            "Congelador",
+            "Sellado"
+        )
+
+
+// =========================================================
+// ADAPTER
+// =========================================================
+
+        val adapterAlmacenamiento = ArrayAdapter(
+            this,
+            android.R.layout.simple_dropdown_item_1line,
+            tiposAlmacenamiento
+        )
+
+
+// =========================================================
+// POPUP
+// =========================================================
+
+        val popupAlmacenamiento = PopupWindow(
+            view.context
+        )
+
+        val listaAlmacenamiento =
+            ListView(view.context)
+
+        listaAlmacenamiento.adapter =
+            adapterAlmacenamiento
+
+        listaAlmacenamiento.divider = null
+
+        listaAlmacenamiento.setPadding(
+            0,
+            8,
+            0,
+            8
+        )
+
+        popupAlmacenamiento.contentView =
+            listaAlmacenamiento
+
+        popupAlmacenamiento.width =
+            (220 * resources.displayMetrics.density).toInt()
+
+        WindowManager.LayoutParams.WRAP_CONTENT.also { popupAlmacenamiento.height = it }
+
+        popupAlmacenamiento.isFocusable = true
+        popupAlmacenamiento.isOutsideTouchable = true
+
+        popupAlmacenamiento.setBackgroundDrawable(
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_rectangulo_blanco
+            )
+        )
+
+
+// =========================================================
+// SELECCIONAR ALMACENAMIENTO
+// =========================================================
+
+        listaAlmacenamiento.setOnItemClickListener {
+                _,
+                _,
+                position,
+                _ ->
+
+            val seleccion =
+                tiposAlmacenamiento[position]
+
+            txtTipoAlmacenamiento.text =
+                seleccion
+
+            popupAlmacenamiento.dismiss()
+        }
+
+
+// =========================================================
+// ABRIR CON LA FLECHA
+// =========================================================
+
+        imgFlechaAlmacenamiento.setOnClickListener {
+
+            popupAlmacenamiento.showAsDropDown(
+                imgFlechaAlmacenamiento,
+                -180,
+                5
+            )
+        }
+
+
+// =========================================================
+// TAMBIÉN ABRIR AL TOCAR EL TEXTO
+// =========================================================
+
+        txtTipoAlmacenamiento.setOnClickListener {
+
+            popupAlmacenamiento.showAsDropDown(
+                txtTipoAlmacenamiento,
+                -180,
+                5
+            )
+        }
+        // =========================================================
+// SELECTOR DE ESTADO
+// =========================================================
+
+        val txtTipoEstado =
+            view.findViewById<TextView>(
+                R.id.txtTipodeestado
+            )
+
+        val imgFlechaEstado =
+            view.findViewById<ImageView>(
+                R.id.imgFlechaestado
+            )
+
+
+// =========================================================
+// OPCIONES DE ESTADO
+// =========================================================
+
+        val estados = listOf(
+            "Maduro",
+            "Pasado",
+            "Verde",
+            "Fresco"
+        )
+
+
+// =========================================================
+// ADAPTER
+// =========================================================
+
+        val adapterEstados = ArrayAdapter(
+            this,
+            android.R.layout.simple_dropdown_item_1line,
+            estados
+        )
+
+
+// =========================================================
+// LISTA DESPLEGABLE
+// =========================================================
+
+        val listaEstados = ListView(this)
+
+        listaEstados.adapter = adapterEstados
+
+        listaEstados.divider = null
+
+        listaEstados.setPadding(
+            0,
+            5,
+            0,
+            5
+        )
+
+
+// =========================================================
+// POPUP
+// =========================================================
+
+        val popupEstado = PopupWindow(
+            listaEstados,
+            (180 * resources.displayMetrics.density).toInt(),
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            true
+        )
+
+        popupEstado.setBackgroundDrawable(
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_rectangulo_blanco
+            )
+        )
+
+        popupEstado.isOutsideTouchable = true
+        popupEstado.elevation = 8f
+
+
+// =========================================================
+// SELECCIONAR ESTADO
+// =========================================================
+
+        listaEstados.setOnItemClickListener {
+                _,
+                _,
+                position,
+                _ ->
+
+            val estadoSeleccionado = estados[position]
+
+            txtTipoEstado.text = estadoSeleccionado
+
+            popupEstado.dismiss()
+        }
+
+
+// =========================================================
+// ABRIR CON LA FLECHA
+// =========================================================
+
+        imgFlechaEstado.setOnClickListener {
+
+            popupEstado.showAsDropDown(
+                imgFlechaEstado,
+                -150,
+                5
+            )
+        }
+
+
+// =========================================================
+// ABRIR AL TOCAR EL TEXTO
+// =========================================================
+
+        txtTipoEstado.setOnClickListener {
+
+            popupEstado.showAsDropDown(
+                txtTipoEstado,
+                -150,
+                5
+            )
+        }
+        // =========================================================
+// SELECTOR DE FRECUENCIA
+// =========================================================
+
+        val txtTipoFrecuencia =
+            view.findViewById<TextView>(
+                R.id.txtTipodeFrecuencia
+            )
+
+        val imgFlechaFrecuencia =
+            view.findViewById<ImageView>(
+                R.id.imgFlechaFrecuencia
+            )
+
+
+// =========================================================
+// OPCIONES DE FRECUENCIA
+// =========================================================
+
+        val frecuencias = listOf(
+            "Diariamente",
+            "De vez en cuando",
+            "+ de 2 veces por semana",
+            "Ocasionalmente — 2 a 3 por semana",
+            "Poco habitual — 1 vez por semana"
+        )
+
+
+// =========================================================
+// ADAPTER
+// =========================================================
+
+        val adapterFrecuencia = ArrayAdapter(
+            this,
+            android.R.layout.simple_dropdown_item_1line,
+            frecuencias
+        )
+
+
+// =========================================================
+// LISTA DESPLEGABLE
+// =========================================================
+
+        val listaFrecuencia = ListView(this)
+
+        listaFrecuencia.adapter = adapterFrecuencia
+
+        listaFrecuencia.divider = null
+
+        listaFrecuencia.setPadding(
+            0,
+            5,
+            0,
+            5
+        )
+
+
+// =========================================================
+// POPUP
+// =========================================================
+
+        val popupFrecuencia = PopupWindow(
+            listaFrecuencia,
+            (250 * resources.displayMetrics.density).toInt(),
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            true
+        )
+
+        popupFrecuencia.setBackgroundDrawable(
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_rectangulo_blanco
+            )
+        )
+
+        popupFrecuencia.isOutsideTouchable = true
+        popupFrecuencia.elevation = 8f
+
+
+// =========================================================
+// SELECCIONAR FRECUENCIA
+// =========================================================
+
+        listaFrecuencia.setOnItemClickListener {
+                _,
+                _,
+                position,
+                _ ->
+
+            val frecuenciaSeleccionada =
+                frecuencias[position]
+
+            txtTipoFrecuencia.text =
+                frecuenciaSeleccionada
+
+            popupFrecuencia.dismiss()
+        }
+
+
+// =========================================================
+// ABRIR CON LA FLECHA
+// =========================================================
+
+        imgFlechaFrecuencia.setOnClickListener {
+
+            popupFrecuencia.showAsDropDown(
+                imgFlechaFrecuencia,
+                -220,
+                5
+            )
+        }
+
+
+// =========================================================
+// ABRIR AL TOCAR EL TEXTO
+// =========================================================
+
+        txtTipoFrecuencia.setOnClickListener {
+
+            popupFrecuencia.showAsDropDown(
+                txtTipoFrecuencia,
+                -220,
+                5
+            )
+        }
+        // =========================================================
+// SELECTOR DE ABASTECIMIENTO
+// =========================================================
+
+        val txtTipoAbastecimiento =
+            view.findViewById<TextView>(
+                R.id.txtTipodeAbastecimiento
+            )
+
+        val imgFlechaAbastecimiento =
+            view.findViewById<ImageView>(
+                R.id.imgFlechaAbastecimiento
+            )
+
+
+// =========================================================
+// OPCIONES DE ABASTECIMIENTO
+// =========================================================
+
+        val abastecimientos = listOf(
+            "De un solo uso",
+            "Compra minorista (200 gr a 900 gr)",
+            "Por porción grande (1 kg a 4 kg)",
+            "A granel",
+            "Mayoreo (+ 5 kg)"
+        )
+
+
+// =========================================================
+// ADAPTER
+// =========================================================
+
+        val adapterAbastecimiento = ArrayAdapter(
+            this,
+            android.R.layout.simple_dropdown_item_1line,
+            abastecimientos
+        )
+
+
+// =========================================================
+// LISTA DESPLEGABLE
+// =========================================================
+
+        val listaAbastecimiento = ListView(this)
+
+        listaAbastecimiento.adapter =
+            adapterAbastecimiento
+
+        listaAbastecimiento.divider = null
+
+        listaAbastecimiento.setPadding(
+            0,
+            5,
+            0,
+            5
+        )
+
+
+// =========================================================
+// POPUP
+// =========================================================
+
+        val popupAbastecimiento = PopupWindow(
+            listaAbastecimiento,
+            (300 * resources.displayMetrics.density).toInt(),
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            true
+        )
+
+        popupAbastecimiento.setBackgroundDrawable(
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_rectangulo_blanco
+            )
+        )
+
+        popupAbastecimiento.isOutsideTouchable = true
+        popupAbastecimiento.elevation = 8f
+
+
+// =========================================================
+// SELECCIONAR ABASTECIMIENTO
+// =========================================================
+
+        listaAbastecimiento.setOnItemClickListener {
+                _,
+                _,
+                position,
+                _ ->
+
+            val abastecimientoSeleccionado =
+                abastecimientos[position]
+
+            txtTipoAbastecimiento.text =
+                abastecimientoSeleccionado
+
+            popupAbastecimiento.dismiss()
+        }
+
+
+// =========================================================
+// ABRIR CON LA FLECHA
+// =========================================================
+
+        imgFlechaAbastecimiento.setOnClickListener {
+
+            popupAbastecimiento.showAsDropDown(
+                imgFlechaAbastecimiento,
+                -270,
+                5
+            )
+        }
+
+
+// =========================================================
+// ABRIR AL TOCAR EL TEXTO
+// =========================================================
+
+        txtTipoAbastecimiento.setOnClickListener {
+
+            popupAbastecimiento.showAsDropDown(
+                txtTipoAbastecimiento,
+                -270,
+                5
+            )
+        }
+        val rvResultadosIngrediente =
+            view.findViewById<RecyclerView>(
+                R.id.rvResultadosIngrediente
+            )
+        val edtIngrediente =
+            view.findViewById<TextInputEditText>(
+                R.id.edtIngrediente
+            )
+
+        val txtEmojiIngrediente =
+            view.findViewById<ImageView>(
+                R.id.txtEmojiIngrediente
+            )
+
+        val contenedorResultados =
+            view.findViewById<View>(
+                R.id.contenedorResultadosIngrediente
+            )
+        rvResultadosIngrediente.layoutManager =
+            LinearLayoutManager(
+                this,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
+        val adapterIngredientes =
+            IngredienteMiniAdapter(
+                emptyList()
+            ) { ingredienteSeleccionado ->
+
+                // ==========================================
+                // COLOCAR NOMBRE EN EL BUSCADOR
+                // ==========================================
+
+                edtIngrediente.setText(
+                    ingredienteSeleccionado.nombre
+                )
+
+
+                // ==========================================
+                // COLOCAR IMAGEN DEL INGREDIENTE
+                // ==========================================
+
+                if (
+                    !ingredienteSeleccionado
+                        .imagen_url
+                        .isNullOrEmpty()
+                ) {
+
+                    Glide.with(
+                        this
+                    )
+                        .load(
+                            ingredienteSeleccionado.imagen_url
+                        )
+                        .placeholder(
+                            R.drawable.ic_ingredientes
+                        )
+                        .error(
+                            R.drawable.ic_ingredientes
+                        )
+                        .into(
+                            txtEmojiIngrediente
+                        )
+
+                } else {
+
+                    txtEmojiIngrediente.setImageResource(
+                        R.drawable.ic_ingredientes
+                    )
+                }
+
+
+                // ==========================================
+                // GUARDAR ID SELECCIONADO
+                // ==========================================
+
+                ingredienteSeleccionadoId =
+                    ingredienteSeleccionado.id
+
+
+                // ==========================================
+                // OCULTAR RESULTADOS
+                // ==========================================
+
+                contenedorResultados.visibility =
+                    View.GONE
+            }
+        rvResultadosIngrediente.adapter =
+            adapterIngredientes
+        edtIngrediente.addTextChangedListener(
+
+            object : TextWatcher {
+
+
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                }
+
+                override fun onTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    before: Int,
+                    count: Int
+                ) {
+
+                    val busqueda =
+                        s?.toString()
+                            ?.trim()
+                            .orEmpty()
+
+
+                    // Si está vacío
+                    if (busqueda.isEmpty()) {
+
+                        contenedorResultados.visibility =
+                            View.GONE
+
+                        adapterIngredientes.actualizarLista(
+                            emptyList()
+                        )
+
+                        ingredienteSeleccionadoId =
+                            null
+
+                        return
+                    }
+
+
+                    // Buscar
+                    buscarIngredientes(
+                        busqueda,
+                        adapterIngredientes,
+                        contenedorResultados
+                    )
+                }
+
+                override fun afterTextChanged(
+                    s: Editable?
+                ) {
+                }
+            }
+        )
+
+
+
+
+        bottomSheet.show()
+    }
+    private fun buscarIngredientes(
+        busqueda: String,
+        adapter: IngredienteMiniAdapter,
+        contenedorResultados: View
+    ) {
+
+        lifecycleScope.launch {
+
+            try {
+
+                Log.d(
+                    "INGREDIENTE",
+                    "Buscando: $busqueda"
+                )
+
+
+                val respuesta =
+                    ApiClient.apiService
+                        .autocompleteIngredientes(
+                            busqueda
+                        )
+
+
+                if (
+                    respuesta.success &&
+                    respuesta.ingredientes.isNotEmpty()
+                ) {
+
+                    adapter.actualizarLista(
+                        respuesta.ingredientes
+                    )
+
+                    contenedorResultados.visibility =
+                        View.VISIBLE
+
+
+                    Log.d(
+                        "INGREDIENTE",
+                        "Resultados: ${respuesta.count}"
+                    )
+
+                } else {
+
+                    adapter.actualizarLista(
+                        emptyList()
+                    )
+
+                    contenedorResultados.visibility =
+                        View.GONE
+                }
+
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "INGREDIENTE",
+                    "Error al buscar ingredientes",
+                    e
+                )
+
+                adapter.actualizarLista(
+                    emptyList()
+                )
+
+                contenedorResultados.visibility =
+                    View.GONE
+            }
+        }
     }
 
 

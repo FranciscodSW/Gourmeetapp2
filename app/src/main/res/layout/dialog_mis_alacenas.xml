@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet_alacena"
+    android:paddingBottom="20dp">
+    <!-- TITULO -->
+    <TextView
+        android:id="@+id/txtTituloMisAlacenas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MIS ALACENAS"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:background="@drawable/bg_rectangulo_azul_borde_negro_3"
+        android:textStyle="bold"
+        android:fontFamily="@font/caviardreams"
+        android:gravity="center"
+        android:padding="10dp"/>
+    <!-- LISTA -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMisAlacenas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:overScrollMode="never"
+        android:nestedScrollingEnabled="false"/>
+</LinearLayout>

@@ -170,4 +170,20 @@ interface ApiService {
     suspend fun crearReporteProblema(
         @Body request: ReporteProblemaRequest
     ): ReporteProblemaResponse
+    @POST("alacena/crear_alacena.php")
+    suspend fun crearAlacena(
+        @Body request: CrearAlacenaRequest
+    ): AlacenaResponse
+    @POST("alacena/listar_alacenas.php")
+    suspend fun listarAlacenas(
+        @Body request: ListarAlacenasRequest
+    ): ListaAlacenasResponse
+    @POST("alacena/editar_alacena.php")
+    suspend fun editarAlacena(
+        @Body request: EditarAlacenaRequest
+    ): AlacenaResponse
+    @POST("alacena/eliminar_alacena.php")
+    suspend fun eliminarAlacena(
+        @Body request: EliminarAlacenaRequest
+    ): AlacenaResponse
 }

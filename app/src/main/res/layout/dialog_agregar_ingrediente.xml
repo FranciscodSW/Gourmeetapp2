@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:background="@drawable/bg_bottom_sheet_alacena">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+
+        android:background="@drawable/bg_rectangulo_azul_borde_negro_3"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <!-- TÍTULO -->
+        <TextView
+            android:id="@+id/txtTituloIngrediente"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="AGREGAR INGREDIENTE"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:paddingStart="45dp"
+            android:paddingEnd="45dp"/>
+
+        <!-- BOTÓN CERRAR -->
+        <ImageButton
+            android:id="@+id/btnCerrarIngrediente"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="start"
+            android:translationY="8dp"
+            android:translationX="5dp"
+            android:layout_marginStart="1dp"
+            android:tint="@color/azulgourmeet"
+            android:background="@drawable/bg_circulo_blanco_sin_fondo"
+            android:src="@drawable/ic_cerrar_blanco"
+            android:scaleType="centerInside"
+            android:contentDescription="Cerrar"/>
+
+    </FrameLayout>
+    <FrameLayout
+        android:id="@+id/contenedorResultadosIngrediente"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/bg_rectangulo_blanco"
+        android:elevation="8dp"
+        android:visibility="gone">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvResultadosIngrediente"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:clipToPadding="false"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:overScrollMode="never"/>
+
+    </FrameLayout>
+    <!-- BUSCADOR + ICONO -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <FrameLayout
+            android:id="@+id/contenedorIconoIngrediente"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_circulo_azul"
+            android:gravity="center">
+
+            <ImageView
+                android:id="@+id/txtEmojiIngrediente"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:src="@drawable/ic_ingredientes"
+                android:includeFontPadding="false"/>
+
+        </FrameLayout>
+
+
+        <!-- BUSCADOR -->
+        <EditText
+            android:id="@+id/edtIngrediente"
+            android:layout_width="0dp"
+            android:layout_height="55dp"
+            android:layout_weight="1"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="12dp"
+            android:hint="Nombre del ingrediente"
+            android:textColor="@color/azulgourmeet"
+            android:hintTextColor="@color/azulgourmeet"
+            android:textSize="13sp"
+            android:fontFamily="@font/caviardreams"
+            android:inputType="textCapSentences"
+            android:singleLine="true"
+            android:gravity="center_vertical"
+            android:paddingStart="15dp"
+            android:paddingEnd="15dp"
+            android:background="@drawable/bg_ovalo_sin_fondo"/>
+    </LinearLayout>
+
+
+    <!-- ====================================== -->
+    <!-- CANTIDAD Y UNIDAD -->
+    <!-- ====================================== -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardCantidad"
+        android:layout_width="135dp"
+        android:layout_height="55dp"
+        android:layout_margin="3dp"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="0dp"
+        app:strokeColor="@android:color/black"
+        app:strokeWidth="1dp"
+        app:cardBackgroundColor="@color/azulgourmeet">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <!-- CANTIDAD + UNIDAD + FLECHA -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp">
+
+                <!-- CANTIDAD -->
+                <EditText
+                    android:id="@+id/txtCantidad"
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent"
+                    android:text="500"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/caviardreams"
+                    android:gravity="center"
+                    android:inputType="number"
+                    android:maxLines="1"
+                    android:background="@android:color/transparent"
+                    android:padding="0dp"
+                    android:selectAllOnFocus="true"/>
+
+                <!-- UNIDAD -->
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/actUnidadCantidad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="gr"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/caviardreams"
+                    android:inputType="none"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:gravity="center"
+                    android:padding="1dp"
+                    android:background="@android:color/transparent"/>
+
+                <!-- FLECHA -->
+                <ImageView
+                    android:id="@+id/imgFlechaUnidad"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="2dp"
+                    android:src="@drawable/ic_flecha_abajo"
+                    android:scaleType="centerInside"
+                    app:tint="@android:color/white"
+                    android:contentDescription="Seleccionar unidad"/>
+
+            </LinearLayout>
+
+
+            <!-- MEDIDA EXACTA -->
+            <TextView
+                android:id="@+id/txtTipoMedida"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:text="Medida exacta"
+                android:textColor="@color/azulgourmeet"
+                android:textSize="9sp"
+                android:fontFamily="@font/caviardreams"
+                android:gravity="center"
+                android:background="@drawable/bg_ovalo_sin_fondo"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardPrecioCompra"
+        android:layout_width="0dp"
+        android:layout_height="55dp"
+        android:layout_weight="1"
+        android:layout_margin="3dp"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="0dp"
+        app:strokeColor="@android:color/black"
+        app:strokeWidth="1dp"
+        app:cardBackgroundColor="@android:color/white">
+
+        <EditText
+            android:id="@+id/txtPrecioCompra"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="Precio de\ncompra"
+            android:textColor="#AAAAAA"
+
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"
+            android:inputType="numberDecimal"
+            android:maxLines="2"
+            android:background="@android:color/white"
+            android:padding="0dp" />
+
+    </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAlmacenamiento"
+            android:layout_width="0dp"
+            android:layout_height="55dp"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@android:color/black"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <!-- TEXTO -->
+                <TextView
+                    android:id="@+id/txtTipodealmacenamiento"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Tipo de\nalmacenamiento"
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/caviardreams"
+                    android:gravity="center"/>
+
+                <!-- FLECHA -->
+                <ImageView
+                    android:id="@+id/imgFlechaalmacenamiento"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="3dp"
+                    android:src="@drawable/ic_flecha_abajo"
+                    android:scaleType="centerInside"
+                    app:tint="@color/azulgourmeet"
+                    android:contentDescription="Seleccionar tipo de almacenamiento"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardFechadecompra"
+            android:layout_width="95dp"
+            android:layout_height="55dp"
+            android:layout_margin="3dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@android:color/black"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="@color/azulgourmeet">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <!-- CANTIDAD + UNIDAD + FLECHA -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp">
+
+                    <!-- CANTIDAD -->
+                    <TextView
+                        android:id="@+id/txtFechadecompra"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="09/10/2026"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:padding="2dp"
+                        android:fontFamily="@font/caviardreams"
+                        android:gravity="center"/>
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/txtfechadec"
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
+                    android:text="Fecha de compra"
+                    android:textColor="@color/azulgourmeet"
+                    android:textSize="9sp"
+                    android:fontFamily="@font/caviardreams"
+                    android:gravity="center"
+                    android:background="@drawable/bg_ovalo_sin_fondo"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardFechadecon"
+            android:layout_width="95dp"
+            android:layout_height="55dp"
+            android:layout_margin="3dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@android:color/black"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="@color/azulgourmeet">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <!-- CANTIDAD + UNIDAD + FLECHA -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp">
+
+                    <!-- CANTIDAD -->
+                    <TextView
+                        android:id="@+id/txtFechadecon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="09/10/2026"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:padding="2dp"
+                        android:fontFamily="@font/caviardreams"
+                        android:gravity="center"/>
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/txtfechadecons"
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
+                    android:text="Fecha de consumo"
+                    android:textColor="@color/azulgourmeet"
+                    android:textSize="9sp"
+                    android:fontFamily="@font/caviardreams"
+                    android:gravity="center"
+                    android:background="@drawable/bg_ovalo_sin_fondo"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardEstado"
+            android:layout_width="40dp"
+            android:layout_height="55dp"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@android:color/black"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <!-- TEXTO -->
+                <TextView
+                    android:id="@+id/txtTipodeestado"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Tipo de\nestado"
+                    android:textColor="#AAAAAA"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/caviardreams"
+                    android:gravity="center"/>
+
+                <!-- FLECHA -->
+                <ImageView
+                    android:id="@+id/imgFlechaestado"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="3dp"
+                    android:src="@drawable/ic_flecha_abajo"
+                    android:scaleType="centerInside"
+                    app:tint="@color/azulgourmeet"
+                    android:contentDescription="Seleccionar tipo de estado"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardFrecuencia"
+            android:layout_width="40dp"
+            android:layout_height="55dp"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@android:color/black"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <!-- TEXTO -->
+                <TextView
+                    android:id="@+id/txtTipodeFrecuencia"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Tipo de\nFrecuencia"
+                    android:textColor="#AAAAAA"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/caviardreams"
+                    android:gravity="center"/>
+
+                <!-- FLECHA -->
+                <ImageView
+                    android:id="@+id/imgFlechaFrecuencia"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="3dp"
+                    android:src="@drawable/ic_flecha_abajo"
+                    android:scaleType="centerInside"
+                    app:tint="@color/azulgourmeet"
+                    android:contentDescription="Seleccionar tipo de Frecuencia"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAbastecimiento"
+            android:layout_width="40dp"
+            android:layout_height="55dp"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@android:color/black"
+            app:strokeWidth="1dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp">
+
+                <!-- TEXTO -->
+                <TextView
+                    android:id="@+id/txtTipodeAbastecimiento"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Tipo de\nAbastecimiento"
+                    android:textColor="#AAAAAA"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/caviardreams"
+                    android:gravity="center"/>
+
+                <!-- FLECHA -->
+                <ImageView
+                    android:id="@+id/imgFlechaAbastecimiento"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="3dp"
+                    android:src="@drawable/ic_flecha_abajo"
+                    android:scaleType="centerInside"
+                    app:tint="@color/azulgourmeet"
+                    android:contentDescription="Seleccionar tipo de Abastecimiento"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="200dp"
+        android:layout_height="37dp"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_ovalo_sin_fondo"
+        >
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center"
+            android:background="@drawable/ic_casa2"
+            android:contentDescription="TODO">
+
+        </ImageView>
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="match_parent"
+            android:text="Mi alacena en hogar"
+            android:gravity="center"
+            android:fontFamily="@font/caviardreams"
+            android:textColor="@color/azulgourmeet">
+
+        </TextView>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMisIngredientes"
+        android:layout_width="match_parent"
+        android:visibility="gone"
+        android:layout_height="110dp"
+        android:layout_marginTop="10dp"
+        android:clipToPadding="false"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:overScrollMode="never"/>
+
+
+    <!-- ====================================== -->
+    <!-- BOTONES -->
+    <!-- ====================================== -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="22dp"
+        android:layout_marginBottom="5dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelarIngrediente"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="6dp"
+            android:text="Limpiar"
+            android:textColor="@color/azulgourmeet"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/white"
+            app:strokeColor="@color/azulgourmeet"
+            app:strokeWidth="2dp"
+            app:cornerRadius="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGuardarIngrediente"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="5dp"
+            android:text="AGREGAR"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/azulgourmeet"
+            app:cornerRadius="12dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>

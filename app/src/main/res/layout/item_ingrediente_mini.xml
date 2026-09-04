@@ -26,7 +26,8 @@
         android:maxLines="2"
         android:text="Tomate"
 
-        android:textColor="@android:color/white"
+
+        android:textColor="@color/azulgourmeet"
         android:textSize="8sp" />
 
 </LinearLayout>

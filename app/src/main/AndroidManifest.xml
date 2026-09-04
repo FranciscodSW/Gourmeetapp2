@@ -92,6 +92,10 @@
             android:name=".ReportarProblemaActivity"
             android:exported="false" />
         <activity
+            android:name=".MiAlacenaActivity"
+            android:exported="false"/>
+
+        <activity
             android:name=".MisColeccionesProveedoresActivity"
             android:exported="false" />
         <activity

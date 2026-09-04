@@ -15,7 +15,7 @@
         android:id="@+id/headerCuenta"
         android:layout_width="0dp"
         android:layout_height="65dp"
-        android:background="@color/azulgourmeet"
+        android:background="@drawable/bg_rectangulo_azul_borde_negro_3"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">

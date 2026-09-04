@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+
+    android:paddingBottom="5dp"
+
+
+    android:background="@drawable/bg_bottom_sheet_alacena">
+
+    <!-- TITULO -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtTituloAlacena"
+        android:text="CREAR ALACENA"
+        android:textColor="@color/white"
+        android:background="@drawable/bg_rectangulo_azul_borde_negro_3"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/caviardreams"
+        android:gravity="center"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:layout_marginBottom="20dp"/>
+
+    <!-- NOMBRE -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:hint="Nombre de la alacena"
+        app:boxBackgroundColor="@android:color/white"
+        app:boxStrokeColor="@color/azulgourmeet"
+        app:boxStrokeWidth="1dp"
+        app:boxStrokeWidthFocused="2dp"
+        app:hintTextColor="@color/azulgourmeet">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edtNombreAlacena"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:textColor="@color/azulgourmeet"
+            android:fontFamily="@font/caviardreams"
+            android:inputType="textCapSentences"
+            android:background="@android:color/transparent"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- TITULO ICONOS -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Selecciona un icono"
+        android:textColor="@color/azulgourmeet"
+        android:textStyle="bold"
+        android:fontFamily="@font/caviardreams"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"/>
+
+    <!-- ICONOS -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- CASA -->
+        <ImageButton
+            android:id="@+id/btnIconoCasa"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_icono_alacena_seleccionado"
+            android:src="@drawable/ic_casa1"
+            android:scaleType="centerInside"
+            android:padding="8dp"
+            android:contentDescription="Casa"/>
+
+        <!-- OFICINA -->
+        <ImageButton
+            android:id="@+id/btnIconoOficina"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_icono_alacena_normal"
+            android:src="@drawable/ic_casa2"
+            android:scaleType="centerInside"
+            android:padding="8dp"
+            android:contentDescription="Oficina"/>
+
+        <!-- REFRIGERADOR -->
+        <ImageButton
+            android:id="@+id/btnIconoRefrigerador"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_icono_alacena_normal"
+            android:src="@drawable/ic_oficinas"
+            android:scaleType="centerInside"
+            android:padding="8dp"
+            android:contentDescription="Refrigerador"/>
+
+    </LinearLayout>
+
+    <!-- BOTONES -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="25dp"
+        android:layout_marginBottom="15dp">
+
+        <!-- CANCELAR -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelarAlacena"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="6dp"
+            android:text="CANCELAR"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/rojo"
+            app:cornerRadius="12dp"/>
+
+        <!-- GUARDAR -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGuardarAlacena"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="8dp"
+            android:text="GUARDAR"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/azulgourmeet"
+            app:cornerRadius="12dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>

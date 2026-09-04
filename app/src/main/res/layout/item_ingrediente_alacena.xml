@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="155dp"
+    android:layout_height="170dp"
+    android:backgroundTint="@android:color/transparent"
+    >
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="10dp"
+        >
+
+        <!-- CIRCULO DEL EMOJI -->
+        <FrameLayout
+            android:id="@+id/contenedorEmoji"
+            android:layout_width="95dp"
+            android:layout_height="95dp"
+            android:background="@drawable/bg_circulo_azul"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+            <ImageView
+                android:id="@+id/EmojiIngrediente"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:background="@drawable/ic_ingredientes"
+                />
+
+
+        </FrameLayout>
+
+
+        <!-- ESTADO -->
+        <ImageView
+            android:id="@+id/imgEstadoIngrediente"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:elevation="0dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_verde"
+            android:contentDescription="Estado del ingrediente"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="-1dp"
+            android:layout_marginEnd="2dp"/>
+
+
+        <!-- NOMBRE -->
+        <TextView
+            android:id="@+id/txtNombreIngrediente"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="ZANAHORIA"
+            android:textColor="@color/azulgourmeet"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:maxLines="2"
+            android:ellipsize="end"
+            app:layout_constraintTop_toBottomOf="@id/contenedorEmoji"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+
+        <!-- CANTIDAD -->
+        <TextView
+            android:id="@+id/txtCantidadIngrediente"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center"
+            android:text="500 g"
+            android:textColor="@color/azulgourmeet"
+            android:textSize="13sp"
+            android:fontFamily="@font/caviardreams"
+            app:layout_constraintTop_toBottomOf="@id/txtNombreIngrediente"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>
