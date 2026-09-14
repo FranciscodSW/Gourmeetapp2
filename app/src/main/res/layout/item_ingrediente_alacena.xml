@@ -7,13 +7,11 @@
     android:layout_height="170dp"
     android:backgroundTint="@android:color/transparent"
     >
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         >
-
         <!-- CIRCULO DEL EMOJI -->
         <FrameLayout
             android:id="@+id/contenedorEmoji"
@@ -29,12 +27,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:background="@drawable/ic_ingredientes"
+                android:src="@drawable/ic_ingredientes"
                 />
-
-
         </FrameLayout>
-
 
         <!-- ESTADO -->
         <ImageView
@@ -49,44 +44,147 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="-1dp"
             android:layout_marginEnd="2dp"/>
-
-
         <!-- NOMBRE -->
-        <TextView
-            android:id="@+id/txtNombreIngrediente"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center"
-            android:text="ZANAHORIA"
-            android:textColor="@color/azulgourmeet"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:fontFamily="@font/caviardreams"
-            android:maxLines="2"
-            android:ellipsize="end"
+        <LinearLayout
+            android:id="@+id/contenedorNombre"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             app:layout_constraintTop_toBottomOf="@id/contenedorEmoji"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintEnd_toEndOf="parent">
 
+            <!-- NOMBRE -->
+            <TextView
+                android:id="@+id/txtNombreIngrediente"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="@font/caviardreams"
+                android:gravity="center"
+                android:maxLines="2"
+                android:text="Germinado de lentejejas"
+                android:textColor="@color/azulgourmeet"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
-        <!-- CANTIDAD -->
+            <!-- CANTIDAD -->
+            <TextView
+                android:id="@+id/txtCantidadIngrediente"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:layout_marginEnd="8dp"
+                android:text="500 KG"
+                android:textStyle="bold"
+                android:textColor="@color/azulgourmeet"
+                android:textSize="14sp"
+                android:fontFamily="@font/caviardreams"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/fechaconsumo"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="visible"
+            app:layout_constraintTop_toBottomOf="@id/contenedorNombre"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_marginTop="3.1dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/caviardreams"
+                android:gravity="center"
+                android:text="Caducidad:"
+                android:textColor="@color/azulgourmeet"
+                android:textSize="13dp"
+                android:textStyle="bold" />
+
         <TextView
-            android:id="@+id/txtCantidadIngrediente"
+            android:id="@+id/txtFechadecompra"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:gravity="center"
-            android:text="500 g"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:layout_marginEnd="8dp"
+            android:text="09/10"
+            android:textStyle="bold"
             android:textColor="@color/azulgourmeet"
-            android:textSize="13sp"
+            android:textSize="16dp"
+
             android:fontFamily="@font/caviardreams"
-            app:layout_constraintTop_toBottomOf="@id/txtNombreIngrediente"
+            app:layout_constraintTop_toBottomOf="@id/contenedorNombre"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+
+            />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/proximo_a_caducar"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/contenedorNombre"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="55dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:layout_marginTop="-7dp"
+                android:background="@color/azulgourmeet"
+                android:layout_gravity="center_vertical"
+                android:text="Proximo a caducar"
+                android:textColor="@color/white"
+                android:textSize="13dp"
+                android:fontFamily="@font/caviardreams"
+                />
 
 
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/revisar"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/contenedorNombre"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:layout_marginTop="-5dp"
+                android:background="@color/rojo"
+                android:layout_gravity="center_vertical"
+                android:text="⚠️ Revisar ingrediente"
+                android:textColor="@color/white"
+                android:textSize="13dp"
+                android:fontFamily="@font/caviardreams"
+                />
+
+
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </com.google.android.material.card.MaterialCardView>

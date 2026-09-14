@@ -15,6 +15,10 @@
         <item name="android:fontFamily">@font/caviardreams</item>
 
     </style>
+    <style name="TemaCalendarioGourMeet" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+        <item name="colorAccent">@color/azulgourmeet</item>
+        <item name="android:colorAccent">@color/azulgourmeet</item>
+    </style>
 
     <style name="BottomNavigationTheme" parent="Widget.MaterialComponents.BottomNavigationView">
         <item name="itemIconSize">25dp</item> <!-- Iconos más grandes -->

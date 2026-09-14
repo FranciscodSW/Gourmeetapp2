@@ -59,14 +59,16 @@ import android.widget.PopupWindow
 import android.widget.Toast.makeText
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
-import com.example.gourmeet2.adapters.UnidadAdapter
 import com.example.gourmeet2.ui.adapters.IngredienteMiniAdapter
 import com.example.gourmeet2.utils.SesionUsuario.actualizarNombre
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
+import kotlin.collections.emptyList
 
 class Menu_principal_free : AppCompatActivity() {
     private var menuAbierto = false
@@ -95,6 +97,8 @@ class Menu_principal_free : AppCompatActivity() {
     private val listaAlacenas = mutableListOf<Alacena>()
     private var alacenaSeleccionada: Alacena? = null
     private var ingredienteSeleccionadoId: Int? = null
+    private lateinit var adapterConsumePrimero: IngredienteAlacenaAdapter
+    private lateinit var adapterMisIngredientes: IngredienteAlacenaAdapter
     private val solicitarPermisosUbicacion =
         registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
@@ -177,6 +181,7 @@ class Menu_principal_free : AppCompatActivity() {
                 mostrarDialogoIrConfiguracion()
             }
         }
+    var familiaIngredienteSeleccionado: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -448,6 +453,69 @@ class Menu_principal_free : AppCompatActivity() {
         ) { receta ->
             abrirDetalleReceta(receta.REC_ID)
         }
+        adapterConsumePrimero =
+            IngredienteAlacenaAdapter(
+                emptyList()
+            ) { ingredienteSeleccionado ->
+
+                mostrarDialogAgregarIngrediente(
+                    ingredienteSeleccionado
+                )
+            }
+
+        adapterMisIngredientes =
+            IngredienteAlacenaAdapter(
+                emptyList()
+            ) { ingredienteSeleccionado ->
+
+                mostrarDialogAgregarIngrediente(
+                    ingredienteSeleccionado
+                )
+            }
+
+        val rvConsumePrimero =
+            binding.panelAlacena.findViewById<RecyclerView>(
+                R.id.rvConsumePrimero
+            )
+
+        val rvMisIngredientes =
+            binding.panelAlacena.findViewById<RecyclerView>(
+                R.id.rvMisIngredientes
+            )
+
+// ==========================================
+// CONSUME PRIMERO
+// ==========================================
+
+        rvConsumePrimero.layoutManager =
+            LinearLayoutManager(
+                this,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
+
+        rvConsumePrimero.adapter =
+            adapterConsumePrimero
+
+// ==========================================
+// MIS INGREDIENTES
+// ==========================================
+
+        rvMisIngredientes.layoutManager =
+            GridLayoutManager(this, 2)
+
+        rvMisIngredientes.adapter =
+            adapterMisIngredientes
+
+// ==========================================
+// RECYCLER PRINCIPAL
+// ==========================================
+
+        binding.rvPrincipal.layoutManager =
+            LinearLayoutManager(this)
+
+        binding.rvPrincipal.adapter =
+            adapterResultados
         binding.rvPrincipal.layoutManager =
             androidx.recyclerview.widget.LinearLayoutManager(this)
         binding.rvPrincipal.adapter = adapterResultados
@@ -3411,7 +3479,7 @@ class Menu_principal_free : AppCompatActivity() {
 
         if (clienteId <= 0) {
 
-            Toast.makeText(
+            makeText(
                 this,
                 "No se pudo obtener el usuario.",
                 Toast.LENGTH_SHORT
@@ -3463,11 +3531,28 @@ class Menu_principal_free : AppCompatActivity() {
                         )
 
                         mostrarAlacenas()
+
+                        // =================================
+                        // PRIMERA ALACENA SELECCIONADA
+                        // =================================
+
+                        val alacenaSeleccionada =
+                            listaAlacenas.first()
+
+                        // =================================
+                        // ACTUALIZAR ESTADOS Y CARGAR
+                        // INGREDIENTES
+                        // =================================
+
+                        actualizarEstadosYCargarAlacena(
+                            alacenaSeleccionada.ALC_ID,
+                            clienteId
+                        )
                     }
 
                 } else {
 
-                    Toast.makeText(
+                    makeText(
                         this@Menu_principal_free,
                         "No fue posible cargar las alacenas.",
                         Toast.LENGTH_SHORT
@@ -3482,7 +3567,7 @@ class Menu_principal_free : AppCompatActivity() {
                     e
                 )
 
-                Toast.makeText(
+                makeText(
                     this@Menu_principal_free,
                     "Error al cargar las alacenas.",
                     Toast.LENGTH_SHORT
@@ -3720,7 +3805,7 @@ class Menu_principal_free : AppCompatActivity() {
         val clienteId = SesionUsuario.obtenerId(this)
 
         if (clienteId <= 0) {
-            Toast.makeText(
+            makeText(
                 this,
                 "No se pudo obtener el usuario.",
                 Toast.LENGTH_SHORT
@@ -3746,7 +3831,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                 if (respuesta.success) {
 
-                    Toast.makeText(
+                    makeText(
                         this@Menu_principal_free,
                         respuesta.message ?: "Alacena creada correctamente",
                         Toast.LENGTH_SHORT
@@ -3759,7 +3844,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                 } else {
 
-                    Toast.makeText(
+                    makeText(
                         this@Menu_principal_free,
                         respuesta.message ?: "No se pudo crear la alacena.",
                         Toast.LENGTH_LONG
@@ -3774,7 +3859,7 @@ class Menu_principal_free : AppCompatActivity() {
                     e
                 )
 
-                Toast.makeText(
+                makeText(
                     this@Menu_principal_free,
                     "Error de conexión con el servidor.",
                     Toast.LENGTH_LONG
@@ -4178,8 +4263,6 @@ class Menu_principal_free : AppCompatActivity() {
 
         bottomSheet.show()
     }
-
-
     private fun editarAlacena(
         alacena: Alacena,
         nombre: String,
@@ -4192,7 +4275,7 @@ class Menu_principal_free : AppCompatActivity() {
 
         if (clienteId <= 0) {
 
-            Toast.makeText(
+            makeText(
                 this,
                 "No se pudo obtener el usuario.",
                 Toast.LENGTH_SHORT
@@ -4230,7 +4313,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                 if (respuesta.success) {
 
-                    Toast.makeText(
+                    makeText(
                         this@Menu_principal_free,
                         respuesta.message
                             ?: "Alacena actualizada correctamente.",
@@ -4243,7 +4326,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                 } else {
 
-                    Toast.makeText(
+                    makeText(
                         this@Menu_principal_free,
                         respuesta.message
                             ?: "No se pudo actualizar la alacena.",
@@ -4259,7 +4342,7 @@ class Menu_principal_free : AppCompatActivity() {
                     e
                 )
 
-                Toast.makeText(
+                makeText(
                     this@Menu_principal_free,
                     "Error de conexión con el servidor.",
                     Toast.LENGTH_LONG
@@ -4294,7 +4377,7 @@ class Menu_principal_free : AppCompatActivity() {
 
         if (clienteId <= 0) {
 
-            Toast.makeText(
+            makeText(
                 this,
                 "No se pudo obtener el usuario.",
                 Toast.LENGTH_SHORT
@@ -4330,7 +4413,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                 if (respuesta.success) {
 
-                    Toast.makeText(
+                    makeText(
                         this@Menu_principal_free,
                         respuesta.message
                             ?: "Alacena eliminada correctamente.",
@@ -4341,7 +4424,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                 } else {
 
-                    Toast.makeText(
+                    makeText(
                         this@Menu_principal_free,
                         respuesta.message
                             ?: "No se pudo eliminar la alacena.",
@@ -4357,7 +4440,7 @@ class Menu_principal_free : AppCompatActivity() {
                     e
                 )
 
-                Toast.makeText(
+                makeText(
                     this@Menu_principal_free,
                     "Error de conexión con el servidor.",
                     Toast.LENGTH_LONG
@@ -4398,24 +4481,134 @@ class Menu_principal_free : AppCompatActivity() {
                 R.drawable.bg_icono_alacena_seleccionado
             )
     }
-    private fun mostrarDialogAgregarIngrediente() {
-
+    private fun mostrarDialogAgregarIngrediente(
+        ingredienteEditar: IngredienteAlacena? = null) {
         val bottomSheet = BottomSheetDialog(this)
 
         val view = layoutInflater.inflate(
             R.layout.dialog_agregar_ingrediente,
             null
         )
+        val flechaSeleccionarAlacena =
+            view.findViewById<ImageView>(
+                R.id.flechaseleccionaralacena
+            )
+        val txtTituloIngrediente =
+            view.findViewById<TextView>(
+                R.id.txtTituloIngrediente
+            )
+        val edtIngrediente =
+            view.findViewById<EditText>(
+                R.id.edtIngrediente
+            )
+        var cargandoIngredienteEditar = ingredienteEditar != null
 
+        val txtEmojiIngrediente =
+            view.findViewById<ImageView>(
+                R.id.txtEmojiIngrediente
+            )
+
+        val txtCantidad =
+            view.findViewById<EditText>(
+                R.id.txtCantidad
+            )
+
+        val actUnidadCantidad =
+            view.findViewById<MaterialAutoCompleteTextView>(
+                R.id.actUnidadCantidad
+            )
+
+        val txtPrecioCompra =
+            view.findViewById<EditText>(
+                R.id.txtPrecioCompra
+            )
+
+        val txtAlacenaSeleccionada =
+            view.findViewById<TextView>(
+                R.id.txtAlacenaSeleccionada
+            )
+
+        val imgIconoAlacenaSeleccionada =
+            view.findViewById<ImageView>(
+                R.id.imgIconoAlacenaSeleccionada
+            )
+
+        if (ingredienteEditar != null) {
+            txtTituloIngrediente.text = "EDITAR INGREDIENTE"
+        } else {
+            txtTituloIngrediente.text = "AGREGAR INGREDIENTE"
+        }
+
+        flechaSeleccionarAlacena.setOnClickListener {
+
+            val txtAlacenaSeleccionada =
+                view.findViewById<TextView>(
+                    R.id.txtAlacenaSeleccionada
+                )
+
+            val flechaSeleccionarAlacena =
+                view.findViewById<ImageView>(
+                    R.id.flechaseleccionaralacena
+                )
+
+            flechaSeleccionarAlacena.setOnClickListener {
+
+                mostrarMenuMisAlacenas2(
+                    txtAlacenaSeleccionada
+                )
+            }
+
+        }
         bottomSheet.setContentView(view)
+        val txtFechaCompra =
+            view.findViewById<TextView>(R.id.txtFechadecompra)
 
+        val txtFechaConsumo =
+            view.findViewById<TextView>(
+                R.id.txtFechadecon
+            )
+
+        val txtTipoEstado =
+            view.findViewById<TextView>(
+                R.id.txtTipodeestado
+            )
+
+        val txtTipoAlmacenamiento =
+            view.findViewById<TextView>(
+                R.id.txtTipodealmacenamiento
+            )
+
+
+        bottomSheet.setOnShowListener {
+
+            // Evitar que el teclado mueva o redimensione el BottomSheet
+            bottomSheet.window?.setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
+            )
+
+            val dialog = it as BottomSheetDialog
+
+            val sheet = dialog.findViewById<View>(
+                com.google.android.material.R.id.design_bottom_sheet
+            )
+
+            sheet?.let { bottomSheetView ->
+
+                val behavior =
+                    BottomSheetBehavior.from(bottomSheetView)
+
+                behavior.state =
+                    BottomSheetBehavior.STATE_EXPANDED
+
+                behavior.skipCollapsed = true
+            }
+        }
 
         // =========================================================
         // FECHA DE COMPRA
         // =========================================================
 
-        val txtFechaCompra =
-            view.findViewById<TextView>(R.id.txtFechadecompra)
+
 
         txtFechaCompra.setOnClickListener {
 
@@ -4427,6 +4620,7 @@ class Menu_principal_free : AppCompatActivity() {
 
             val datePicker = DatePickerDialog(
                 this,
+                R.style.TemaCalendarioGourMeet,
                 { _, selectedYear, selectedMonth, selectedDay ->
 
                     val fechaSeleccionada = String.format(
@@ -4437,6 +4631,13 @@ class Menu_principal_free : AppCompatActivity() {
                     )
 
                     txtFechaCompra.text = fechaSeleccionada
+                    actualizarFechaCaducidad(
+                        txtFechaCompra,
+                        txtTipoEstado,
+                        txtTipoAlmacenamiento,
+                        txtFechaConsumo,
+                        edtIngrediente
+                    )
                 },
                 year,
                 month,
@@ -4444,15 +4645,18 @@ class Menu_principal_free : AppCompatActivity() {
             )
 
             datePicker.show()
-        }
+            datePicker.getButton(DatePickerDialog.BUTTON_POSITIVE)
+                .setTextColor(ContextCompat.getColor(this, R.color.azulgourmeet))
 
+            datePicker.getButton(DatePickerDialog.BUTTON_NEGATIVE)
+                .setTextColor(ContextCompat.getColor(this, R.color.azulgourmeet))
+        }
 
         // =========================================================
         // FECHA DE CONSUMO
         // =========================================================
 
-        val txtFechaConsumo =
-            view.findViewById<TextView>(R.id.txtFechadecon)
+
 
         txtFechaConsumo.setOnClickListener {
 
@@ -4464,6 +4668,7 @@ class Menu_principal_free : AppCompatActivity() {
 
             val datePicker = DatePickerDialog(
                 this,
+                R.style.TemaCalendarioGourMeet,
                 { _, selectedYear, selectedMonth, selectedDay ->
 
                     val fechaSeleccionada = String.format(
@@ -4481,6 +4686,11 @@ class Menu_principal_free : AppCompatActivity() {
             )
 
             datePicker.show()
+            datePicker.getButton(DatePickerDialog.BUTTON_POSITIVE)
+                .setTextColor(ContextCompat.getColor(this, R.color.azulgourmeet))
+
+            datePicker.getButton(DatePickerDialog.BUTTON_NEGATIVE)
+                .setTextColor(ContextCompat.getColor(this, R.color.azulgourmeet))
         }
 
 
@@ -4488,10 +4698,7 @@ class Menu_principal_free : AppCompatActivity() {
         // SELECTOR DE UNIDAD
         // =========================================================
 
-        val actUnidadCantidad =
-            view.findViewById<MaterialAutoCompleteTextView>(
-                R.id.actUnidadCantidad
-            )
+
 
         val imgFlechaUnidad =
             view.findViewById<ImageView>(
@@ -4504,41 +4711,32 @@ class Menu_principal_free : AppCompatActivity() {
         // =========================================================
 
         val unidades = listOf(
-
-            // PEQUEÑAS
-            "🥄 Pequeñas",
-            "Cucharadita",
-            "Cucharaditas",
-            "Cucharada",
-            "Cucharadas",
-            "Pizca",
-            "Pizcas",
-            "Al gusto",
+            // PESO
+            "⚖️ Peso",
+            "g",          // gramos
+            "kg",         // kilogramos
 
             // VOLUMEN
             "🥛 Volumen",
-            "Taza",
-            "Tazas",
-            "Litro",
-            "Litros",
-            "Mililitro",
-            "Mililitros",
+            "tza",        // taza // tazas
+            "L",          // litros
+            "mL",         // mililitros
 
-            // PESO
-            "⚖️ Peso",
-            "Gramo",
-            "Gramos",
-            "Kilogramo",
-            "Kilogramos",
+            // PEQUEÑAS
+            "🥄 Pequeñas",
+            "cdta",       // cucharadita // cucharaditas
+            "cda",        // cucharada // cucharadas
+            "pizca",
+            "pizcas",
+            "al gusto",
 
             // PORCIONES
             "🍽️ Porciones",
-            "Pieza",
-            "Piezas",
-            "Diente",
-            "Dientes",
-            "Rama",
-            "Ramas"
+            "pza",        // pieza // piezas
+            "diente",
+            "dientes",
+            "rama",
+            "ramas"
         )
 
 
@@ -4563,9 +4761,21 @@ class Menu_principal_free : AppCompatActivity() {
             this,
             unidades,
             titulos
-        )
+        ) { unidadSeleccionada ->
 
-        actUnidadCantidad.setAdapter(adapterUnidades)
+            // Colocar la unidad seleccionada
+            actUnidadCantidad.setText(
+                unidadSeleccionada,
+                false
+            )
+
+            // Cerrar el menú
+            actUnidadCantidad.dismissDropDown()
+        }
+
+        actUnidadCantidad.setAdapter(
+            adapterUnidades
+        )
 
 
         // =========================================================
@@ -4576,6 +4786,13 @@ class Menu_principal_free : AppCompatActivity() {
             (300 * resources.displayMetrics.density).toInt()
 
         actUnidadCantidad.dropDownWidth = anchoMenu
+
+        actUnidadCantidad.setDropDownBackgroundDrawable(
+            ContextCompat.getDrawable(
+                this,
+                R.drawable.bg_rectangulo_blanco
+            )
+        )
 
 
         // =========================================================
@@ -4650,23 +4867,79 @@ class Menu_principal_free : AppCompatActivity() {
 
         btnLimpiar.setOnClickListener {
 
-            // Ingrediente
+            // ==========================================
+            // MODO EDICIÓN
+            // ==========================================
+
+            if (ingredienteEditar != null) {
+
+                // ======================================
+                // CONFIRMAR ELIMINACIÓN
+                // ======================================
+
+                val dialog = AlertDialog.Builder(this)
+                    .setTitle("Eliminar ingrediente")
+                    .setMessage(
+                        "¿Estás seguro de que deseas eliminar " +
+                                "\"${ingredienteEditar.ING_DESCRIPCION}\" " +
+                                "de esta alacena?"
+                    )
+                    .setNegativeButton("CANCELAR", null)
+                    .setPositiveButton("ELIMINAR") { _, _ ->
+
+                        eliminarIngredienteDeAlacena(
+                            ingredienteEditar.ALC_ID,
+                            ingredienteEditar.ING_ID,
+                            bottomSheet
+                        )
+                    }
+                    .create()
+                dialog.setOnShowListener {
+                    // BOTÓN CANCELAR
+                    dialog.getButton(
+                        AlertDialog.BUTTON_NEGATIVE
+                    ).setTextColor(
+                        ContextCompat.getColor(
+                            this,
+                            R.color.azulgourmeet
+                        )
+                    )
+                    // BOTÓN ELIMINAR
+                    dialog.getButton(
+                        AlertDialog.BUTTON_POSITIVE
+                    ).setTextColor(
+                        ContextCompat.getColor(
+                            this,
+                            R.color.azulgourmeet
+                        )
+                    )
+                }
+
+                dialog.show()
+
+                return@setOnClickListener
+            }
+
+
+            // ==========================================
+            // MODO AGREGAR
+            // ==========================================
+
             val edtIngrediente =
                 view.findViewById<TextInputEditText>(
                     R.id.edtIngrediente
                 )
 
-            // Cantidad
             val txtCantidad =
                 view.findViewById<EditText>(
                     R.id.txtCantidad
                 )
 
-            // Precio
             val txtPrecioCompra =
                 view.findViewById<EditText>(
                     R.id.txtPrecioCompra
                 )
+
 
             edtIngrediente.text?.clear()
 
@@ -4694,10 +4967,15 @@ class Menu_principal_free : AppCompatActivity() {
                 R.id.btnGuardarIngrediente
             )
 
+
         btnGuardar.setOnClickListener {
 
+            // ==========================================
+            // CAMPOS
+            // ==========================================
+
             val edtIngrediente =
-                view.findViewById<TextInputEditText>(
+                view.findViewById<EditText>(
                     R.id.edtIngrediente
                 )
 
@@ -4711,6 +4989,30 @@ class Menu_principal_free : AppCompatActivity() {
                     R.id.txtPrecioCompra
                 )
 
+            val txtTipoEstado =
+                view.findViewById<TextView>(
+                    R.id.txtTipodeestado
+                )
+
+            val txtTipoAlmacenamiento =
+                view.findViewById<TextView>(
+                    R.id.txtTipodealmacenamiento
+                )
+
+            val txtTipoFrecuencia =
+                view.findViewById<TextView>(
+                    R.id.txtTipodeFrecuencia
+                )
+
+            val txtTipoAbastecimiento =
+                view.findViewById<TextView>(
+                    R.id.txtTipodeAbastecimiento
+                )
+
+
+            // ==========================================
+            // OBTENER DATOS
+            // ==========================================
 
             val ingrediente =
                 edtIngrediente.text
@@ -4737,9 +5039,9 @@ class Menu_principal_free : AppCompatActivity() {
                     .orEmpty()
 
 
-            // =====================================================
-            // VALIDACIONES
-            // =====================================================
+            // ==========================================
+            // VALIDAR INGREDIENTE
+            // ==========================================
 
             if (ingrediente.isEmpty()) {
 
@@ -4752,6 +5054,42 @@ class Menu_principal_free : AppCompatActivity() {
             }
 
 
+            // ==========================================
+            // VALIDAR INGREDIENTE SELECCIONADO
+            // ==========================================
+
+            if (ingredienteSeleccionadoId == null) {
+
+                makeText(
+                    this,
+                    "Selecciona un ingrediente de la lista.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return@setOnClickListener
+            }
+
+
+            // ==========================================
+            // VALIDAR ALACENA
+            // ==========================================
+
+            if (alacenaSeleccionada == null) {
+
+                makeText(
+                    this,
+                    "Selecciona una alacena.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return@setOnClickListener
+            }
+
+
+            // ==========================================
+            // VALIDAR CANTIDAD
+            // ==========================================
+
             if (cantidad.isEmpty()) {
 
                 txtCantidad.error =
@@ -4762,10 +5100,27 @@ class Menu_principal_free : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            val cantidadDouble =
+                cantidad.toDoubleOrNull()
+
+            if (cantidadDouble == null) {
+
+                txtCantidad.error =
+                    "Ingresa una cantidad válida"
+
+                txtCantidad.requestFocus()
+
+                return@setOnClickListener
+            }
+
+
+            // ==========================================
+            // VALIDAR UNIDAD
+            // ==========================================
 
             if (unidad.isEmpty()) {
 
-                Toast.makeText(
+                makeText(
                     this,
                     "Selecciona una unidad.",
                     Toast.LENGTH_SHORT
@@ -4775,73 +5130,249 @@ class Menu_principal_free : AppCompatActivity() {
             }
 
 
-            // =====================================================
-            // POR AHORA SOLO MOSTRAMOS LOS DATOS
-            // =====================================================
+            // ==========================================
+            // PRECIO
+            // ==========================================
+
+            val precioDouble =
+                if (precio.isEmpty()) {
+
+                    null
+
+                } else {
+
+                    precio.toDoubleOrNull()
+                }
+
+
+            // ==========================================
+            // CREAR REQUEST
+            // ==========================================
+
+            val request =
+                GuardarIngredienteAlacenaRequest(
+
+                    ALC_ID =
+                        alacenaSeleccionada!!.ALC_ID,
+
+                    ING_ID =
+                        ingredienteSeleccionadoId!!,
+
+                    AI_CANTIDAD =
+                        cantidadDouble,
+
+                    AI_UNIDAD =
+                        unidad,
+
+                    AI_FECHA_COMPRA =
+                        convertirFechaMySQL(
+                            txtFechaCompra.text.toString()
+                        ),
+
+                    AI_FECHA_VENCIMIENTO =
+                        convertirFechaMySQL(
+                            txtFechaConsumo.text.toString()
+                        ),
+
+                    AI_ESTADO =
+                        txtTipoEstado.text
+                            .toString()
+                            .trim()
+                            .ifEmpty { null },
+
+                    AI_PRECIO_COMPRA =
+                        precioDouble,
+
+                    AI_ALMACENAMIENTO =
+                        txtTipoAlmacenamiento.text
+                            .toString()
+                            .trim()
+                            .ifEmpty { null },
+
+                    AI_FRECUENCIA_CONSUMO =
+                        txtTipoFrecuencia.text
+                            .toString()
+                            .trim()
+                            .ifEmpty { null },
+
+                    AI_TIPO_ABASTECIMIENTO =
+                        txtTipoAbastecimiento.text
+                            .toString()
+                            .trim()
+                            .ifEmpty { null }
+                )
+
+
+            // ==========================================
+            // MOSTRAR DATOS
+            // ==========================================
 
             Log.d(
-                "ALACENA_INGREDIENTE",
+                "ALACENA_API",
                 """
-            Ingrediente: $ingrediente
-            Cantidad: $cantidad
-            Unidad: $unidad
-            Precio: $precio
-            Fecha compra: ${txtFechaCompra.text}
-            Fecha consumo: ${txtFechaConsumo.text}
-            """.trimIndent()
+===== DATOS A ENVIAR =====
+MODO: ${
+                    if (ingredienteEditar == null)
+                        "AGREGAR"
+                    else
+                        "EDITAR"
+                }
+ALC_ID: ${request.ALC_ID}
+ING_ID: ${request.ING_ID}
+CANTIDAD: ${request.AI_CANTIDAD}
+UNIDAD: ${request.AI_UNIDAD}
+FECHA COMPRA: ${request.AI_FECHA_COMPRA}
+FECHA VENCIMIENTO: ${request.AI_FECHA_VENCIMIENTO}
+ESTADO: ${request.AI_ESTADO}
+PRECIO: ${request.AI_PRECIO_COMPRA}
+ALMACENAMIENTO: ${request.AI_ALMACENAMIENTO}
+FRECUENCIA: ${request.AI_FRECUENCIA_CONSUMO}
+ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
+==========================
+""".trimIndent()
             )
 
 
-            Toast.makeText(
-                this,
-                "Ingrediente preparado para agregar.",
-                Toast.LENGTH_SHORT
-            ).show()
+            // ==========================================
+            // CONECTAR CON LA API
+            // ==========================================
+
+            lifecycleScope.launch {
+
+                try {
+
+                    val response =
+
+                        if (ingredienteEditar == null) {
+
+                            // ==================================
+                            // AGREGAR NUEVO INGREDIENTE
+                            // ==================================
+
+                            Log.d(
+                                "ALACENA_API",
+                                "Agregando ingrediente..."
+                            )
+
+                            ApiClient.apiService
+                                .guardarIngredienteAlacena(
+                                    request
+                                )
+
+                        } else {
+
+                            // ==================================
+                            // EDITAR INGREDIENTE EXISTENTE
+                            // ==================================
+
+                            Log.d(
+                                "ALACENA_API",
+                                "Editando ingrediente..."
+                            )
+
+                            ApiClient.apiService
+                                .editarIngredienteAlacena(
+                                    request
+                                )
+                        }
 
 
-            // Por ahora no cerramos el BottomSheet.
-            // Posteriormente aquí conectaremos
-            // el endpoint ALACENA_INGREDIENTE.
+                    // ==========================================
+                    // RESPUESTA EXITOSA
+                    // ==========================================
+
+                    if (response.success) {
+
+                        Log.d(
+                            "ALACENA_API",
+                            "ÉXITO: ${response.message}"
+                        )
+
+                        makeText(
+                            this@Menu_principal_free,
+                            response.message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+
+                        // ======================================
+                        // CERRAR BOTTOM SHEET
+                        // ======================================
+
+                        bottomSheet.dismiss()
+
+
+                        // ======================================
+                        // RECARGAR ALACENA
+                        // ======================================
+
+                        alacenaSeleccionada?.let {
+                            actualizarEstadosYCargarAlacena(
+                                alacenaSeleccionada!!.ALC_ID,
+                                alacenaSeleccionada!!.ALC_CLI_ID
+                            )
+                        }
+
+
+                    } else {
+
+                        // ======================================
+                        // ERROR DE LA API
+                        // ======================================
+
+                        Log.e(
+                            "ALACENA_API",
+                            "ERROR: ${response.message}"
+                        )
+
+                        makeText(
+                            this@Menu_principal_free,
+                            response.message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                } catch (e: Exception) {
+
+                    // ==========================================
+                    // ERROR DE CONEXIÓN
+                    // ==========================================
+
+                    Log.e(
+                        "ALACENA_API",
+                        "Error al conectar con la API",
+                        e
+                    )
+
+                    makeText(
+                        this@Menu_principal_free,
+                        "Error de conexión con el servidor.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
+        if (ingredienteEditar != null) {
 
+            btnLimpiar.text = "ELIMINAR"
+            btnGuardar.text = "GUARDAR CAMBIOS"
+
+        }
+        else {
+            btnLimpiar.text = "LIMPIAR"
+            btnGuardar.text = "AGREGAR"
+        }
 
         // =========================================================
         // MOSTRAR BOTTOM SHEET
         // =========================================================
 
-        bottomSheet.setOnShowListener {
 
-            val dialog = it as BottomSheetDialog
-
-            val sheet = dialog.findViewById<View>(
-                com.google.android.material.R.id.design_bottom_sheet
-            )
-
-            sheet?.let { bottomSheetView ->
-
-                val behavior =
-                    BottomSheetBehavior.from(bottomSheetView)
-
-                behavior.state =
-                    BottomSheetBehavior.STATE_EXPANDED
-
-                behavior.skipCollapsed = true
-
-                bottomSheetView.background =
-                    ContextCompat.getDrawable(
-                        this,
-                        R.drawable.bg_bottom_sheet_alacena
-                    )
-            }
-        }
         // =========================================================
 // SELECTOR DE TIPO DE ALMACENAMIENTO
 // =========================================================
 
-        val txtTipoAlmacenamiento =
-            view.findViewById<TextView>(
-                R.id.txtTipodealmacenamiento
-            )
+
 
         val imgFlechaAlmacenamiento =
             view.findViewById<ImageView>(
@@ -4853,11 +5384,10 @@ class Menu_principal_free : AppCompatActivity() {
 // OPCIONES DE ALMACENAMIENTO
 // =========================================================
 
-        val tiposAlmacenamiento = listOf(
+        val tiposAlmacenamiento = mutableListOf(
             "Refrigerador",
             "Ambiente",
-            "Congelador",
-            "Sellado"
+            "Congelador"
         )
 
 
@@ -4917,6 +5447,223 @@ class Menu_principal_free : AppCompatActivity() {
 // =========================================================
 // SELECCIONAR ALMACENAMIENTO
 // =========================================================
+        // =========================================================
+// CONFIGURAR ALMACENAMIENTO SEGÚN LA FAMILIA
+// =========================================================
+
+        fun actualizarTipoAlmacenamiento() {
+
+            val familia =
+                familiaIngredienteSeleccionado
+                    ?.trim()
+                    ?.lowercase()
+
+
+            // ==================================================
+            // IDENTIFICAR TIPO DE FAMILIA
+            // ==================================================
+            val esLicorODestilado =
+                familia == "licores y destilados"
+
+            val esNoPerecedero =
+                familia == "cereales leguminosas" ||
+                        familia == "especias" ||
+                        familia == "pastas" ||
+                        familia == "semillas"
+
+            val esIndustrializadoOAbarrote =
+                familia == "industrializados" ||
+                        familia == "abarrotes"
+
+            // ==================================================
+// LICORES Y DESTILADOS
+// ==================================================
+
+            if (esLicorODestilado) {
+
+                // Por defecto
+                if (
+                    txtTipoAlmacenamiento.text
+                        .toString()
+                        .trim()
+                        .isEmpty()
+                ) {
+
+                    txtTipoAlmacenamiento.text =
+                        "Ambiente"
+                }
+
+
+                txtTipoAlmacenamiento.isClickable =
+                    true
+
+                txtTipoAlmacenamiento.isFocusable =
+                    true
+
+
+                imgFlechaAlmacenamiento.isEnabled =
+                    true
+
+                imgFlechaAlmacenamiento.alpha =
+                    1.0f
+
+
+                // Solo Ambiente y Refrigerador
+                adapterAlmacenamiento.clear()
+
+                adapterAlmacenamiento.addAll(
+                    listOf(
+                        "Ambiente",
+                        "Refrigerador"
+                    )
+                )
+
+                adapterAlmacenamiento.notifyDataSetChanged()
+
+                return
+            }
+
+
+            // ==================================================
+            // NO PERECEDEROS
+            // SOLO AMBIENTE
+            // ==================================================
+
+            if (esNoPerecedero) {
+
+                txtTipoAlmacenamiento.text =
+                    "Ambiente"
+
+
+                // Bloquear texto
+                txtTipoAlmacenamiento.isClickable =
+                    false
+
+                txtTipoAlmacenamiento.isFocusable =
+                    false
+
+
+                // Bloquear flecha
+                imgFlechaAlmacenamiento.isEnabled =
+                    false
+
+                imgFlechaAlmacenamiento.alpha =
+                    0.4f
+
+
+                // Cerrar popup
+                popupAlmacenamiento.dismiss()
+
+
+                // Solo Ambiente
+                adapterAlmacenamiento.clear()
+
+                adapterAlmacenamiento.add(
+                    "Ambiente"
+                )
+
+                adapterAlmacenamiento.notifyDataSetChanged()
+
+
+                return
+            }
+
+
+            // ==================================================
+            // INDUSTRIALIZADOS / ABARROTES
+            // AMBIENTE O CONGELADOR
+            // ==================================================
+
+            if (esIndustrializadoOAbarrote) {
+
+                // Si actualmente tiene Refrigerador,
+                // cambiarlo automáticamente a Ambiente.
+
+                if (
+                    txtTipoAlmacenamiento.text
+                        .toString()
+                        .trim()
+                        .equals(
+                            "Refrigerador",
+                            ignoreCase = true
+                        )
+                ) {
+
+                    txtTipoAlmacenamiento.text =
+                        "Ambiente"
+                }
+
+
+                // Permitir seleccionar
+                txtTipoAlmacenamiento.isClickable =
+                    true
+
+                txtTipoAlmacenamiento.isFocusable =
+                    true
+
+
+                imgFlechaAlmacenamiento.isEnabled =
+                    true
+
+                imgFlechaAlmacenamiento.alpha =
+                    1.0f
+
+
+                // ==============================================
+                // OPCIONES
+                // ==============================================
+
+                adapterAlmacenamiento.clear()
+
+                adapterAlmacenamiento.addAll(
+                    listOf(
+                        "Ambiente",
+                        "Congelador"
+                    )
+                )
+
+                adapterAlmacenamiento.notifyDataSetChanged()
+
+
+                return
+            }
+
+
+            // ==================================================
+            // RESTO DE FAMILIAS
+            // REFRIGERADOR / AMBIENTE / CONGELADOR
+            // ==================================================
+
+            txtTipoAlmacenamiento.isClickable =
+                true
+
+            txtTipoAlmacenamiento.isFocusable =
+                true
+
+
+            imgFlechaAlmacenamiento.isEnabled =
+                true
+
+            imgFlechaAlmacenamiento.alpha =
+                1.0f
+
+
+            // ==============================================
+            // RESTAURAR TODAS LAS OPCIONES
+            // ==============================================
+
+            adapterAlmacenamiento.clear()
+
+            adapterAlmacenamiento.addAll(
+                listOf(
+                    "Refrigerador",
+                    "Ambiente",
+                    "Congelador"
+                )
+            )
+
+            adapterAlmacenamiento.notifyDataSetChanged()
+        }
 
         listaAlmacenamiento.setOnItemClickListener {
                 _,
@@ -4929,6 +5676,13 @@ class Menu_principal_free : AppCompatActivity() {
 
             txtTipoAlmacenamiento.text =
                 seleccion
+            actualizarFechaCaducidad(
+                txtFechaCompra,
+                txtTipoEstado,
+                txtTipoAlmacenamiento,
+                txtFechaConsumo,
+                edtIngrediente
+            )
 
             popupAlmacenamiento.dismiss()
         }
@@ -4939,6 +5693,23 @@ class Menu_principal_free : AppCompatActivity() {
 // =========================================================
 
         imgFlechaAlmacenamiento.setOnClickListener {
+
+            val familia =
+                familiaIngredienteSeleccionado
+                    ?.trim()
+                    ?.lowercase()
+
+            val esNoPerecedero =
+                familia == "cereales leguminosas" ||
+                        familia == "especias" ||
+                        familia == "pastas" ||
+                        familia == "semillas"
+
+            if (esNoPerecedero) {
+                return@setOnClickListener
+            }
+
+            ocultarTeclado(imgFlechaAlmacenamiento)
 
             popupAlmacenamiento.showAsDropDown(
                 imgFlechaAlmacenamiento,
@@ -4954,6 +5725,21 @@ class Menu_principal_free : AppCompatActivity() {
 
         txtTipoAlmacenamiento.setOnClickListener {
 
+            val familia =
+                familiaIngredienteSeleccionado
+                    ?.trim()
+                    ?.lowercase()
+
+            val esNoPerecedero =
+                familia == "cereales leguminosas" ||
+                        familia == "especias" ||
+                        familia == "pastas" ||
+                        familia == "semillas"
+
+            if (esNoPerecedero) {
+                return@setOnClickListener
+            }
+
             popupAlmacenamiento.showAsDropDown(
                 txtTipoAlmacenamiento,
                 -180,
@@ -4964,10 +5750,7 @@ class Menu_principal_free : AppCompatActivity() {
 // SELECTOR DE ESTADO
 // =========================================================
 
-        val txtTipoEstado =
-            view.findViewById<TextView>(
-                R.id.txtTipodeestado
-            )
+
 
         val imgFlechaEstado =
             view.findViewById<ImageView>(
@@ -4978,14 +5761,13 @@ class Menu_principal_free : AppCompatActivity() {
 // =========================================================
 // OPCIONES DE ESTADO
 // =========================================================
-
-        val estados = listOf(
+        val estados = mutableListOf(
+            "Fresco",
             "Maduro",
             "Pasado",
-            "Verde",
-            "Fresco"
+            "Sellado",
+            "Descompuesto"
         )
-
 
 // =========================================================
 // ADAPTER
@@ -4997,6 +5779,236 @@ class Menu_principal_free : AppCompatActivity() {
             estados
         )
 
+
+        fun actualizarListaEstados() {
+
+            val familia =
+                familiaIngredienteSeleccionado
+                    ?.trim()
+                    ?.lowercase()
+
+            Log.d(
+                "ESTADOS",
+                "Familia recibida: [$familia]"
+            )
+
+            estados.clear()
+
+
+            // ==================================================
+            // FRUTAS Y VERDURAS
+            // ==================================================
+
+            if (
+                familia == "fruta" ||
+                familia == "frutas" ||
+                familia == "verdura" ||
+                familia == "verduras"
+            ) {
+
+                estados.addAll(
+                    listOf(
+                        "Verde",
+                        "Fresco",
+                        "Maduro",
+                        "Pasado",
+                        "Sellado",
+                        "Descompuesto"
+                    )
+                )
+
+                txtTipoEstado.text = "Verde"
+            }
+
+
+            // ==================================================
+            // NO PERECEDEROS
+            // ==================================================
+
+            else if (
+                familia == "cereales leguminosas" ||
+                familia == "especias" ||
+                familia == "pastas" ||
+                familia == "semillas"
+            ) {
+
+                estados.addAll(
+                    listOf(
+                        "No perecedero",
+                        "Pasado",
+                        "Sellado",
+                        "Descompuesto"
+                    )
+                )
+
+                txtTipoEstado.text = "Sellado"
+            }
+
+            else if (
+                familia == "embutidos"
+            ) {
+                estados.addAll(
+                    listOf(
+                        "Verde",
+                        "Maduro",
+                        "Pasado",
+                        "Sellado",
+                        "Descompuesto"
+                    )
+                )
+
+                txtTipoEstado.text = "Verde"
+            }
+
+
+            // ==================================================
+            // INDUSTRIALIZADOS Y HIERBAS AROMÁTICAS
+            // ==================================================
+
+            else if (
+                familia == "industrializados" ||
+                familia == "hierbas aromatica"
+            ) {
+
+                estados.addAll(
+                    listOf(
+                        "Fresco",
+                        "Maduro",
+                        "Pasado",
+                        "Sellado",
+                        "Descompuesto"
+                    )
+                )
+
+                txtTipoEstado.text = "Sellado"
+            }
+
+            // ==================================================
+// LICORES Y DESTILADOS
+// ==================================================
+
+            else if (
+                familia == "licores y destilados"
+            ) {
+
+                val nombreIngrediente =
+                    edtIngrediente.text
+                        .toString()
+                        .trim()
+                        .lowercase()
+
+
+                // ==================================================
+                // VINO
+                // ==================================================
+
+                if (nombreIngrediente == "vino") {
+
+                    estados.addAll(
+                        listOf(
+                            "Fresco",
+                            "Maduro",
+                            "Pasado",
+                            "Sellado",
+                            "Descompuesto"
+                        )
+                    )
+
+                    txtTipoEstado.text = "Sellado"
+                }
+
+
+                // ==================================================
+                // DEMÁS LICORES Y DESTILADOS
+                // ==================================================
+
+                else {
+
+                    estados.add(
+                        "Sellado"
+                    )
+
+                    txtTipoEstado.text =
+                        "Sellado"
+                }
+            }
+
+            // ==================================================
+            // LÁCTEOS
+            // ==================================================
+
+            else if (
+                familia == "lacteos"
+            ) {
+
+                estados.addAll(
+                    listOf(
+                        "Fresco",
+                        "Maduro",
+                        "Pasado",
+                        "Sellado",
+                        "Descompuesto"
+                    )
+                )
+
+                txtTipoEstado.text = "Fresco"
+            }// ==================================================
+// ABARROTES
+// ==================================================
+
+            else if (
+                familia == "abarrotes"
+            ) {
+
+                estados.addAll(
+                    listOf(
+                        "Fresco",
+                        "Maduro",
+                        "Pasado",
+                        "Sellado",
+                        "Descompuesto"
+                    )
+                )
+
+                // Estado inicial
+                txtTipoEstado.text = "Sellado"
+            }
+
+
+
+
+            // ==================================================
+            // DEMÁS FAMILIAS
+            // ==================================================
+
+            else {
+
+                estados.addAll(
+                    listOf(
+                        "Fresco",
+                        "Maduro",
+                        "Pasado",
+                        "Sellado",
+                        "Descompuesto"
+                    )
+                )
+
+                txtTipoEstado.text = "Fresco"
+            }
+
+
+            Log.d(
+                "ESTADOS",
+                "Estados actuales: $estados"
+            )
+
+            Log.d(
+                "ESTADOS",
+                "Estado por defecto: ${txtTipoEstado.text}"
+            )
+
+            adapterEstados.notifyDataSetChanged()
+        }
 
 // =========================================================
 // LISTA DESPLEGABLE
@@ -5050,7 +6062,24 @@ class Menu_principal_free : AppCompatActivity() {
 
             val estadoSeleccionado = estados[position]
 
-            txtTipoEstado.text = estadoSeleccionado
+            txtTipoEstado.text =
+                estadoSeleccionado
+
+            if (estadoSeleccionado == "Sellado") {
+
+                // El usuario tendrá que introducir
+                // manualmente la fecha de caducidad.
+
+            } else {
+
+                actualizarFechaCaducidad(
+                    txtFechaCompra,
+                    txtTipoEstado,
+                    txtTipoAlmacenamiento,
+                    txtFechaConsumo,
+                    edtIngrediente
+                )
+            }
 
             popupEstado.dismiss()
         }
@@ -5061,6 +6090,7 @@ class Menu_principal_free : AppCompatActivity() {
 // =========================================================
 
         imgFlechaEstado.setOnClickListener {
+            ocultarTeclado(imgFlechaEstado)
 
             popupEstado.showAsDropDown(
                 imgFlechaEstado,
@@ -5186,7 +6216,7 @@ class Menu_principal_free : AppCompatActivity() {
 // =========================================================
 
         imgFlechaFrecuencia.setOnClickListener {
-
+            ocultarTeclado(imgFlechaFrecuencia)
             popupFrecuencia.showAsDropDown(
                 imgFlechaFrecuencia,
                 -220,
@@ -5312,7 +6342,7 @@ class Menu_principal_free : AppCompatActivity() {
 // =========================================================
 
         imgFlechaAbastecimiento.setOnClickListener {
-
+            ocultarTeclado(imgFlechaAbastecimiento)
             popupAbastecimiento.showAsDropDown(
                 imgFlechaAbastecimiento,
                 -270,
@@ -5337,15 +6367,7 @@ class Menu_principal_free : AppCompatActivity() {
             view.findViewById<RecyclerView>(
                 R.id.rvResultadosIngrediente
             )
-        val edtIngrediente =
-            view.findViewById<TextInputEditText>(
-                R.id.edtIngrediente
-            )
 
-        val txtEmojiIngrediente =
-            view.findViewById<ImageView>(
-                R.id.txtEmojiIngrediente
-            )
 
         val contenedorResultados =
             view.findViewById<View>(
@@ -5357,22 +6379,33 @@ class Menu_principal_free : AppCompatActivity() {
                 LinearLayoutManager.HORIZONTAL,
                 false
             )
+        var ingredienteSeleccionadoManualmente = false
+
+
         val adapterIngredientes =
             IngredienteMiniAdapter(
                 emptyList()
             ) { ingredienteSeleccionado ->
 
                 // ==========================================
-                // COLOCAR NOMBRE EN EL BUSCADOR
+                // INDICAR QUE SE SELECCIONÓ MANUALMENTE
+                // ==========================================
+
+                ingredienteSeleccionadoManualmente = true
+
+
+                // ==========================================
+                // COLOCAR NOMBRE
                 // ==========================================
 
                 edtIngrediente.setText(
                     ingredienteSeleccionado.nombre
                 )
+                ocultarTeclado(edtIngrediente)
 
 
                 // ==========================================
-                // COLOCAR IMAGEN DEL INGREDIENTE
+                // COLOCAR IMAGEN
                 // ==========================================
 
                 if (
@@ -5381,9 +6414,7 @@ class Menu_principal_free : AppCompatActivity() {
                         .isNullOrEmpty()
                 ) {
 
-                    Glide.with(
-                        this
-                    )
+                    Glide.with(this)
                         .load(
                             ingredienteSeleccionado.imagen_url
                         )
@@ -5406,11 +6437,17 @@ class Menu_principal_free : AppCompatActivity() {
 
 
                 // ==========================================
-                // GUARDAR ID SELECCIONADO
+                // GUARDAR ID DEL INGREDIENTE
                 // ==========================================
 
                 ingredienteSeleccionadoId =
                     ingredienteSeleccionado.id
+
+                familiaIngredienteSeleccionado =
+                    ingredienteSeleccionado.categoria
+
+                actualizarListaEstados()
+                actualizarTipoAlmacenamiento()
 
 
                 // ==========================================
@@ -5419,13 +6456,22 @@ class Menu_principal_free : AppCompatActivity() {
 
                 contenedorResultados.visibility =
                     View.GONE
+
+
+                // ==========================================
+                // LIMPIAR RESULTADOS
+                // ==========================================
+
+                /*adapterIngredientes.actualizarLista(
+                    emptyList()
+                )*/
             }
+
         rvResultadosIngrediente.adapter =
             adapterIngredientes
         edtIngrediente.addTextChangedListener(
 
             object : TextWatcher {
-
 
                 override fun beforeTextChanged(
                     s: CharSequence?,
@@ -5442,13 +6488,43 @@ class Menu_principal_free : AppCompatActivity() {
                     count: Int
                 ) {
 
+                    // ==========================================
+                    // CARGANDO INGREDIENTE DEL MODO EDICIÓN
+                    // ==========================================
+
+                    if (cargandoIngredienteEditar) {
+
+                        return
+                    }
+
+
+                    // ==========================================
+                    // SI ACABA DE SELECCIONAR UN INGREDIENTE
+                    // ==========================================
+
+                    if (ingredienteSeleccionadoManualmente) {
+
+                        ingredienteSeleccionadoManualmente =
+                            false
+
+                        return
+                    }
+
+
+                    // ==========================================
+                    // TEXTO ESCRITO POR EL USUARIO
+                    // ==========================================
+
                     val busqueda =
                         s?.toString()
                             ?.trim()
                             .orEmpty()
 
 
-                    // Si está vacío
+                    // ==========================================
+                    // CAMPO VACÍO
+                    // ==========================================
+
                     if (busqueda.isEmpty()) {
 
                         contenedorResultados.visibility =
@@ -5465,7 +6541,10 @@ class Menu_principal_free : AppCompatActivity() {
                     }
 
 
-                    // Buscar
+                    // ==========================================
+                    // BUSCAR INGREDIENTES
+                    // ==========================================
+
                     buscarIngredientes(
                         busqueda,
                         adapterIngredientes,
@@ -5473,16 +6552,256 @@ class Menu_principal_free : AppCompatActivity() {
                     )
                 }
 
+
                 override fun afterTextChanged(
                     s: Editable?
                 ) {
                 }
             }
         )
+        // =========================================================
+// MODO EDICIÓN
+// =========================================================
+
+        if (ingredienteEditar != null) {
+
+            val contenedorResultadosIngrediente =
+                view.findViewById<View>(
+                    R.id.contenedorResultadosIngrediente
+                )
+
+            contenedorResultadosIngrediente.visibility =
+                View.GONE
+            familiaIngredienteSeleccionado =
+                ingredienteEditar.categoria
+            actualizarListaEstados()
+            actualizarTipoAlmacenamiento()
+
+            // =====================================================
+            // TÍTULO
+            // =====================================================
+
+            txtTituloIngrediente.text =
+                "EDITAR INGREDIENTE"
 
 
+            // =====================================================
+            // ID DEL INGREDIENTE
+            // =====================================================
+
+            ingredienteSeleccionadoId =
+                ingredienteEditar.ING_ID
 
 
+            // =====================================================
+            // NOMBRE DEL INGREDIENTE
+            // =====================================================
+
+            edtIngrediente.setText(
+                ingredienteEditar.ING_DESCRIPCION
+            )
+
+            // =====================================================
+            // IMAGEN DEL INGREDIENTE
+            // =====================================================
+
+            if (
+                !ingredienteEditar.Foto_Ingrediente
+                    .isNullOrEmpty()
+            ) {
+
+                Glide.with(this)
+                    .load(
+                        ingredienteEditar.Foto_Ingrediente
+                    )
+                    .placeholder(
+                        R.drawable.ic_ingredientes
+                    )
+                    .error(
+                        R.drawable.ic_ingredientes
+                    )
+                    .into(
+                        txtEmojiIngrediente
+                    )
+
+            } else {
+
+                txtEmojiIngrediente.setImageResource(
+                    R.drawable.ic_ingredientes
+                )
+            }
+
+
+            // =====================================================
+            // CANTIDAD
+            // =====================================================
+
+            val cantidad =
+                ingredienteEditar.AI_CANTIDAD
+
+            txtCantidad.setText(
+                if (cantidad % 1.0 == 0.0) {
+                    cantidad.toInt().toString()
+                } else {
+                    cantidad.toString()
+                }
+            )
+
+
+            // =====================================================
+            // UNIDAD
+            // =====================================================
+
+            actUnidadCantidad.setText(
+                ingredienteEditar.AI_UNIDAD,
+                false
+            )
+
+
+            // =====================================================
+            // PRECIO
+            // =====================================================
+
+            if (
+                ingredienteEditar.AI_PRECIO_COMPRA != null
+            ) {
+
+                val precio =
+                    ingredienteEditar.AI_PRECIO_COMPRA
+
+                txtPrecioCompra.setText(
+                    if (precio % 1.0 == 0.0) {
+                        precio.toInt().toString()
+                    } else {
+                        precio.toString()
+                    }
+                )
+
+            } else {
+
+                txtPrecioCompra.setText("")
+            }
+
+
+            // =====================================================
+            // FECHA DE COMPRA
+            // =====================================================
+
+            txtFechaCompra.text =
+                formatearFechaDialogo(
+                    ingredienteEditar.AI_FECHA_COMPRA
+                )
+
+
+            // =====================================================
+            // FECHA DE CADUCIDAD
+            // =====================================================
+
+            txtFechaConsumo.text =
+                formatearFechaDialogo(
+                    ingredienteEditar.AI_FECHA_VENCIMIENTO
+                )
+
+
+            // =====================================================
+            // ESTADO
+            // =====================================================
+
+            txtTipoEstado.text =
+                ingredienteEditar.AI_ESTADO
+                    ?: ""
+
+
+            // =====================================================
+            // ALMACENAMIENTO
+            // =====================================================
+
+            txtTipoAlmacenamiento.text =
+                ingredienteEditar.AI_ALMACENAMIENTO
+                    ?: ""
+
+
+            // =====================================================
+            // FRECUENCIA
+            // =====================================================
+
+            val txtTipoFrecuencia =
+                view.findViewById<TextView>(
+                    R.id.txtTipodeFrecuencia
+                )
+
+            txtTipoFrecuencia.text =
+                ingredienteEditar.AI_FRECUENCIA_CONSUMO
+                    ?: ""
+
+
+            // =====================================================
+            // ABASTECIMIENTO
+            // =====================================================
+
+            val txtTipoAbastecimiento =
+                view.findViewById<TextView>(
+                    R.id.txtTipodeAbastecimiento
+                )
+
+            txtTipoAbastecimiento.text =
+                ingredienteEditar.AI_TIPO_ABASTECIMIENTO
+                    ?: ""
+
+
+            // =====================================================
+            // ALACENA
+            // =====================================================
+
+            val alacenaEditar =
+                listaAlacenas.find {
+                    it.ALC_ID ==
+                            ingredienteEditar.ALC_ID
+                }
+
+            if (alacenaEditar != null) {
+
+                txtAlacenaSeleccionada.text =
+                    alacenaEditar.ALC_NOMBRE
+
+
+                // =================================================
+                // ICONO DE LA ALACENA
+                // =================================================
+
+                when (
+                    alacenaEditar.ALC_ICONO
+                        ?.trim()
+                        ?.uppercase()
+                ) {
+
+                    "CASA" -> {
+
+                        imgIconoAlacenaSeleccionada
+                            .setImageResource(
+                                R.drawable.ic_casa2
+                            )
+                    }
+
+                    "OFICINA" -> {
+
+                        imgIconoAlacenaSeleccionada
+                            .setImageResource(
+                                R.drawable.ic_casa2
+                            )
+                    }
+
+                    "REFRIGERADOR" -> {
+
+                        imgIconoAlacenaSeleccionada
+                            .setImageResource(
+                                R.drawable.ic_casa_azul
+                            )
+                    }
+                }
+            }
+        }
+        cargandoIngredienteEditar = false
         bottomSheet.show()
     }
     private fun buscarIngredientes(
@@ -5497,29 +6816,35 @@ class Menu_principal_free : AppCompatActivity() {
 
                 Log.d(
                     "INGREDIENTE",
-                    "Buscando: $busqueda"
+                    "Buscando clasificación: $busqueda"
                 )
-
 
                 val respuesta =
                     ApiClient.apiService
-                        .autocompleteIngredientes(
+                        .buscarIngredientesClasificacion(
                             busqueda
                         )
 
-
                 if (
                     respuesta.success &&
-                    respuesta.ingredientes.isNotEmpty()
+                    !respuesta.ingredientes.isNullOrEmpty()
                 ) {
 
                     adapter.actualizarLista(
-                        respuesta.ingredientes
+                        respuesta.ingredientes.map { ingrediente ->
+
+                            BuscarIngredientes(
+                                id = ingrediente.id,
+                                nombre = ingrediente.nombre,
+                                imagen_url = ingrediente.imagen_url,
+                                categoria = ingrediente.categoria,
+                                familia = ingrediente.familia
+                            )
+                        }
                     )
 
                     contenedorResultados.visibility =
                         View.VISIBLE
-
 
                     Log.d(
                         "INGREDIENTE",
@@ -5535,7 +6860,6 @@ class Menu_principal_free : AppCompatActivity() {
                     contenedorResultados.visibility =
                         View.GONE
                 }
-
 
             } catch (e: Exception) {
 
@@ -5554,8 +6878,1218 @@ class Menu_principal_free : AppCompatActivity() {
             }
         }
     }
+    private fun ocultarTeclado(view: View) {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE)
+                as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
+        // Quitar el foco del campo que estaba escribiendo
+        view.clearFocus()
+    }
+    private fun mostrarMenuMisAlacenas2(
+        txtAlacena: TextView
+    ) {
+
+        val bottomSheet = BottomSheetDialog(this)
+
+        val view = layoutInflater.inflate(
+            R.layout.dialog_mis_alacenas,
+            null
+        )
+
+        bottomSheet.setContentView(view)
+
+        // ==========================================
+        // RECYCLERVIEW
+        // ==========================================
+
+        val rvMisAlacenas =
+            view.findViewById<RecyclerView>(
+                R.id.rvMisAlacenas
+            )
+
+        rvMisAlacenas.layoutManager =
+            LinearLayoutManager(this)
+
+        // ==========================================
+        // ADAPTER
+        // ==========================================
+
+        val adapter = AlacenaMenuAdapter(
+
+            lista = listaAlacenas,
+
+            // ======================================
+            // SELECCIONAR ALACENA
+            // ======================================
+
+            onSeleccionar = { alacena ->
+
+                // Guardar alacena seleccionada
+                alacenaSeleccionada = alacena
+
+                // Cambiar nombre visualmente
+                txtAlacena.text =
+                    alacena.ALC_NOMBRE
+
+                // Mostrar ID seleccionado en Log
+                Log.d(
+                    "ALACENA",
+                    "Nueva alacena seleccionada: ${alacena.ALC_ID}"
+                )
+
+                // Cerrar menú
+                bottomSheet.dismiss()
+            },
+
+            // ======================================
+            // EDITAR ALACENA
+            // ======================================
+
+            onEditar = { alacena ->
+
+                bottomSheet.dismiss()
+
+                mostrarDialogEditarAlacena(alacena)
+            },
+
+            // ======================================
+            // ELIMINAR ALACENA
+            // ======================================
+
+            onEliminar = { alacena ->
+
+                bottomSheet.dismiss()
+
+                mostrarConfirmacionEliminarAlacena(alacena)
+            }
+        )
+
+        rvMisAlacenas.adapter = adapter
+
+        // ==========================================
+        // CONFIGURAR BOTTOM SHEET
+        // ==========================================
+
+        bottomSheet.setOnShowListener {
+
+            val dialog = it as BottomSheetDialog
+
+            val sheet =
+                dialog.findViewById<View>(
+                    com.google.android.material.R.id.design_bottom_sheet
+                )
+
+            sheet?.let { bottomSheetView ->
+
+                val behavior =
+                    BottomSheetBehavior.from(
+                        bottomSheetView
+                    )
+
+                behavior.state =
+                    BottomSheetBehavior.STATE_EXPANDED
+
+                behavior.skipCollapsed = true
+
+                bottomSheetView.background =
+                    ContextCompat.getDrawable(
+                        this,
+                        R.drawable.bg_bottom_sheet_alacena
+                    )
+            }
+        }
+
+        // ==========================================
+        // MOSTRAR
+        // ==========================================
+
+        bottomSheet.show()
+    }
+    private fun convertirFechaMySQL(
+        fecha: String
+    ): String? {
+
+        return try {
+
+            val formatoEntrada =
+                SimpleDateFormat(
+                    "dd/MM/yyyy",
+                    Locale.getDefault()
+                )
+
+            val formatoSalida =
+                SimpleDateFormat(
+                    "yyyy-MM-dd",
+                    Locale.getDefault()
+                )
+
+            val date =
+                formatoEntrada.parse(fecha)
+
+            if (date != null) {
+                formatoSalida.format(date)
+            } else {
+                null
+            }
+
+        } catch (e: Exception) {
+
+            null
+        }
+    }
+    private fun cargarIngredientesAlacena(
+        alcId: Int,
+        clienteId: Int
+    ) {
+        lifecycleScope.launch {
+            try {
+
+                Log.d(
+                    "ALACENA_ING",
+                    "Consultando ingredientes. ALC_ID=$alcId, CLI_ID=$clienteId"
+                )
+
+                val request = ListarIngredientesAlacenaRequest(
+                    ALC_ID = alcId,
+                    ALC_CLI_ID = clienteId
+                )
+
+                val respuesta =
+                    ApiClient.apiService.listarIngredientesAlacena(request)
+
+                Log.d(
+                    "ALACENA_ING",
+                    "Respuesta: success=${respuesta.success}, total=${respuesta.total}"
+                )
+
+                if (respuesta.success) {
+
+                    val todosLosIngredientes = respuesta.ingredientes
+
+                    Log.d(
+                        "ALACENA_ING",
+                        "Ingredientes recibidos: ${todosLosIngredientes.size}"
+                    )
+
+                    // ==========================================
+                    // MIS INGREDIENTES
+                    // ==========================================
+
+                    adapterMisIngredientes.actualizarLista(
+                        todosLosIngredientes
+                    )
+
+                    // ==========================================
+                    // CONSUME PRIMERO
+                    // ==========================================
+
+                    val consumePrimero = todosLosIngredientes
+                        .filter {
+                            val estado = it.AI_ESTADO
+                                ?.trim()
+                                ?.lowercase()
+
+                            estado == "pasado" || estado == "descompuesto"
+                        }
+                        .sortedWith(
+                            compareBy<IngredienteAlacena> {
+                                when (
+                                    it.AI_ESTADO
+                                        ?.trim()
+                                        ?.lowercase()
+                                ) {
+                                    "descompuesto" -> 0
+                                    "pasado" -> 1
+                                    else -> 2
+                                }
+                            }.thenBy {
+                                it.AI_FECHA_VENCIMIENTO
+                            }
+                        )
+
+                    adapterConsumePrimero.actualizarLista(
+                        consumePrimero
+                    )
+
+                    Log.d(
+                        "ALACENA_ING",
+                        "Mis ingredientes: ${todosLosIngredientes.size}"
+                    )
+
+                    Log.d(
+                        "ALACENA_ING",
+                        "Consume primero: ${consumePrimero.size}"
+                    )
+
+                } else {
+
+                    Log.e(
+                        "ALACENA_ING",
+                        "La API respondió success=false: ${respuesta.message}"
+                    )
+                }
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "ALACENA_ING",
+                    "Error al cargar ingredientes",
+                    e
+                )
+            }
+        }
+    }
+    private fun calcularFechaCaducidadCarne(
+        fechaCompra: String,
+        estado: String,
+        almacenamiento: String
+    ): String? {
+
+        try {
+
+            val formato =
+                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+            formato.isLenient = false
+
+            val fecha = formato.parse(fechaCompra) ?: return null
+
+            /*
+             * Días que tarda en llegar a DESCOMPUESTO
+             * dependiendo del estado actual.
+             */
+            val diasEstado = when (estado) {
+
+                "Fresco" -> 9
+
+                "Maduro" -> 9 - 5
+
+                "Pasado" -> 9 - 9
+
+                "Descompuesto" -> 0
+
+                "Sellado" -> return null
+
+                else -> return null
+            }
+
+            val calendario = Calendar.getInstance()
+            calendario.time = fecha
+
+            calendario.add(
+                Calendar.DAY_OF_MONTH,
+                diasEstado
+            )
+
+            /*
+             * Modificador según almacenamiento
+             */
+            val modificadorAlmacenamiento = when (almacenamiento) {
+
+                "Refrigerador" -> 2
+
+                "Ambiente" -> -1
+
+                "Congelador" -> 3
+
+                else -> 0
+            }
+
+            calendario.add(
+                Calendar.DAY_OF_MONTH,
+                modificadorAlmacenamiento
+            )
+
+            return formato.format(calendario.time)
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "CADUCIDAD",
+                "Error calculando fecha de caducidad",
+                e
+            )
+
+            return null
+        }
+    }
+
+    private fun calcularFechaCaducidadFrutasVerduras(
+        fechaCompra: String,
+        estado: String,
+        almacenamiento: String
+    ): String? {
+
+        try {
+
+            val formato =
+                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+            formato.isLenient = false
+
+            val fecha =
+                formato.parse(fechaCompra) ?: return null
+
+            /*
+             * Días que ya tiene el ingrediente
+             * dependiendo del estado actual.
+             *
+             * Verde       = día 0
+             * Fresco      = día 3
+             * Maduro      = día 6
+             * Pasado      = día 9
+             * Descompuesto = día 10
+             */
+            val diasEstado = when (estado) {
+
+                "Verde" -> 10
+
+                "Fresco" -> 10 - 3
+
+                "Maduro" -> 10 - 6
+
+                "Pasado" -> 10 - 9
+
+                "Descompuesto" -> 0
+
+                "Sellado" -> return null
+
+                else -> return null
+            }
+
+            val calendario = Calendar.getInstance()
+            calendario.time = fecha
+
+            calendario.add(
+                Calendar.DAY_OF_MONTH,
+                diasEstado
+            )
+
+            /*
+             * Modificador según almacenamiento
+             */
+            val modificadorAlmacenamiento = when (almacenamiento) {
+
+                "Refrigerador" -> 1
+
+                "Ambiente" -> -1
+
+                "Congelador" -> 5
+
+                else -> 0
+            }
+
+            calendario.add(
+                Calendar.DAY_OF_MONTH,
+                modificadorAlmacenamiento
+            )
+
+            return formato.format(calendario.time)
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "CADUCIDAD",
+                "Error calculando fecha de caducidad de frutas y verduras",
+                e
+            )
+
+            return null
+        }
+    }
+    private fun calcularFechaCaducidadLacteos(
+        fechaCompra: String,
+        estado: String,
+        almacenamiento: String
+    ): String? {
+
+        try {
+
+            val formato =
+                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+            formato.isLenient = false
+
+            val fecha =
+                formato.parse(fechaCompra) ?: return null
+
+            /*
+             * Días que ya tiene el ingrediente
+             * dependiendo del estado actual.
+             *
+             * Fresco        = día 0
+             * Maduro        = día 3
+             * Pasado        = día 4
+             * Descompuesto  = día 5
+             *
+             * La función calcula cuántos días faltan
+             * para llegar al día 5 (descompuesto).
+             */
+            val diasEstado = when (estado) {
+
+                "Fresco" -> 5
+
+                "Maduro" -> 5 - 3
+
+                "Pasado" -> 5 - 4
+
+                "Descompuesto" -> 0
+
+                "Sellado" -> return null
+
+                else -> return null
+            }
+
+            val calendario = Calendar.getInstance()
+
+            calendario.time = fecha
+
+            calendario.add(
+                Calendar.DAY_OF_MONTH,
+                diasEstado
+            )
+
+            /*
+             * Modificador según almacenamiento
+             */
+            val modificadorAlmacenamiento = when (almacenamiento) {
+
+                "Refrigerador" -> 2
+
+                "Ambiente" -> -1
+
+                "Congelador" -> 3
+
+                else -> 0
+            }
+
+            calendario.add(
+                Calendar.DAY_OF_MONTH,
+                modificadorAlmacenamiento
+            )
+
+            return formato.format(calendario.time)
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "CADUCIDAD",
+                "Error calculando fecha de caducidad de lácteos",
+                e
+            )
+
+            return null
+        }
+    }
+    private fun calcularFechaCaducidadNoPerecedero(
+        fechaCompra: String,
+        fechaCaducidadActual: String
+    ): String? {
+
+        try {
+
+            val formato =
+                SimpleDateFormat(
+                    "dd/MM/yyyy",
+                    Locale.getDefault()
+                )
+
+            formato.isLenient = false
 
 
+            // ==============================================
+            // FECHA DE CADUCIDAD POR DEFECTO
+            // ==============================================
+
+            val fechaCaducidadPorDefecto = "09/10/2026"
+
+
+            // ==============================================
+            // VERIFICAR SI EL USUARIO CAMBIÓ LA FECHA
+            // ==============================================
+
+            if (
+                fechaCaducidadActual.isNotEmpty() &&
+                fechaCaducidadActual != fechaCaducidadPorDefecto
+            ) {
+
+                // El usuario cambió la fecha.
+                // Se conserva exactamente la fecha introducida.
+
+                return fechaCaducidadActual
+            }
+
+
+            // ==============================================
+            // EL USUARIO NO CAMBIÓ LA FECHA
+            //
+            // Se calcula:
+            //
+            // FECHA COMPRA + 2 AÑOS
+            // ==============================================
+
+            val fecha =
+                formato.parse(fechaCompra)
+                    ?: return null
+
+
+            val calendario =
+                Calendar.getInstance()
+
+            calendario.time = fecha
+
+
+            calendario.add(
+                Calendar.YEAR,
+                2
+            )
+
+
+            // ==============================================
+            // DEVOLVER FECHA CALCULADA
+            // ==============================================
+
+            return formato.format(
+                calendario.time
+            )
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "CADUCIDAD",
+                "Error calculando fecha de caducidad de no perecedero",
+                e
+            )
+
+            return null
+        }
+    }
+    private fun calcularFechaCaducidadAbarrotes(
+        fechaCompra: String,
+        estado: String
+    ): String? {
+
+        try {
+
+            val formato =
+                SimpleDateFormat(
+                    "dd/MM/yyyy",
+                    Locale.getDefault()
+                )
+
+            formato.isLenient = false
+
+            val fecha =
+                formato.parse(fechaCompra)
+                    ?: return null
+
+            val calendario =
+                Calendar.getInstance()
+
+            calendario.time = fecha
+
+            when (estado) {
+
+                "Sellado" -> {
+
+                    calendario.add(
+                        Calendar.YEAR,
+                        1
+                    )
+                }
+
+                "Pasado" -> {
+
+                    calendario.add(
+                        Calendar.YEAR,
+                        1
+                    )
+                }
+
+                "Descompuesto" -> {
+
+                    return formato.format(
+                        calendario.time
+                    )
+                }
+
+                else -> {
+                    return null
+                }
+            }
+
+            return formato.format(
+                calendario.time
+            )
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "CADUCIDAD",
+                "Error calculando caducidad de abarrotes",
+                e
+            )
+
+            return null
+        }
+    }
+
+    private fun calcularFechaCaducidadVino(
+        fechaCompra: String,
+        estado: String,
+        almacenamiento: String
+    ): String? {
+
+        try {
+
+            val formato =
+                SimpleDateFormat(
+                    "dd/MM/yyyy",
+                    Locale.getDefault()
+                )
+
+            formato.isLenient = false
+
+            val fecha =
+                formato.parse(fechaCompra)
+                    ?: return null
+
+
+            // ==================================================
+            // DÍAS HASTA DESCOMPUESTO
+            // ==================================================
+
+            val diasEstado = when (estado) {
+
+                "Fresco" -> 13
+
+                "Maduro" -> 13 - 2
+
+                "Pasado" -> 13 - 8
+
+                "Descompuesto" -> 0
+
+                "Sellado" -> return null
+
+                else -> return null
+            }
+
+
+            val calendario =
+                Calendar.getInstance()
+
+            calendario.time =
+                fecha
+
+
+            calendario.add(
+                Calendar.DAY_OF_MONTH,
+                diasEstado
+            )
+
+
+            // ==================================================
+            // ALMACENAMIENTO
+            // ==================================================
+
+            val modificadorAlmacenamiento =
+                when (almacenamiento) {
+
+                    "Refrigerador" -> 1
+
+                    "Ambiente" -> 0
+
+                    else -> 0
+                }
+
+
+            calendario.add(
+                Calendar.DAY_OF_MONTH,
+                modificadorAlmacenamiento
+            )
+
+
+            return formato.format(
+                calendario.time
+            )
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "CADUCIDAD",
+                "Error calculando caducidad de vino",
+                e
+            )
+
+            return null
+        }
+    }
+    private fun calcularFechaCaducidadEmbutidos(
+        fechaCompra: String,
+        estado: String,
+        almacenamiento: String
+    ): String? {
+        try {
+            val formato =
+                SimpleDateFormat(
+                    "dd/MM/yyyy",
+                    Locale.getDefault()
+                )
+            formato.isLenient = false
+
+            val fecha =
+                formato.parse(fechaCompra)
+                    ?: return null
+
+            val diasEstado = when (estado) {
+                "Verde" -> 7
+                "Maduro" -> 7 - 5
+                "Pasado" -> 7 - 6
+                "Descompuesto" -> 0
+                "Sellado" -> return null
+                else -> return null
+            }
+
+            val calendario =
+                Calendar.getInstance()
+
+            calendario.time = fecha
+
+            calendario.add(
+                Calendar.DAY_OF_MONTH,
+                diasEstado
+            )
+
+            val modificadorAlmacenamiento =
+                when (almacenamiento) {
+                    "Refrigerador" -> 2
+                    "Ambiente" -> -1
+                    "Congelador" -> 3
+                    else -> 0
+                }
+
+            calendario.add(
+                Calendar.DAY_OF_MONTH,
+                modificadorAlmacenamiento
+            )
+
+            return formato.format(calendario.time)
+
+        } catch (e: Exception) {
+            Log.e(
+                "CADUCIDAD",
+                "Error calculando caducidad de embutidos",
+                e
+            )
+            return null
+        }
+    }
+
+    private fun actualizarFechaCaducidad(
+        txtFechaCompra: TextView,
+        txtTipoEstado: TextView,
+        txtTipoAlmacenamiento: TextView,
+        txtFechaConsumo: TextView,
+        edtIngrediente : TextView? = null
+
+    ) {
+        val nombreIngrediente =
+            edtIngrediente
+                ?.text
+                ?.toString()
+                ?.trim()
+                ?.lowercase()
+                .orEmpty()
+
+        val fechaCompra =
+            txtFechaCompra.text
+                .toString()
+                .trim()
+
+        val estado =
+            txtTipoEstado.text
+                .toString()
+                .trim()
+
+        val almacenamiento =
+            txtTipoAlmacenamiento.text
+                .toString()
+                .trim()
+
+
+        // ==========================================
+        // VALIDAR FECHA DE COMPRA
+        // ==========================================
+
+        if (fechaCompra.isEmpty()) {
+            return
+        }
+
+
+        // ==========================================
+        // VALIDAR ESTADO
+        // ==========================================
+
+        if (estado.isEmpty()) {
+            return
+        }
+
+
+        // ==========================================
+        // SELLADO
+        // ==========================================
+
+        // Sellado utiliza la fecha que proporciona
+        // el usuario. No hacemos cálculo automático.
+        if (estado == "Sellado") {
+            return
+        }
+
+
+        // ==========================================
+        // CATEGORÍA CARNE
+        // ==========================================
+        // ==========================================
+// CALCULAR SEGÚN LA FAMILIA
+// ==========================================
+
+        val familia =
+            familiaIngredienteSeleccionado
+                ?.trim()
+                ?.lowercase()
+
+        val fechaCaducidad: String?
+
+        when (familia) {
+            "cereales leguminosas",
+            "especias",
+            "pastas",
+            "semillas",
+            "industrializados",
+            "hierbas aromatica"-> {
+
+                fechaCaducidad =
+                    calcularFechaCaducidadNoPerecedero(
+                        fechaCompra = fechaCompra,
+                        fechaCaducidadActual = txtFechaConsumo.text
+                            .toString()
+                            .trim()
+                    )
+            }
+            "abarrotes"->{
+
+                fechaCaducidad =
+                    calcularFechaCaducidadAbarrotes(
+                        fechaCompra = fechaCompra,
+                        estado = estado
+                    )
+            }
+            "licores y destilados" -> {
+                if (nombreIngrediente == "vino") {
+
+                    fechaCaducidad =
+                        calcularFechaCaducidadVino(
+                            fechaCompra = fechaCompra,
+                            estado = estado,
+                            almacenamiento = almacenamiento
+                        )
+
+                } else {
+
+                    // Los demás licores son Sellados
+                    // y no tienen cálculo automático.
+                    return
+                }
+            }
+            "embutidos" -> {
+                fechaCaducidad =
+                    calcularFechaCaducidadEmbutidos(
+                        fechaCompra = fechaCompra,
+                        estado = estado,
+                        almacenamiento = almacenamiento
+                    )
+            }
+
+
+            "lacteos" -> {
+
+                fechaCaducidad =
+                    calcularFechaCaducidadLacteos(
+                        fechaCompra = fechaCompra,
+                        estado = estado,
+                        almacenamiento = almacenamiento
+                    )
+            }
+
+            "carne" -> {
+
+                fechaCaducidad =
+                    calcularFechaCaducidadCarne(
+                        fechaCompra = fechaCompra,
+                        estado = estado,
+                        almacenamiento = almacenamiento
+                    )
+            }
+
+            "fruta",
+            "frutas",
+            "verdura",
+            "verduras" -> {
+
+                fechaCaducidad =
+                    calcularFechaCaducidadFrutasVerduras(
+                        fechaCompra = fechaCompra,
+                        estado = estado,
+                        almacenamiento = almacenamiento
+                    )
+            }
+
+            else -> {
+
+                Log.d(
+                    "CADUCIDAD",
+                    "No existen reglas para la familia: $familia"
+                )
+
+                return
+            }
+        }
+
+        // ==========================================
+        // MOSTRAR RESULTADO
+        // ==========================================
+
+        if (fechaCaducidad != null) {
+
+            txtFechaConsumo.text =
+                fechaCaducidad
+        }
+    }
+    private fun actualizarEstadosYCargarAlacena(
+        alcId: Int,clienteId: Int
+    ) {
+
+        actualizarEstadosAlacena(alcId) {
+
+            cargarIngredientesAlacena(alcId,clienteId)
+        }
+    }
+    private fun actualizarEstadosAlacena(
+        alcId: Int,
+        onComplete: (() -> Unit)? = null
+    ) {
+
+        lifecycleScope.launch {
+
+            try {
+
+                Log.d(
+                    "ESTADOS_ALACENA",
+                    "Actualizando estados de alacena: $alcId"
+                )
+
+                val respuesta =
+                    ApiClient.apiService
+                        .actualizarEstadosAlacena(alcId)
+
+                if (respuesta.success) {
+
+                    Log.d(
+                        "ESTADOS_ALACENA",
+                        "Estados actualizados correctamente"
+                    )
+
+                    Log.d(
+                        "ESTADOS_ALACENA",
+                        "Procesados: ${respuesta.procesados}"
+                    )
+
+                    Log.d(
+                        "ESTADOS_ALACENA",
+                        "Actualizados: ${respuesta.actualizados}"
+                    )
+
+                    Log.d(
+                        "ESTADOS_ALACENA",
+                        "Sin cambios: ${respuesta.sin_cambios}"
+                    )
+
+                    Log.d(
+                        "ESTADOS_ALACENA",
+                        "No aplican: ${respuesta.no_aplican}"
+                    )
+
+                    onComplete?.invoke()
+
+                } else {
+
+                    Log.e(
+                        "ESTADOS_ALACENA",
+                        "Error: ${respuesta.message}"
+                    )
+
+                    // Aunque la API haya respondido con error,
+                    // intentamos cargar la alacena para no dejar
+                    // la pantalla vacía.
+                    onComplete?.invoke()
+                }
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "ESTADOS_ALACENA",
+                    "Error conectando con API",
+                    e
+                )
+
+                // Si falla la conexión también cargamos
+                // los datos existentes.
+                onComplete?.invoke()
+            }
+        }
+    }
+    private fun formatearFechaDialogo(
+        fecha: String?
+    ): String {
+
+        if (fecha.isNullOrBlank()) {
+            return ""
+        }
+
+        return try {
+
+            val formatoEntrada =
+                SimpleDateFormat(
+                    "yyyy-MM-dd",
+                    Locale.getDefault()
+                )
+
+            val formatoSalida =
+                SimpleDateFormat(
+                    "dd/MM/yyyy",
+                    Locale.getDefault()
+                )
+
+            val fechaConvertida =
+                formatoEntrada.parse(fecha)
+
+            if (fechaConvertida != null) {
+                formatoSalida.format(fechaConvertida)
+            } else {
+                ""
+            }
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "ALACENA",
+                "Error convirtiendo fecha: $fecha",
+                e
+            )
+
+            ""
+        }
+    }
+    private fun eliminarIngredienteDeAlacena(
+        alcId: Int,
+        ingId: Int,
+        bottomSheet: BottomSheetDialog
+    ) {
+
+        lifecycleScope.launch {
+
+            try {
+
+                Log.d(
+                    "ALACENA_ELIMINAR",
+                    """
+                ===== ELIMINAR INGREDIENTE =====
+                ALC_ID: $alcId
+                ING_ID: $ingId
+                ================================
+                """.trimIndent()
+                )
+
+
+                val request =
+                    EliminarIngredienteAlacenaRequest(
+                        ALC_ID = alcId,
+                        ING_ID = ingId
+                    )
+
+
+                val response =
+                    ApiClient.apiService
+                        .eliminarIngredienteAlacena(
+                            request
+                        )
+
+
+                if (response.success) {
+
+                    Log.d(
+                        "ALACENA_ELIMINAR",
+                        "ÉXITO: ${response.message}"
+                    )
+
+
+                    makeText(
+                        this@Menu_principal_free,
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+
+                    bottomSheet.dismiss()
+
+
+                    // ======================================
+                    // RECARGAR ALACENA
+                    // ======================================
+
+                    val clienteId =
+                        alacenaSeleccionada?.ALC_CLI_ID
+
+                    if (clienteId != null) {
+
+                        actualizarEstadosYCargarAlacena(
+                            alcId,
+                            clienteId
+                        )
+                    }
+
+
+                } else {
+
+                    Log.e(
+                        "ALACENA_ELIMINAR",
+                        "ERROR: ${response.message}"
+                    )
+
+                    makeText(
+                        this@Menu_principal_free,
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "ALACENA_ELIMINAR",
+                    "Error al eliminar ingrediente",
+                    e
+                )
+
+                makeText(
+                    this@Menu_principal_free,
+                    "Error de conexión con el servidor.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
     fun cerrarDetalleReceta() {
 
         binding.containerDetalleReceta.visibility =

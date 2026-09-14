@@ -2,6 +2,8 @@ package com.example.gourmeet2.data.api
 
 import  com.example.gourmeet2.data.models.*
 import retrofit2.http.Body
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
@@ -186,4 +188,30 @@ interface ApiService {
     suspend fun eliminarAlacena(
         @Body request: EliminarAlacenaRequest
     ): AlacenaResponse
+    @POST("alacena/guardar_ingrediente_alacena.php")
+    suspend fun guardarIngredienteAlacena(
+        @Body request: GuardarIngredienteAlacenaRequest
+    ): GuardarIngredienteAlacenaResponse
+    @POST("alacena/listar_ingredientes_alacena.php")
+    suspend fun listarIngredientesAlacena(
+        @Body request: ListarIngredientesAlacenaRequest
+    ): ListarIngredientesAlacenaResponse
+    @GET("ingredientes/obtener_clasificacion_ingrediente.php")
+    suspend fun buscarIngredientesClasificacion(
+        @Query("nombre") nombre: String
+    ): IngredienteClasificacionResponse
+    @FormUrlEncoded
+    @POST("alacena/actualizar_estados.php")
+    suspend fun actualizarEstadosAlacena(
+        @Field("ALC_ID") alcId: Int
+    ): ActualizarEstadosAlacenaResponse
+    @POST("alacena/editar_ingrediente.php")
+    suspend fun editarIngredienteAlacena(
+        @Body request: GuardarIngredienteAlacenaRequest
+    ): GuardarIngredienteAlacenaResponse
+    @POST("alacena/eliminar_ingrediente.php")
+    suspend fun eliminarIngredienteAlacena(
+        @Body request: EliminarIngredienteAlacenaRequest
+    ): GuardarIngredienteAlacenaResponse
+
 }
