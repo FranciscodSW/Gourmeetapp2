@@ -27,7 +27,7 @@
         android:text="Tomate"
 
 
-        android:textColor="@color/azulgourmeet"
+        android:textColor="@color/black"
         android:textSize="8sp" />
 
 </LinearLayout>

@@ -68,6 +68,9 @@ class Registro : AppCompatActivity() {
     var passSeleccionado = ""
     var facebookIdSeleccionado: String = ""
     var googleIdSeleccionado: String = ""
+    private var etapaRegistro = 1
+    private var correoVerificado = false
+    private var correoVerificadoPara = ""
     var restriccionesSeleccionadas = mutableListOf<Restriccion>()
     private var estadoActual = EstadoContenedor.CERRADO
     private var alturaExpandida = 0
@@ -180,6 +183,20 @@ class Registro : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        binding.btnReenviarcodigo.setOnClickListener {
+
+            if (etapaRegistro != 2) {
+                return@setOnClickListener
+            }
+
+            val correo = binding.editCorreo.text.toString().trim()
+
+            if (!validarCorreo(correo)) {
+                return@setOnClickListener
+            }
+
+            enviarCodigoVerificacion(correo)
+        }
         binding.btneditUbicacion.setOnClickListener {
             if (binding.contenedorInferior.visibility == View.VISIBLE) {
                 ocultarContenedorInferior()
@@ -230,6 +247,7 @@ class Registro : AppCompatActivity() {
             binding.layoutPersonalizar.visibility = View.GONE
             binding.layoutrestricciones.visibility = View.VISIBLE
         }
+
         binding.btnFinRes.setOnClickListener {
 
             when {
@@ -267,42 +285,14 @@ class Registro : AppCompatActivity() {
             Log.d("DEBUG", "Entró a obtenerDatosGoogle()")
             obtenerDatosGoogle()
         }
-        binding.btnTictok.setOnClickListener {
-            val url = "https://www.tiktok.com/v2/auth/authorize/?" +
-                    "client_key=sbawcifei5hccyogut" +
-                    "&response_type=code" +
-                    "&scope=user.info.basic" +
-                    "&redirect_uri=https://webhook.site/4e3282fd-1395-497c-ad7d-f79402426aed"+
-                    "&state=123" +
-                    "&prompt=consent"
-            Log.d("TIKTOK", "==========================")
-            Log.d("TIKTOK", "Botón presionado")
-            Log.d("TIKTOK", "URL generada:")
-            Log.d("TIKTOK", url)
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            try {
-                startActivity(intent)
-                Log.d("TIKTOK", "Intent lanzado correctamente")
-            } catch (e: Exception) {
-                Log.e("TIKTOK", "Error abriendo navegador: ${e.message}")
-            }
-        }
-        binding.btnFacebook.setOnClickListener {
-            obtenerDatosFacebook()
-        }
+
         setupValidaciones()
     }
     fun obtenerDatosGoogle() {
         val signInIntent = googleSignInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
-    fun obtenerDatosFacebook() {
 
-        LoginManager.getInstance().logInWithReadPermissions(
-            this,
-            listOf("email", "public_profile")
-        )
-    }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         callbackManager.onActivityResult(requestCode, resultCode, data)
@@ -469,103 +459,394 @@ class Registro : AppCompatActivity() {
         }
     }
     private fun setupValidaciones() {
+
         binding.btnRegistrar.setOnClickListener {
-            val nombre = binding.editNombre.text.toString().trim()
-            val correo = binding.editCorreo.text.toString().trim()
-            val pass = binding.editPassword.text.toString()
-            val confirmPass = binding.editConfirmPassword.text.toString()
-            if (!validarNombre(nombre)) return@setOnClickListener
-            if (!validarCorreo(correo)) return@setOnClickListener
-            if (!validarPassword(pass)) return@setOnClickListener
-            if (pass != confirmPass) {
-                mostrarError("Las contraseñas no coinciden")
-                return@setOnClickListener
-            }
-            // Llamada a la API
-            lifecycleScope.launch {
-                try {
-                    val request = VerificarUsuario(nombre, correo)
-                    val response = ApiClient.apiService.verificarUsuario(request)
-                    if (response.correoExiste) {
-                        mostrarError("El correo ya está registrado")
-                        return@launch
+
+            val nombre = binding.editNombre.text
+                .toString()
+                .trim()
+
+            val correo = binding.editCorreo.text
+                .toString()
+                .trim()
+
+
+            when (etapaRegistro) {
+
+                // ==========================================
+                // ETAPA 1
+                // ENVIAR CÓDIGO
+                // ==========================================
+                1 -> {
+
+                    if (!validarNombre(nombre)) {
+                        return@setOnClickListener
                     }
-                    if (response.nombreExiste) {
-                        mostrarError("El nombre de usuario ya está ocupado")
-                        return@launch
+
+                    if (!validarCorreo(correo)) {
+                        return@setOnClickListener
                     }
-                    mostrarExito()
+
+
+                    // Primero comprobamos que el correo
+                    // y nombre no estén registrados
+                    lifecycleScope.launch {
+
+                        try {
+
+                            val request =
+                                VerificarUsuario(
+                                    nombre,
+                                    correo
+                                )
+
+                            val response =
+                                ApiClient.apiService
+                                    .verificarUsuario(request)
+
+
+                            if (response.correoExiste) {
+
+                                mostrarError(
+                                    "El correo ya está registrado"
+                                )
+
+                                return@launch
+                            }
+
+
+                            if (response.nombreExiste) {
+
+                                mostrarError(
+                                    "El nombre de usuario ya está ocupado"
+                                )
+
+                                return@launch
+                            }
+
+
+                            // ==================================
+                            // TODO CORRECTO
+                            // ENVIAMOS CÓDIGO
+                            // ==================================
+
+                            nombreSeleccionado = nombre
+                            correoSeleccionado = correo
+
+                            enviarCodigoVerificacion(correo)
+
+                        } catch (e: Exception) {
+
+                            Log.e(
+                                "REGISTRO",
+                                "Error verificando usuario",
+                                e
+                            )
+
+                            mostrarError(
+                                "Error al conectar con el servidor"
+                            )
+                        }
+                    }
+                }
+
+
+                // ==========================================
+                // ETAPA 2
+                // VERIFICAR CÓDIGO
+                // ==========================================
+                2 -> {
+
+                    val codigo = binding.verificacion.text
+                        .toString()
+                        .trim()
+
+
+                    if (codigo.length != 6) {
+
+                        mostrarError(
+                            "Introduce el código de 6 dígitos"
+                        )
+
+                        return@setOnClickListener
+                    }
+
+
+                    verificarCodigoCorreo(
+                        correo,
+                        codigo
+                    )
+                }
+
+
+                // ==========================================
+                // ETAPA 3
+                // CREAR CUENTA
+                // ==========================================
+                3 -> {
+
+                    val pass =
+                        binding.editPassword.text
+                            .toString()
+
+                    val confirmPass =
+                        binding.editConfirmPassword.text
+                            .toString()
+
+
+                    // Seguridad adicional
+                    if (!correoVerificado) {
+
+                        mostrarError(
+                            "Primero debes verificar tu correo"
+                        )
+
+                        return@setOnClickListener
+                    }
+
+
+                    if (correo != correoVerificadoPara) {
+
+                        correoVerificado = false
+
+                        mostrarError(
+                            "El correo cambió. Debes verificarlo nuevamente"
+                        )
+
+                        return@setOnClickListener
+                    }
+
+
+                    if (!validarPassword(pass)) {
+                        return@setOnClickListener
+                    }
+
+
+                    if (pass != confirmPass) {
+
+                        mostrarError(
+                            "Las contraseñas no coinciden"
+                        )
+
+                        return@setOnClickListener
+                    }
+
+
                     nombreSeleccionado = nombre
                     correoSeleccionado = correo
                     passSeleccionado = pass
-                } catch (e: Exception) {
-                    mostrarError("Error al conectar con el servidor")
+
+
+                    // ==================================
+                    // CREAR CUENTA
+                    // ==================================
+
+                    mostrarExito()
                 }
             }
         }
     }
-    /*private fun registrarUsuarioFacebook() {
+    private fun enviarCodigoVerificacion(correo: String) {
 
-        binding.txtError.visibility = View.GONE
+        lifecycleScope.launch {
 
-        CoroutineScope(Dispatchers.IO).launch {
             try {
 
-                val edad = edadSeleccionada
-                val nivel = nivelSeleccionado
-                val latitud = latitudSeleccionada
-                val longitud = longitudSeleccionada
-                val restriccionesIds = restriccionesSeleccionadas.map { it.id }
+                val request =
+                    EnviarCodigoVerificacionRequest(
+                        correo = correo
+                    )
 
-                val request = FacebookRegistro(
-                    correo = correoSeleccionado, // puede venir null ⚠️
-                    nombre = nombreSeleccionado,
-                    facebook_id = facebookIdSeleccionado,
-                    avatar = avatar,
-                    edad = edad,
-                    nivel = nivel,
-                    latitud = latitud,
-                    longitud = longitud,
-                    restricciones = restriccionesIds
+
+                Log.d(
+                    "VERIFICACION",
+                    "Enviando código a producción: $correo"
                 )
 
-                val response = ApiClient.apiService.registroFacebook(request)
 
-                withContext(Dispatchers.Main) {
+                val response =
+                    ApiClient.apiService
+                        .enviarCodigoVerificacion(
+                            request
+                        )
 
-                    if (response.success) {
 
-                        // 🔥 guardar sesión
-                        val shared = getSharedPreferences("user", MODE_PRIVATE)
-                        shared.edit()
-                            .putInt("id", response.usuario_id ?: 0)
-                            .putString("nombre", response.nombre)
-                            .apply()
+                Log.d(
+                    "VERIFICACION",
+                    "Respuesta: ${response.success}"
+                )
 
-                        if (response.login == true) {
-                            Log.d("API", "Login con Facebook")
-                        }
+                Log.d(
+                    "VERIFICACION",
+                    "Mensaje: ${response.mensaje}"
+                )
 
-                        if (response.registro == true) {
-                            Log.d("API", "Registro con Facebook")
-                        }
 
-                        mostrarExito()
+                if (response.success) {
 
-                    } else {
-                        mostrarError(response.error ?: "Error desconocido")
-                    }
+                    Toast.makeText(
+                        this@Registro,
+                        "Código enviado a tu correo",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+
+                    // ==================================
+                    // CAMBIAR A ETAPA 2
+                    // ==================================
+
+                    etapaRegistro = 2
+
+
+                    // Mostrar código
+                    binding.layoutVerificacion.visibility =
+                        View.VISIBLE
+
+
+                    // Cambiar botón
+                    binding.btnRegistrar.text =
+                        "Verificar código"
+                    binding.btnReenviarcodigo.visibility=
+                        View.VISIBLE
+
+
+                    // Limpiar error
+                    binding.txtError.visibility =
+                        View.GONE
+
+
+                    // Guardamos el correo
+                    correoVerificadoPara = correo
+
+
+                } else {
+
+                    mostrarError(
+                        response.mensaje
+                    )
                 }
+
 
             } catch (e: Exception) {
-                e.printStackTrace()
 
-                withContext(Dispatchers.Main) {
-                    mostrarError("Error de conexión")
-                }
+                Log.e(
+                    "VERIFICACION",
+                    "Error enviando código",
+                    e
+                )
+
+                mostrarError(
+                    "Error al conectar con el servidor"
+                )
             }
         }
-    }*/
+    }
+    private fun verificarCodigoCorreo(
+        correo: String,
+        codigo: String
+    ) {
+
+        lifecycleScope.launch {
+
+            try {
+
+                val request =
+                    VerificarCodigoCorreoRequest(
+                        correo = correo,
+                        codigo = codigo
+                    )
+
+
+                Log.d(
+                    "VERIFICACION",
+                    "Verificando código..."
+                )
+
+
+                val response =
+                    ApiClient.apiService
+                        .verificarCodigoCorreo(
+                            request
+                        )
+
+
+                if (response.success) {
+
+                    // ==================================
+                    // CÓDIGO CORRECTO
+                    // ==================================
+
+                    correoVerificado = true
+                    correoVerificadoPara = correo
+
+
+                    Toast.makeText(
+                        this@Registro,
+                        "Correo verificado correctamente",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+
+                    // ==================================
+                    // MOSTRAR CONTRASEÑAS
+                    // ==================================
+
+                    binding.editPassword.parent
+                    binding.layoutPassword.visibility =
+                        View.VISIBLE
+
+                    binding.layoutConfirmPassword.visibility =
+                        View.VISIBLE
+
+
+                    // ==================================
+                    // CAMBIAR BOTÓN
+                    // ==================================
+
+                    etapaRegistro = 3
+
+                    binding.btnRegistrar.text =
+                        "Crear cuenta"
+
+
+                    binding.txtError.visibility =
+                        View.GONE
+
+
+                    // Ya no necesitamos modificar
+                    // el correo durante este proceso
+                    binding.editCorreo.isEnabled = false
+
+
+                } else {
+
+                    // ==================================
+                    // CÓDIGO INCORRECTO
+                    // ==================================
+
+                    correoVerificado = false
+
+                    mostrarError(
+                        response.mensaje
+                    )
+                }
+
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "VERIFICACION",
+                    "Error verificando código",
+                    e
+                )
+
+                mostrarError(
+                    "Error al conectar con el servidor"
+                )
+            }
+        }
+    }
+
     private fun registrarUsuarioGoogle() {
 
         binding.txtError.visibility = View.GONE
@@ -1020,12 +1301,12 @@ class Registro : AppCompatActivity() {
     class NivelAdapter(private val lista: List<NivelCocina>) :
         RecyclerView.Adapter<NivelAdapter.ViewHolder>() {
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val img = view.findViewById<ImageView>(R.id.imgGorrito)
+            val img = view.findViewById<ImageView>(R.id.img)
             val txt = view.findViewById<TextView>(R.id.txtNivel)
         }
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_nivel, parent, false)
+                .inflate(R.layout.aceptar_terminos, parent, false)
             return ViewHolder(view)
         }
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -1253,6 +1534,8 @@ class Registro : AppCompatActivity() {
         binding.contenedorContenido.addView(contenedorPrincipal)
         mostrarContenedorInferior()
     }
+
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         val data = intent?.data

@@ -63,6 +63,7 @@ import com.example.gourmeet2.ui.adapters.IngredienteMiniAdapter
 import com.example.gourmeet2.utils.SesionUsuario.actualizarNombre
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
@@ -99,6 +100,13 @@ class Menu_principal_free : AppCompatActivity() {
     private var ingredienteSeleccionadoId: Int? = null
     private lateinit var adapterConsumePrimero: IngredienteAlacenaAdapter
     private lateinit var adapterMisIngredientes: IngredienteAlacenaAdapter
+    private lateinit var adapterCategoriasIngredientes: CategoriaIngredientesAdapter
+    private enum class ModoIngrediente {
+        AGREGAR,
+        EDITAR,
+        USAR_EN_RECETA
+    }
+
     private val solicitarPermisosUbicacion =
         registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
@@ -185,8 +193,15 @@ class Menu_principal_free : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMenuPrincipalFreeBinding.inflate(layoutInflater)
+
+        binding =
+            ActivityMenuPrincipalFreeBinding.inflate(layoutInflater)
+
         setContentView(binding.root)
+
+        // =========================================================
+        // BOTÓN ATRÁS
+        // =========================================================
 
         onBackPressedDispatcher.addCallback(
             this,
@@ -252,27 +267,37 @@ class Menu_principal_free : AppCompatActivity() {
 
                         return
                     }
+
+
                     // ======================================
                     // BÚSQUEDA DE PROVEEDOR ABIERTA
                     // ======================================
+
                     if (busquedaProveedorAbierta) {
 
                         cerrarBusquedaProveedor()
 
                         return
                     }
+
+
+                    // ======================================
+                    // PREFERENCIAS DE CUENTA
+                    // ======================================
+
                     if (
                         binding.panelPreferenciasCuenta.visibility ==
                         View.VISIBLE
                     ) {
+
                         cerrarPreferenciasCuenta()
+
                         return
                     }
 
 
                     // ======================================
                     // SI NO HAY NINGÚN PANEL ABIERTO
-                    // DEJAMOS QUE ANDROID REGRESE
                     // ======================================
 
                     isEnabled = false
@@ -283,59 +308,124 @@ class Menu_principal_free : AppCompatActivity() {
         )
 
 
+        // =========================================================
+        // INICIALIZACIÓN GENERAL
+        // =========================================================
+
         cargarUsuario()
+
         cargarInformacionUsuario()
+
         inicializarMenuLateral()
+
         configurarPreferenciasCuenta()
-        fusedLocationClient =
-            LocationServices.getFusedLocationProviderClient(this)
-        inicializarProveedores()
-        configurarBusquedaProveedores()
-        //obtenerUbicacionUsuario()
+
+
         fusedLocationClient =
             LocationServices.getFusedLocationProviderClient(this)
 
+
         inicializarProveedores()
+
+        configurarBusquedaProveedores()
+
+
+        // =========================================================
+        // UBICACIÓN
+        // =========================================================
+
+        fusedLocationClient =
+            LocationServices.getFusedLocationProviderClient(this)
+
+
+        inicializarProveedores()
+
         configurarBusquedaProveedores()
 
 
         if (tienePermisoUbicacion()) {
 
             obtenerUbicacionUsuario()
-
         }
 
 
+        // =========================================================
+        // BACK STACK
+        // =========================================================
+
         supportFragmentManager.addOnBackStackChangedListener {
-            if (supportFragmentManager.backStackEntryCount == 0) {
-                binding.containerDetalleReceta.visibility = View.GONE
+
+            if (
+                supportFragmentManager.backStackEntryCount == 0
+            ) {
+
+                binding.containerDetalleReceta.visibility =
+                    View.GONE
+
                 binding.containerDetalleProveedor.visibility =
                     View.GONE
             }
         }
+
+
+        // =========================================================
+        // MODO ACTUAL
+        // =========================================================
+
         actualizarModo()
+
+
+        // =========================================================
+        // BOTÓN AGREGAR INGREDIENTE
+        // =========================================================
+
         val btnAgregarIngrediente =
             binding.panelAlacena.findViewById<MaterialButton>(
                 R.id.btnAgregarIngrediente
             )
 
+
         btnAgregarIngrediente.setOnClickListener {
 
             mostrarDialogAgregarIngrediente()
         }
+
+
+        // =========================================================
+        // BUSCADOR
+        // =========================================================
+
         binding.editBusqueda.setOnEditorActionListener { _, _, _ ->
-            true    // Consume cualquier acción del botón del teclado
+
+            true
         }
+
+
         binding.editBusqueda.addTextChangedListener {
+
             val texto = it.toString()
+
+
             if (texto.length >= 2) {
-                if (modoActual == Modo.INGREDIENTES) {
+
+                if (
+                    modoActual == Modo.INGREDIENTES
+                ) {
+
                     buscarIngredientes(texto)
+
                 } else {
+
                     buscarRecetas(texto)
                 }
             }
         }
+
+
+        // =========================================================
+        // BOTÓN PROVEEDORES
+        // =========================================================
+
         binding.btnProveedores.setOnClickListener {
 
             // ==========================================
@@ -421,6 +511,7 @@ class Menu_principal_free : AppCompatActivity() {
                 binding.panelProveedores.translationX =
                     -binding.panelProveedores.width.toFloat()
 
+
                 binding.panelProveedores.animate()
                     .translationX(0f)
                     .setDuration(300)
@@ -434,25 +525,68 @@ class Menu_principal_free : AppCompatActivity() {
 
             cargarProveedores()
         }
+
+
+        // =========================================================
+        // BLOQUEAR ENTER
+        // =========================================================
+
         binding.editBusqueda.setOnKeyListener { _, keyCode, event ->
-            if (keyCode == KeyEvent.KEYCODE_ENTER &&
-                event.action == KeyEvent.ACTION_DOWN) {
-                true   // Bloquea el Enter
+
+            if (
+                keyCode == KeyEvent.KEYCODE_ENTER &&
+                event.action == KeyEvent.ACTION_DOWN
+            ) {
+
+                true
+
             } else {
+
                 false
             }
         }
-        adapter = IngredienteAdapter(emptyList()) { ingrediente ->
-            moverASeleccionados(ingrediente)
-            binding.rvResultados.visibility = View.GONE
-            binding.panelingredietes.visibility = View.GONE
-            binding.editBusqueda.setText("")
-        }
-        adapterResultados = AdapterResultados(
-            mutableListOf()
-        ) { receta ->
-            abrirDetalleReceta(receta.REC_ID)
-        }
+
+
+        // =========================================================
+        // ADAPTER DE INGREDIENTES
+        // =========================================================
+
+        adapter =
+            IngredienteAdapter(
+                emptyList()
+            ) { ingrediente ->
+
+                moverASeleccionados(ingrediente)
+
+                binding.rvResultados.visibility =
+                    View.GONE
+
+                binding.panelingredietes.visibility =
+                    View.GONE
+
+                binding.editBusqueda.setText("")
+            }
+
+
+        // =========================================================
+        // ADAPTER DE RESULTADOS
+        // =========================================================
+
+        adapterResultados =
+            AdapterResultados(
+                mutableListOf()
+            ) { receta ->
+
+                abrirDetalleReceta(
+                    receta.REC_ID
+                )
+            }
+
+
+        // =========================================================
+        // ADAPTER CONSUME PRIMERO
+        // =========================================================
+
         adapterConsumePrimero =
             IngredienteAlacenaAdapter(
                 emptyList()
@@ -462,6 +596,11 @@ class Menu_principal_free : AppCompatActivity() {
                     ingredienteSeleccionado
                 )
             }
+
+
+        // =========================================================
+        // ADAPTER MIS INGREDIENTES
+        // =========================================================
 
         adapterMisIngredientes =
             IngredienteAlacenaAdapter(
@@ -473,19 +612,41 @@ class Menu_principal_free : AppCompatActivity() {
                 )
             }
 
+
+        // =========================================================
+        // ADAPTER CATEGORÍAS
+        // =========================================================
+
+        adapterCategoriasIngredientes =
+            CategoriaIngredientesAdapter(
+                emptyList()
+            ) { ingredienteSeleccionado ->
+
+                mostrarDialogAgregarIngrediente(
+                    ingredienteSeleccionado
+                )
+            }
+
+
+        // =========================================================
+        // RECYCLER VIEWS DE ALACENA
+        // =========================================================
+
         val rvConsumePrimero =
             binding.panelAlacena.findViewById<RecyclerView>(
                 R.id.rvConsumePrimero
             )
+
 
         val rvMisIngredientes =
             binding.panelAlacena.findViewById<RecyclerView>(
                 R.id.rvMisIngredientes
             )
 
-// ==========================================
-// CONSUME PRIMERO
-// ==========================================
+
+        // =========================================================
+        // CONSUME PRIMERO
+        // =========================================================
 
         rvConsumePrimero.layoutManager =
             LinearLayoutManager(
@@ -494,37 +655,78 @@ class Menu_principal_free : AppCompatActivity() {
                 false
             )
 
+
         rvConsumePrimero.adapter =
             adapterConsumePrimero
 
-// ==========================================
-// MIS INGREDIENTES
-// ==========================================
+
+        // =========================================================
+        // MIS INGREDIENTES POR CATEGORÍA
+        // =========================================================
 
         rvMisIngredientes.layoutManager =
-            GridLayoutManager(this, 2)
+            LinearLayoutManager(
+                this,
+                LinearLayoutManager.VERTICAL,
+                false
+            )
+
 
         rvMisIngredientes.adapter =
-            adapterMisIngredientes
+            adapterCategoriasIngredientes
 
-// ==========================================
-// RECYCLER PRINCIPAL
-// ==========================================
+
+        // =========================================================
+        // RECYCLER PRINCIPAL
+        // =========================================================
 
         binding.rvPrincipal.layoutManager =
             LinearLayoutManager(this)
 
+
         binding.rvPrincipal.adapter =
             adapterResultados
+
+
         binding.rvPrincipal.layoutManager =
-            androidx.recyclerview.widget.LinearLayoutManager(this)
-        binding.rvPrincipal.adapter = adapterResultados
+            LinearLayoutManager(this)
+
+
+        binding.rvPrincipal.adapter =
+            adapterResultados
+
+
+        // =========================================================
+        // RESULTADOS DE BÚSQUEDA
+        // =========================================================
+
         binding.rvResultados.layoutManager =
-            GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
-        binding.rvResultados.adapter = adapter
+            GridLayoutManager(
+                this,
+                1,
+                GridLayoutManager.HORIZONTAL,
+                false
+            )
+
+
+        binding.rvResultados.adapter =
+            adapter
+
+
+        // =========================================================
+        // CARD CENTRO
+        // =========================================================
+
         binding.cardCentro.setOnClickListener {
+
             cambiarSeccion()
         }
+
+
+        // =========================================================
+        // ALACENA
+        // =========================================================
+
         binding.panelAlacena
             .findViewById<MaterialButton>(
                 R.id.actAlacena
@@ -534,72 +736,194 @@ class Menu_principal_free : AppCompatActivity() {
                 mostrarMenuMisAlacenas()
             }
 
+
+        // =========================================================
+        // CAMBIAR MODO INGREDIENTES / RECETAS
+        // =========================================================
+
         binding.opModo.setOnClickListener {
-            if (modoActual == Modo.INGREDIENTES) {
+
+            if (
+                modoActual == Modo.INGREDIENTES
+            ) {
+
                 modoActual = Modo.RECETAS
-                binding.txtTitulo.text = "Recetas"
-                buscarRecetas(textoBusqueda)
+
+                binding.txtTitulo.text =
+                    "Recetas"
+
+                buscarRecetas(
+                    textoBusqueda
+                )
+
             } else {
+
                 modoActual = Modo.INGREDIENTES
-                binding.txtTitulo.text = "Ingredientes"
-                buscarIngredientes(textoBusqueda)
+
+                binding.txtTitulo.text =
+                    "Ingredientes"
+
+                buscarIngredientes(
+                    textoBusqueda
+                )
             }
+
+
             actualizarModo()
+
             actualizarTextoBuscador()
+
             actualizarBusquedaCategoria()
         }
+
+
+        // =========================================================
+        // FLECHA DEL MENÚ
+        // =========================================================
+
         binding.imgFlecha.setOnClickListener {
+
             if (!menuAbierto) {
+
                 mostrarMenuAnimado()
+
             } else {
+
                 ocultarMenuAnimado()
             }
+
+
             menuAbierto = !menuAbierto
         }
+
+
+        // =========================================================
+        // SNACK
+        // =========================================================
+
         binding.opSnack.setOnClickListener {
+
             categoriaSeleccionada = 1
-            cambiarEncabezado("Snack", R.drawable.ic_logo_morado)
-            actualizarBusquedaCategoria()
 
+            cambiarEncabezado(
+                "Snack",
+                R.drawable.ic_logo_morado
+            )
+
+            actualizarBusquedaCategoria()
         }
+
+
+        // =========================================================
+        // BEBIDA
+        // =========================================================
+
         binding.opBebida.setOnClickListener {
+
             categoriaSeleccionada = 2
-            cambiarEncabezado("Bebida", R.drawable.ic_logo_naranja)
+
+            cambiarEncabezado(
+                "Bebida",
+                R.drawable.ic_logo_naranja
+            )
+
             actualizarBusquedaCategoria()
-
-
         }
+
+
+        // =========================================================
+        // PLATO FUERTE
+        // =========================================================
+
         binding.opPlatoFuerte.setOnClickListener {
+
             categoriaSeleccionada = 3
-            cambiarEncabezado("Plato fuerte", R.drawable.ic_logo_azul)
+
+            cambiarEncabezado(
+                "Plato fuerte",
+                R.drawable.ic_logo_azul
+            )
+
             actualizarBusquedaCategoria()
-
-
         }
+
+
+        // =========================================================
+        // POSTRE
+        // =========================================================
+
         binding.opPostre.setOnClickListener {
-            categoriaSeleccionada = 4
-            cambiarEncabezado("Postre", R.drawable.ic_logo_rosa)
-            actualizarBusquedaCategoria()
 
-        }
-        binding.opEntrada.setOnClickListener {
-            categoriaSeleccionada = 5
-            cambiarEncabezado("Entrada", R.drawable.ic_logo_verde)
+            categoriaSeleccionada = 4
+
+            cambiarEncabezado(
+                "Postre",
+                R.drawable.ic_logo_rosa
+            )
+
             actualizarBusquedaCategoria()
         }
-        binding.barraExpandirBusqueda.setOnClickListener {
-            if (!panelBusquedaAbierto) {
-                abrirPanelBusqueda()
-            } else {cerrarPanelBusqueda() }
-            panelBusquedaAbierto = !panelBusquedaAbierto
+
+
+        // =========================================================
+        // ENTRADA
+        // =========================================================
+
+        binding.opEntrada.setOnClickListener {
+
+            categoriaSeleccionada = 5
+
+            cambiarEncabezado(
+                "Entrada",
+                R.drawable.ic_logo_verde
+            )
+
+            actualizarBusquedaCategoria()
         }
-        binding.headerProveedores.btnbuscar.setOnClickListener {
-            if (busquedaProveedorAbierta) {
-                cerrarBusquedaProveedor()
+
+
+        // =========================================================
+        // EXPANDIR BÚSQUEDA
+        // =========================================================
+
+        binding.barraExpandirBusqueda.setOnClickListener {
+
+            if (!panelBusquedaAbierto) {
+
+                abrirPanelBusqueda()
+
             } else {
+
+                cerrarPanelBusqueda()
+            }
+
+
+            panelBusquedaAbierto =
+                !panelBusquedaAbierto
+        }
+
+
+        // =========================================================
+        // BÚSQUEDA DE PROVEEDORES
+        // =========================================================
+
+        binding.headerProveedores.btnbuscar.setOnClickListener {
+
+            if (busquedaProveedorAbierta) {
+
+                cerrarBusquedaProveedor()
+
+            } else {
+
                 abrirBusquedaProveedor()
             }
         }
+
+
+        // =========================================================
+        // MAPA DE PROVEEDORES
+        // =========================================================
+
         binding.headerProveedores.btnubicaion.setOnClickListener {
 
             val proveedoresMapa =
@@ -611,17 +935,28 @@ class Menu_principal_free : AppCompatActivity() {
                     val longitud =
                         proveedor.Pro_Longitud?.toDoubleOrNull()
 
+
                     if (
                         latitud != null &&
                         longitud != null
                     ) {
 
                         ProveedorMapa(
-                            id = proveedor.Id_Proveedor.toString(),
-                            nombre = proveedor.Pro_nombre ?: "Proveedor",
-                            latitud = latitud,
-                            longitud = longitud,
-                            fotoPerfil = proveedor.Pro_Foto_Perfil
+                            id =
+                                proveedor.Id_Proveedor.toString(),
+
+                            nombre =
+                                proveedor.Pro_nombre
+                                    ?: "Proveedor",
+
+                            latitud =
+                                latitud,
+
+                            longitud =
+                                longitud,
+
+                            fotoPerfil =
+                                proveedor.Pro_Foto_Perfil
                         )
 
                     } else {
@@ -630,27 +965,40 @@ class Menu_principal_free : AppCompatActivity() {
                     }
                 }
 
+
             val intent =
                 Intent(
                     this,
                     MapaProveedoresActivity::class.java
                 )
 
+
             intent.putExtra(
                 MapaProveedoresActivity.EXTRA_PROVEEDORES,
                 ArrayList(proveedoresMapa)
             )
 
+
             startActivity(intent)
         }
-        binding.headerProveedores.btnmiscoleccionesprovedor.setOnClickListener {
-            mostrarMisColeccionesProveedores()
-        }
-        binding.headerProveedores.btnfiltros.setOnClickListener {
 
-            // ==========================================
-            // SI LOS FILTROS YA ESTÁN ABIERTOS
-            // ==========================================
+
+        // =========================================================
+        // MIS COLECCIONES DE PROVEEDORES
+        // =========================================================
+
+        binding.headerProveedores.btnmiscoleccionesprovedor
+            .setOnClickListener {
+
+                mostrarMisColeccionesProveedores()
+            }
+
+
+        // =========================================================
+        // FILTROS DE PROVEEDORES
+        // =========================================================
+
+        binding.headerProveedores.btnfiltros.setOnClickListener {
 
             if (
                 binding.panelFiltrosProveedores.visibility ==
@@ -659,16 +1007,13 @@ class Menu_principal_free : AppCompatActivity() {
 
                 cerrarFiltrosProveedores()
 
+
                 binding.headerProveedores.btnfiltros
                     .setImageResource(
                         R.drawable.ic_filtro
                     )
 
             } else {
-
-                // ==========================================
-                // CERRAR MIS COLECCIONES
-                // ==========================================
 
                 if (
                     binding.rvMisColeccionesProveedores.visibility ==
@@ -679,54 +1024,135 @@ class Menu_principal_free : AppCompatActivity() {
                 }
 
 
-                // ==========================================
-                // CAMBIAR ICONO
-                // ==========================================
-
                 binding.headerProveedores.btnfiltros
                     .setImageResource(
                         R.drawable.ic_filtro_on
                     )
 
 
-                // ==========================================
-                // ABRIR FILTROS
-                // ==========================================
-
                 abrirFiltrosProveedores()
             }
         }
-        binding.panelFiltrosProveedores.findViewById<ImageView>(R.id.btnCerrarFiltros).setOnClickListener {
+
+
+        // =========================================================
+        // CERRAR FILTROS
+        // =========================================================
+
+        binding.panelFiltrosProveedores
+            .findViewById<ImageView>(
+                R.id.btnCerrarFiltros
+            )
+            .setOnClickListener {
 
                 cerrarFiltrosProveedores()
             }
-        binding.panelFiltrosProveedores.findViewById<MaterialButton>(R.id.btnLimpiarFiltros).setOnClickListener {
+
+
+        // =========================================================
+        // LIMPIAR FILTROS
+        // =========================================================
+
+        binding.panelFiltrosProveedores
+            .findViewById<MaterialButton>(
+                R.id.btnLimpiarFiltros
+            )
+            .setOnClickListener {
 
                 limpiarFiltrosProveedores()
             }
-        binding.panelFiltrosProveedores.findViewById<MaterialButton>(R.id.btnAplicarFiltros).setOnClickListener {
+
+
+        // =========================================================
+        // APLICAR FILTROS
+        // =========================================================
+
+        binding.panelFiltrosProveedores
+            .findViewById<MaterialButton>(
+                R.id.btnAplicarFiltros
+            )
+            .setOnClickListener {
 
                 aplicarFiltrosProveedores()
             }
-        seleccionadosAdapter = SeleccionadosAdapter(
-            ingredientesSeleccionados
-        ) { ingrediente ->
-            ingredientesSeleccionados.remove(ingrediente)
-            seleccionadosAdapter.notifyDataSetChanged()
-        }
-        binding.rvSeleccionados.layoutManager = GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
-        binding.rvSeleccionados.adapter = seleccionadosAdapter
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
-            val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom.toFloat()
-            val extraOffset = 50f // ajusta esto (16–48 suele ser ideal)
-            binding.panelBusqueda.translationY = -(imeHeight - extraOffset)
-            binding.panelingredietes.translationY = -(imeHeight - extraOffset)
+
+
+        // =========================================================
+        // INGREDIENTES SELECCIONADOS
+        // =========================================================
+
+        seleccionadosAdapter =
+            SeleccionadosAdapter(
+                ingredientesSeleccionados
+            ) { ingrediente ->
+
+                ingredientesSeleccionados.remove(
+                    ingrediente
+                )
+
+                seleccionadosAdapter.notifyDataSetChanged()
+            }
+
+
+        binding.rvSeleccionados.layoutManager =
+            GridLayoutManager(
+                this,
+                1,
+                GridLayoutManager.HORIZONTAL,
+                false
+            )
+
+
+        binding.rvSeleccionados.adapter =
+            seleccionadosAdapter
+
+
+        // =========================================================
+        // TECLADO
+        // =========================================================
+
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.root
+        ) { _, insets ->
+
+            val imeHeight =
+                insets.getInsets(
+                    WindowInsetsCompat.Type.ime()
+                ).bottom.toFloat()
+
+
+            val extraOffset = 50f
+
+
+            binding.panelBusqueda.translationY =
+                -(imeHeight - extraOffset)
+
+
+            binding.panelingredietes.translationY =
+                -(imeHeight - extraOffset)
+
+
             insets
         }
+
+
+        // =========================================================
+        // PERFIL
+        // =========================================================
+
         binding.btnPerfil.setOnClickListener {
+
             cargarInformacionUsuario()
-            binding.drawerLayout.openDrawer(GravityCompat.END)
+
+            binding.drawerLayout.openDrawer(
+                GravityCompat.END
+            )
         }
+
+
+        // =========================================================
+        // RECETAS INICIO
+        // =========================================================
 
         cargarRecetasInicio()
     }
@@ -4484,6 +4910,22 @@ class Menu_principal_free : AppCompatActivity() {
     private fun mostrarDialogAgregarIngrediente(
         ingredienteEditar: IngredienteAlacena? = null) {
         val bottomSheet = BottomSheetDialog(this)
+        val modoIngrediente =
+            when {
+                ingredienteEditar == null ->
+                    ModoIngrediente.AGREGAR
+
+                ingredienteEditar.AI_ESTADO
+                    ?.trim()
+                    ?.equals(
+                        "descompuesto",
+                        ignoreCase = true
+                    ) == true ->
+                    ModoIngrediente.USAR_EN_RECETA
+
+                else ->
+                    ModoIngrediente.EDITAR
+            }
 
         val view = layoutInflater.inflate(
             R.layout.dialog_agregar_ingrediente,
@@ -4577,6 +5019,42 @@ class Menu_principal_free : AppCompatActivity() {
             view.findViewById<TextView>(
                 R.id.txtTipodealmacenamiento
             )
+        val txtcontenedeor =
+            view.findViewById<TextView>(
+                R.id.txtcontenedeor
+            )
+        val cardFechadecon =
+            view.findViewById<MaterialCardView>(
+                R.id.cardFechadecon
+            )
+
+        val cardCantidad =
+            view.findViewById<MaterialCardView>(
+                R.id.cardCantidad
+            )
+
+        val vermasrecetas =
+            view.findViewById<MaterialButton>(
+                R.id.vermasrecetas
+            )
+        vermasrecetas.setOnClickListener {
+
+            if (ingredienteEditar == null) {
+                return@setOnClickListener
+            }
+
+            val ingredienteId =
+                ingredienteEditar.ING_ID
+
+            val nombreIngrediente =
+                ingredienteEditar.ING_DESCRIPCION
+
+            buscarRecetasDelIngrediente(
+                ingredienteId,
+                nombreIngrediente
+            )
+        }
+
 
 
         bottomSheet.setOnShowListener {
@@ -4969,6 +5447,16 @@ class Menu_principal_free : AppCompatActivity() {
 
 
         btnGuardar.setOnClickListener {
+            if (modoIngrediente == ModoIngrediente.USAR_EN_RECETA) {
+
+                eliminarIngredienteUsadoEnReceta(
+                    ingredienteEditar!!,
+                    bottomSheet
+                )
+
+                return@setOnClickListener
+            }
+
 
             // ==========================================
             // CAMPOS
@@ -5008,6 +5496,7 @@ class Menu_principal_free : AppCompatActivity() {
                 view.findViewById<TextView>(
                     R.id.txtTipodeAbastecimiento
                 )
+
 
 
             // ==========================================
@@ -5352,15 +5841,61 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                 }
             }
         }
-        if (ingredienteEditar != null) {
+        // =========================================================
+// CONFIGURACIÓN DE BOTONES SEGÚN EL MODO
+// =========================================================
 
-            btnLimpiar.text = "ELIMINAR"
-            btnGuardar.text = "GUARDAR CAMBIOS"
+// =========================================================
+// AGREGAR NUEVO INGREDIENTE
+// =========================================================
 
-        }
-        else {
-            btnLimpiar.text = "LIMPIAR"
-            btnGuardar.text = "AGREGAR"
+        when (modoIngrediente) {
+
+            ModoIngrediente.AGREGAR -> {
+
+                btnLimpiar.text = "LIMPIAR"
+                btnGuardar.text = "AGREGAR"
+
+                vermasrecetas.visibility = View.GONE
+                txtcontenedeor.visibility = View.GONE
+            }
+
+            ModoIngrediente.EDITAR -> {
+
+                btnLimpiar.text = "ELIMINAR"
+                btnGuardar.text = "GUARDAR CAMBIOS"
+
+                vermasrecetas.visibility = View.VISIBLE
+                txtcontenedeor.visibility = View.GONE
+            }
+
+            ModoIngrediente.USAR_EN_RECETA -> {
+
+                vermasrecetas.visibility = View.GONE
+                txtcontenedeor.visibility = View.VISIBLE
+
+                btnLimpiar.text = "ELIMINAR"
+
+                btnLimpiar.setTextColor(
+                    ContextCompat.getColor(
+                        this,
+                        android.R.color.white
+                    )
+                )
+                cardFechadecon.setCardBackgroundColor(
+                    ContextCompat.getColor(
+                        this,
+                        R.color.rojo
+                    )
+                )
+                btnLimpiar.backgroundTintList =
+                    ContextCompat.getColorStateList(
+                        this,
+                        R.color.rojo
+                    )
+
+                btnGuardar.text = "LO USÉ EN UNA RECETA"
+            }
         }
 
         // =========================================================
@@ -7075,8 +7610,29 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                     // MIS INGREDIENTES
                     // ==========================================
 
-                    adapterMisIngredientes.actualizarLista(
+                    // ==========================================
+// MIS INGREDIENTES POR CATEGORÍA
+// ==========================================
+
+                    val ingredientesPorCategoria =
                         todosLosIngredientes
+                            .groupBy {
+                                it.categoria
+                                    ?.trim()
+                                    ?.ifEmpty { "Sin categoría" }
+                                    ?: "Sin categoría"
+                            }
+                            .map { (categoria, ingredientes) ->
+
+                                CategoriaIngredientesAdapter.CategoriaIngredientes(
+                                    nombreCategoria = categoria,
+                                    ingredientes = ingredientes
+                                )
+                            }
+
+// Actualizar adapter de categorías
+                    adapterCategoriasIngredientes.actualizarLista(
+                        ingredientesPorCategoria
                     )
 
                     // ==========================================
@@ -7111,10 +7667,21 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                         consumePrimero
                     )
 
+                    // ==========================================
+                    // LOGS
+                    // ==========================================
+
                     Log.d(
                         "ALACENA_ING",
                         "Mis ingredientes: ${todosLosIngredientes.size}"
                     )
+
+                    Log.d(
+                        "ALACENA_ING",
+                        "Categorías: ${ingredientesPorCategoria.size}"
+                    )
+
+
 
                     Log.d(
                         "ALACENA_ING",
@@ -8090,6 +8657,265 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             }
         }
     }
+    private fun buscarRecetasDelIngrediente(
+        ingredienteId: Int,
+        nombreIngrediente: String
+    ) {
+
+        lifecycleScope.launch {
+
+            try {
+
+                val request =
+                    BuscarRecetasPorIngredientesRequest(
+                        ingredientes =
+                            listOf(ingredienteId)
+                    )
+
+                val response =
+                    ApiClient.apiService
+                        .buscarRecetasPorIngredientes(
+                            request
+                        )
+
+                if (response.success) {
+
+                    mostrarVentanaRecetas(
+                        nombreIngrediente,
+                        response.recetas
+                    )
+
+                } else {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        "No se encontraron recetas.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "RECETAS_INGREDIENTE",
+                    "Error buscando recetas",
+                    e
+                )
+
+                Toast.makeText(
+                    this@Menu_principal_free,
+                    "Error de conexión.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+    private fun mostrarVentanaRecetas(
+        nombreIngrediente: String,
+        recetas: List<RecetaconFiltro>
+    ) {
+
+        val dialog = BottomSheetDialog(this)
+
+        val view = layoutInflater.inflate(
+            R.layout.dialog_recetas_ingrediente,
+            null
+        )
+
+        val txtTituloRecetasIngrediente =
+            view.findViewById<TextView>(
+                R.id.txtTituloRecetasIngrediente
+            )
+
+        val rvRecetasIngrediente =
+            view.findViewById<RecyclerView>(
+                R.id.rvRecetasIngrediente
+            )
+
+        // -----------------------------------
+        // TÍTULO
+        // -----------------------------------
+
+        txtTituloRecetasIngrediente.text =
+            "RECETAS CON: ${nombreIngrediente.uppercase()}"
+
+        // -----------------------------------
+        // CONFIGURAR RECYCLERVIEW
+        // -----------------------------------
+
+        rvRecetasIngrediente.layoutManager =
+            LinearLayoutManager(
+                this,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
+
+        // -----------------------------------
+        // ADAPTER
+        // -----------------------------------
+
+        val adapter = RecetasPorIngredienteAdapter(
+            recetas
+        ) { receta ->
+
+            abrirDetalleReceta2(receta.REC_ID)
+        }
+
+        rvRecetasIngrediente.adapter = adapter
+
+        // -----------------------------------
+        // MOSTRAR
+        // -----------------------------------
+
+        dialog.setContentView(view)
+
+        dialog.show()
+    }
+    private fun abrirDetalleReceta2(recetaId: Int) {
+
+        if (recetaId <= 0) {
+
+            Toast.makeText(
+                this,
+                "Receta no válida.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        val intent =
+            Intent(
+                this,
+                DetalleRecetaActivity::class.java
+            )
+
+        intent.putExtra(
+            "REC_ID",
+            recetaId
+        )
+
+        startActivity(intent)
+    }
+    private fun eliminarIngredienteUsadoEnReceta(
+        ingrediente: IngredienteAlacena,
+        bottomSheet: BottomSheetDialog
+    ) {
+
+        lifecycleScope.launch {
+
+            try {
+
+                // ==========================================
+                // CREAR REQUEST
+                // ==========================================
+
+                val request =
+                    EliminarIngredienteAlacenaRequest(
+                        ALC_ID = ingrediente.ALC_ID,
+                        ING_ID = ingrediente.ING_ID
+                    )
+
+
+                // ==========================================
+                // LOG
+                // ==========================================
+
+                Log.d(
+                    "ALACENA_API",
+                    """
+                ===== ELIMINAR USADO EN RECETA =====
+                ALC_ID: ${request.ALC_ID}
+                ING_ID: ${request.ING_ID}
+                ====================================
+                """.trimIndent()
+                )
+
+
+                // ==========================================
+                // LLAMAR API
+                // ==========================================
+
+                val response =
+                    ApiClient.apiService
+                        .eliminarIngredienteAlacena(
+                            request
+                        )
+
+
+                // ==========================================
+                // RESPUESTA
+                // ==========================================
+
+                if (response.success) {
+
+                    Log.d(
+                        "ALACENA_API",
+                        "Ingrediente eliminado: ${response.message}"
+                    )
+
+
+                    // ======================================
+                    // MOSTRAR MENSAJE
+                    // ======================================
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+
+                    // ======================================
+                    // CERRAR BOTTOM SHEET
+                    // ======================================
+
+                    bottomSheet.dismiss()
+
+
+                    // ======================================
+                    // RECARGAR ALACENA
+                    // ======================================
+
+                    alacenaSeleccionada?.let {
+
+                        actualizarEstadosYCargarAlacena(
+                            it.ALC_ID,
+                            it.ALC_CLI_ID
+                        )
+                    }
+
+                } else {
+
+                    Log.e(
+                        "ALACENA_API",
+                        "Error al eliminar: ${response.message}"
+                    )
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        response.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "ALACENA_API",
+                    "Error al eliminar ingrediente usado en receta",
+                    e
+                )
+
+                Toast.makeText(
+                    this@Menu_principal_free,
+                    "Error de conexión con el servidor.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
     fun cerrarDetalleReceta() {
 
         binding.containerDetalleReceta.visibility =

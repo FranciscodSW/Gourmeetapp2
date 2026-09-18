@@ -145,15 +145,6 @@ class Login : AppCompatActivity() {
         }
         callbackManager = CallbackManager.Factory.create()
 
-        val iconFacebook = findViewById<ImageView>(R.id.iconFacebook)
-
-        iconFacebook.setOnClickListener {
-
-            LoginManager.getInstance().logInWithReadPermissions(
-                this,
-                listOf("email", "public_profile")
-            )
-        }
         LoginManager.getInstance().registerCallback(callbackManager,
             object : FacebookCallback<LoginResult> {
 

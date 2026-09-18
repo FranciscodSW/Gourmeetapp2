@@ -34,7 +34,7 @@
 
         <item
             android:id="@+id/menu_premium"
-            android:icon="@drawable/ic_diamante_azul"
+            android:icon="@drawable/ic_premium"
             android:title="Vuélvete Premium"/>
 
     </group>

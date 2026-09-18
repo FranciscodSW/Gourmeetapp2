@@ -214,4 +214,13 @@ interface ApiService {
         @Body request: EliminarIngredienteAlacenaRequest
     ): GuardarIngredienteAlacenaResponse
 
+    @POST("usuario/enviar_codigo_verificacion.php")
+    suspend fun enviarCodigoVerificacion(
+        @Body request: EnviarCodigoVerificacionRequest
+    ): EnviarCodigoVerificacionResponse
+    @POST("usuario/verificar_codigo_correo.php")
+    suspend fun verificarCodigoCorreo(
+        @Body request: VerificarCodigoCorreoRequest
+    ): VerificarCodigoCorreoResponse
+
 }

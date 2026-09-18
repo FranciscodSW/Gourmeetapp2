@@ -109,7 +109,7 @@
                 android:gravity="center"
                 android:text="Caducidad:"
                 android:textColor="@color/azulgourmeet"
-                android:textSize="13dp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
         <TextView
@@ -122,7 +122,7 @@
             android:text="09/10"
             android:textStyle="bold"
             android:textColor="@color/azulgourmeet"
-            android:textSize="16dp"
+            android:textSize="16sp"
 
             android:fontFamily="@font/caviardreams"
             app:layout_constraintTop_toBottomOf="@id/contenedorNombre"
@@ -152,7 +152,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="Proximo a caducar"
                 android:textColor="@color/white"
-                android:textSize="13dp"
+                android:textSize="13sp"
                 android:fontFamily="@font/caviardreams"
                 />
 
@@ -180,7 +180,7 @@
                 android:layout_gravity="center_vertical"
                 android:text="⚠️ Revisar ingrediente"
                 android:textColor="@color/white"
-                android:textSize="13dp"
+                android:textSize="13sp"
                 android:fontFamily="@font/caviardreams"
                 />
 
