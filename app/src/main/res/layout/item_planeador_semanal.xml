@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/headerPlaneador"
+        android:layout_width="0dp"
+        android:layout_height="65dp"
+        android:layout_marginTop="30dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="@drawable/bg_rectangulo_azul_borde_negro_3"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- ICONO CALENDARIO -->
+        <ImageView
+            android:id="@+id/imgCalendario"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@drawable/ic_calendario"
+            android:contentDescription="Calendario"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <!-- TÍTULO -->
+        <TextView
+            android:id="@+id/txtTituloAlacena"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Planeador semanal"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+
+            app:layout_constraintStart_toEndOf="@id/imgCalendario"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="15dp"
+        app:layout_constraintTop_toBottomOf="@id/headerPlaneador"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        <TextView
+            android:id="@+id/txtSinAlacenasTitulo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="En tu alacena"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:orientation="horizontal"
+            >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_mas_azul"
+                />
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="20dp"
+                    android:text="Agregar"
+                    android:textStyle="bold"
+                    android:textSize="9dp"
+                    android:fontFamily="@font/caviardreams"
+                    />
+
+            </LinearLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvmisingredientesplaneador"
+                android:layout_width="0dp"
+                android:layout_height="185dp"
+                android:layout_marginTop="8dp"
+                android:paddingStart="18dp"
+                android:paddingEnd="18dp"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                />
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

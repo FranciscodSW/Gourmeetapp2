@@ -302,24 +302,6 @@
             app:iconGravity="textStart"/>
         <!-- Experiencia -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSeleccionNivel"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:layout_marginTop="16dp"
-            android:text="Seleccionar Nivel"
-            android:fontFamily="@font/caviardreams"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            app:cornerRadius="20dp"
-            app:strokeColor="#000000"
-            app:strokeWidth="2dp"
-            android:backgroundTint="#FFFFFF"
-            android:textColor="#000000"
-            app:icon="@drawable/ic_nivel"
-            app:iconPadding="8dp"
-            app:iconTint="@color/azulgourmeet"
-            app:iconGravity="textStart"/>
-        <com.google.android.material.button.MaterialButton
             android:id="@+id/btneditSeleccionEdad"
             android:layout_width="match_parent"
             android:layout_height="55dp"
@@ -378,111 +360,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
-    <LinearLayout
-        android:id="@+id/layoutrestricciones"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:visibility="gone"
-        android:padding="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerTop">
-        <!-- Título -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="20dp"
-            android:text="Restricciones"
-            android:fontFamily="@font/caviardreams"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSeleccionalergias"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:layout_marginTop="16dp"
-            android:text="Seleccionar alergias"
-            android:fontFamily="@font/caviardreams"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            app:cornerRadius="20dp"
-            app:strokeColor="#000000"
-            app:strokeWidth="2dp"
-            android:backgroundTint="#FFFFFF"
-            android:textColor="#000000"
-            app:icon="@drawable/ic_alergia"
-            app:iconPadding="8dp"
-            app:iconTint="@color/azulgourmeet"
-            app:iconGravity="textStart"/>
-        <!-- Experiencia -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSeleccionCultura"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:layout_marginTop="16dp"
-            android:text="Restricciones culturales"
-            android:fontFamily="@font/caviardreams"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            app:cornerRadius="20dp"
-            app:strokeColor="#000000"
-            app:strokeWidth="2dp"
-            android:backgroundTint="#FFFFFF"
-            android:textColor="#000000"
-            app:icon="@drawable/ic_cultura"
-            app:iconPadding="8dp"
-            app:iconTint="@color/azulgourmeet"
-            app:iconGravity="textStart"/>
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btneditSeleccionAlimento"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:layout_marginTop="16dp"
-            android:text="Restricciones alimenticias"
-            android:fontFamily="@font/caviardreams"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            app:cornerRadius="20dp"
-            app:strokeColor="#000000"
-            app:strokeWidth="2dp"
-            android:backgroundTint="#FFFFFF"
-            android:textColor="#000000"
-            app:icon="@drawable/ic_alimentos"
-            app:iconPadding="8dp"
-            app:iconTint="@color/azulgourmeet"
-            app:iconGravity="textStart"/>
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btneditintolerancias"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:layout_marginTop="16dp"
-            android:text="intolerancias"
-            android:fontFamily="@font/caviardreams"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            app:cornerRadius="20dp"
-            app:strokeColor="#000000"
-            app:strokeWidth="2dp"
-            android:backgroundTint="#FFFFFF"
-            android:textColor="#000000"
-            app:icon="@drawable/ic_intolerancia"
-            app:iconPadding="8dp"
-            app:iconTint="@color/azulgourmeet"
-            app:iconGravity="textStart"/>
-        <!-- Ubicación -->
-        <Button
-            android:id="@+id/btnFinRes"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="20dp"
-            android:backgroundTint="@color/azulgourmeet"
-            android:text="Confirmar"
-            android:fontFamily="@font/caviardreams"
-            android:textColor="#FFFFFF" />
-    </LinearLayout>
+
     <!-- contenedor para la parte inferio-->
     <LinearLayout
         android:id="@+id/contenedorInferior"

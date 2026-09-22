@@ -49,6 +49,26 @@ class MapaSeleccionActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mapa)
+        val btnConfirmarUbicacion =
+            findViewById<com.google.android.material.button.MaterialButton>(
+                R.id.btnConfirmarUbicacion
+            )
+
+        btnConfirmarUbicacion.setOnClickListener {
+
+            if (::marcador.isInitialized) {
+
+                mostrarConfirmacion(marcador.position)
+
+            } else {
+
+                Toast.makeText(
+                    this,
+                    "Espera a que se cargue la ubicación",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
 
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment

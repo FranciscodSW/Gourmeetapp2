@@ -3,6 +3,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/menu_notificaciones"
+            android:icon="@drawable/ic_campana"
+            android:title="Notificaiones"
+            />
 
         <item
             android:id="@+id/menu_preferencias"

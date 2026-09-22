@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/headerMihogar"
+        android:layout_width="0dp"
+        android:layout_height="65dp"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/bg_rectangulo_azul_borde_negro_3"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/txtTituloHogar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Administrar mi hogar"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/headerMihogar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="470dp"
+            android:src="@drawable/ic_crear_mi_hogar" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="25dp"
+            android:orientation="horizontal"
+            android:background="@color/azulgourmeet"
+            android:layout_gravity="center"
+            >
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/ic_mas_azul"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Agregar un hogar"
+                android:fontFamily="@font/caviardreams"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="15dp"
+                />
+        </LinearLayout>
+
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/vista2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/headerMihogar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        >
+        <LinearLayout
+            android:background="@drawable/bg_rectangulo_blanco"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Miembros del hogar"
+                android:layout_gravity="center"
+                android:fontFamily="@font/caviardreams"
+                android:textColor="@color/azulgourmeet"
+                android:textSize="25dp"
+                android:textStyle="bold"/>
+            <LinearLayout
+                android:layout_width="400dp"
+                android:layout_height="wrap_content">
+                <androidx.recyclerview.widget.RecyclerView
+                    android ="@+id/miembrosdelhogar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="25dp"
+                    android:clipToPadding="false"
+                    />
+                <ImageButton
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@drawable/ic_lapiz_editar"
+                    />
+            </LinearLayout>
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <!-- TARJETA 1 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardplanearecetasdelasemana"
+                android:layout_width="0dp"
+                android:layout_height="90dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@android:color/black"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/azulgourmeet">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <!-- TÍTULO -->
+                    <TextView
+                        android:id="@+id/txtFechadecompra"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:text="Planea las recetas de la semana"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+
+                        android:fontFamily="@font/caviardreams"
+                        android:gravity="center" />
+
+                    <!-- ICONO -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:clipChildren="false"
+                        android:clipToPadding="false">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_ovalo_sin_fondo"
+                            android:gravity="center" />
+
+                        <ImageView
+                            android:id="@+id/calendario"
+                            android:layout_width="45dp"
+                            android:layout_height="45dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_calendario"
+                            app:tint="@color/azulgourmeet"
+                            android:translationZ="10dp" />
+
+                    </FrameLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- TARJETA 2 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/organizadespensa"
+                android:layout_width="0dp"
+                android:layout_height="90dp"
+                android:layout_weight="1"
+                android:layout_margin="4dp"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@android:color/black"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/azulgourmeet">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <!-- TÍTULO -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:text="Organizar la despensa de mi hogar"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:padding="4dp"
+                        android:fontFamily="@font/caviardreams"
+                        android:gravity="center" />
+
+                    <!-- ICONO -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:clipChildren="false"
+                        android:clipToPadding="false">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_ovalo_sin_fondo"
+                            android:gravity="center" />
+
+                        <ImageView
+                            android:id="@+id/imgRefri"
+                            android:layout_width="45dp"
+                            android:layout_height="45dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_refri_azul"
+                            app:tint="@color/azulgourmeet"
+                            android:translationZ="10dp" />
+
+                    </FrameLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Colecciones de recetas"
+            android:gravity="center"
+            android:fontFamily="@font/caviardreams"
+            android:textSize="25dp"
+            android:textStyle="bold"
+            />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <androidx.recyclerview.widget.RecyclerView
+                android="@+id/coleccionesdelhogar"
+                android:layout_width="wrap_content"
+                android:layout_height="90dp"
+                android:clipToPadding="false"
+                />
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/añadircoleccion"
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:layout_margin="4dp"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@android:color/black"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/azulgourmeet">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <!-- TÍTULO -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:text="Añadir coleccion"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:padding="4dp"
+                        android:fontFamily="@font/caviardreams"
+                        android:gravity="center" />
+
+                    <!-- ICONO -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:clipChildren="false"
+                        android:clipToPadding="false">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_ovalo_sin_fondo"
+                            android:gravity="center" />
+
+                        <ImageView
+                            android:id="@+id/imgmascolecciones"
+                            android:layout_width="45dp"
+                            android:layout_height="45dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_mas_azul"
+
+                            android:translationZ="10dp" />
+
+                    </FrameLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Proveedores favoritos del hogar"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:textSize="25dp"
+            />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <androidx.recyclerview.widget.RecyclerView
+                android="@+id/proveedoresfavoritosde"
+                android:layout_width="wrap_content"
+                android:layout_height="90dp"
+                android:clipToPadding="false"
+                />
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/añadirproveedor"
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:layout_margin="4dp"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@android:color/black"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/azulgourmeet">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <!-- TÍTULO -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:text="Añadir proveedor"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:padding="4dp"
+                        android:fontFamily="@font/caviardreams"
+                        android:gravity="center" />
+
+                    <!-- ICONO -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:clipChildren="false"
+                        android:clipToPadding="false">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_ovalo_sin_fondo"
+                            android:gravity="center" />
+
+                        <ImageView
+                            android:id="@+id/imgmasproveedores"
+                            android:layout_width="45dp"
+                            android:layout_height="45dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_mas_azul"
+
+                            android:translationZ="10dp" />
+
+                    </FrameLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+
+
+
+    </LinearLayout>
+
+
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

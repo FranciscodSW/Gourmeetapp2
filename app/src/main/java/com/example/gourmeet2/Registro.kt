@@ -211,44 +211,14 @@ class Registro : AppCompatActivity() {
             mostrarSelectorAvatarEnContenedor()
             setupBarraArrastre()
         }
-        binding.btnSeleccionNivel.setOnClickListener {
-            mostrarSelectorNivel()
-            setupBarraArrastre()
-        }
+
         binding.btneditSeleccionEdad.setOnClickListener {
             mostrarSelectorEdad()
             setupBarraArrastre()
         }
-        binding.btnSeleccionalergias.setOnClickListener {
-            mostrarSelectorRestricciones(
-                "Alergias",
-                restricciones.alergia
-            )
-        }
-        binding.btnSeleccionCultura.setOnClickListener {
-            mostrarSelectorRestricciones(
-                "Restricciones culturales",
-                restricciones.cultural
-            )
-        }
-        binding.btneditSeleccionAlimento.setOnClickListener {
-            mostrarSelectorRestricciones(
-                "Restricciones alimenticias",
-                restricciones.alimento
-            )
-        }
-        binding.btneditintolerancias.setOnClickListener {
-            mostrarSelectorRestricciones(
-                "Intolerancias",
-                restricciones.intolerancia
-            )
-        }
-        binding.btnFin.setOnClickListener {
-            binding.layoutPersonalizar.visibility = View.GONE
-            binding.layoutrestricciones.visibility = View.VISIBLE
-        }
 
-        binding.btnFinRes.setOnClickListener {
+
+        binding.btnFin.setOnClickListener {
 
             when {
                 googleIdSeleccionado.isNotEmpty() -> {
@@ -797,7 +767,8 @@ class Registro : AppCompatActivity() {
 
                     binding.layoutConfirmPassword.visibility =
                         View.VISIBLE
-
+                    binding.btnReenviarcodigo.visibility =
+                        View.GONE
 
                     // ==================================
                     // CAMBIAR BOTÓN
@@ -1160,83 +1131,6 @@ class Registro : AppCompatActivity() {
         // Agregar el nuevo contenedor con tag para identificarlo
         contenedorAvatar.tag = "avatar_container"
         binding.contenedorInferior.addView(contenedorAvatar, binding.contenedorInferior.childCount - 1)
-        mostrarContenedorInferior()
-    }
-    private fun mostrarSelectorNivel() {
-
-        Log.d(TAG, "Entrando a nivel")
-        if (binding.contenedorInferior.visibility == View.VISIBLE) {
-            limpiarContenedorInferior()
-        }
-        binding.tvTituloContenedor.text = "Selecciona tu nivel"
-        val listaNiveles = listOf(
-            NivelCocina(
-                1,
-                "Ayudante de cocina (Commis)",
-                "Apoya en tareas básicas: lavar, cortar, preparar ingredientes.",
-                R.drawable.ic_gorrito_1
-            ),
-            NivelCocina(
-                2,
-                "Cocinero (Chef de partida)",
-                "Encargado de una estación específica (carnes, pastas, postres, etc.).",
-                R.drawable.ic_gorrito_2
-            ),
-            NivelCocina(
-                3,
-                "Subchef (Sous Chef)",
-                "Segundo al mando. Supervisa al equipo y reemplaza al chef cuando no está.",
-                R.drawable.ic_gorrito_3
-            ),
-            NivelCocina(
-                4,
-                "Chef Ejecutivo",
-                "Responsable del menú, calidad, costos y organización de la cocina.",
-                R.drawable.ic_gorrito_4
-            ),
-            NivelCocina(
-                5,
-                "Chef Corporativo",
-                "Supervisa varias cocinas o restaurantes dentro de una empresa.",
-                R.drawable.ic_gorrito_5
-            )
-        )
-
-        val contenedor = LinearLayout(this)
-        contenedor.orientation = LinearLayout.VERTICAL
-        contenedor.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-
-        listaNiveles.forEach { nivel ->
-            val item = layoutInflater.inflate(R.layout.dialog_nivel, null)
-            val img = item.findViewById<ImageView>(R.id.imggorrito)
-            val txtNombre = item.findViewById<TextView>(R.id.txtnivel)
-            val txtDescripcion = item.findViewById<TextView>(R.id.txtdescripcion)
-            img.setImageResource(nivel.imagen)
-            txtNombre.text = nivel.nombre
-            txtDescripcion.text = nivel.descripcion
-            item.setOnClickListener {
-                nivelSeleccionado = nivel.id
-                // Cambiar texto
-                binding.btnSeleccionNivel.text = nivel.nombre
-                // Cambiar icono al gorrito seleccionado
-                binding.btnSeleccionNivel.setIconResource(nivel.imagen)
-                // Quitar el tint azul
-                binding.btnSeleccionNivel.iconTint = null
-                ocultarContenedorInferior()
-                Toast.makeText(this, "Nivel seleccionado", Toast.LENGTH_SHORT).show()
-            }
-            contenedor.addView(item)
-        }
-        // Ocultar RecyclerView
-        binding.recyclerOpciones.visibility = View.GONE
-        // Eliminar contenedor anterior si existe
-        val existing = binding.contenedorInferior.findViewWithTag<View>("nivel_container")
-        existing?.let { binding.contenedorInferior.removeView(it) }
-        contenedor.tag = "nivel_container"
-        binding.contenedorInferior.addView(contenedor, binding.contenedorInferior.childCount - 1)
         mostrarContenedorInferior()
     }
     private fun ocultarContenedorInferior() {
