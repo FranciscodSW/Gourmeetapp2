@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="125dp"
+    android:layout_height="75dp">
+
+    <FrameLayout
+        android:layout_width="125dp"
+        android:layout_height="65dp"
+        android:layout_margin="5dp">
+
+        <!-- NOMBRE -->
+        <TextView
+            android:id="@+id/txtNombreMiembro"
+            android:layout_width="110dp"
+            android:layout_height="42dp"
+            android:background="@drawable/bg_usuario_hogar"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"
+            android:text="Dany"
+            android:textColor="@color/azulgourmeet"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:elevation="2dp" />
+
+        <!-- ESTADO -->
+        <TextView
+            android:id="@+id/txtEstadoMiembro"
+            android:layout_width="110dp"
+            android:layout_height="32dp"
+            android:visibility="gone"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bg_usuario_hogar"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"
+            android:text="Por confirmar"
+            android:textColor="@color/azulgourmeet"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:elevation="3dp" />
+
+        <!-- X ELIMINAR -->
+        <ImageView
+            android:id="@+id/btnEliminarMiembro"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="-1dp"
+            android:background="@drawable/bg_circulo_azul"
+            android:padding="4dp"
+            android:src="@drawable/ic_cerrar_blanco"
+            android:contentDescription="Eliminar miembro"
+            android:elevation="10dp" />
+
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1775,16 +1775,11 @@ class Menu_principal_free : AppCompatActivity() {
                 }
 
                 R.id.menu_administrar_hogar -> {
-
-                    makeText(
-                        this,
-                        "Administrar mi hogar",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    val intent = Intent(this, MiHogarActivity::class.java)
+                    startActivity(intent)
                 }
 
                 R.id.menu_mis_colecciones -> {
-
                     startActivity(
                         Intent(
                             this,
@@ -2124,8 +2119,8 @@ class Menu_principal_free : AppCompatActivity() {
                     secciones
                 )
                 mostrarEstadoProveedores(
-                        secciones.isNotEmpty()
-                        )
+                    secciones.isNotEmpty()
+                )
 
             } catch (e: Exception) {
 
@@ -4429,6 +4424,7 @@ class Menu_principal_free : AppCompatActivity() {
                         .findViewById<MaterialButton>(
                             R.id.actAlacena
                         )
+
 
                 btnAlacena.text =
                     alacena.ALC_NOMBRE

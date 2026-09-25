@@ -94,6 +94,12 @@
         <activity
             android:name=".MiAlacenaActivity"
             android:exported="false"/>
+        <activity
+            android:name=".MiHogarActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AgregarHogarActivity"
+            android:exported="false" />
 
         <activity
             android:name=".MisColeccionesProveedoresActivity"

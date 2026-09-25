@@ -222,5 +222,20 @@ interface ApiService {
     suspend fun verificarCodigoCorreo(
         @Body request: VerificarCodigoCorreoRequest
     ): VerificarCodigoCorreoResponse
+    @GET("hogar/obtener_hogar_usuario.php")
+    suspend fun obtenerHogarUsuario(
+        @Query("cli_id") cliId: Int
+    ): HogarResponse
+    @GET("hogar/buscar_usuarios.php")
+    suspend fun buscarUsuariosHogar(
+        @Query("busqueda") busqueda: String,@Query("cli_id") cliId: Int
+    ): BuscarUsuariosResponse
+    @FormUrlEncoded
+    @POST("hogar/invitar_usuario.php")
+    suspend fun invitarUsuarioHogar(
+        @Field("hog_id") hogId: Int,
+        @Field("cli_id_propietario") cliIdPropietario: Int,
+        @Field("cli_id_invitado") cliIdInvitado: Int
+    ): InvitarUsuarioResponse
 
 }

@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent">
+    android:background="@android:color/white">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/headerMihogar"
         android:layout_width="0dp"
@@ -34,10 +34,12 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
     <LinearLayout
+        android:id="@+id/sincuenta"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:visibility="gone"
+        android:visibility="visible"
+        android:background="@color/white"
         app:layout_constraintTop_toBottomOf="@id/headerMihogar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -47,17 +49,20 @@
             android:layout_height="470dp"
             android:src="@drawable/ic_crear_mi_hogar" />
         <LinearLayout
+            android:id="@+id/btnAgregarHogar"
             android:layout_width="wrap_content"
             android:layout_height="25dp"
             android:orientation="horizontal"
             android:background="@color/azulgourmeet"
             android:layout_gravity="center"
-            >
+            android:clickable="true"
+            android:focusable="true">
+
             <ImageView
                 android:layout_width="25dp"
                 android:layout_height="25dp"
-                android:src="@drawable/ic_mas_azul"
-                />
+                android:src="@drawable/ic_mas_azul" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -65,16 +70,16 @@
                 android:fontFamily="@font/caviardreams"
                 android:textColor="@color/white"
                 android:textStyle="bold"
-                android:textSize="15dp"
-                />
-        </LinearLayout>
+                android:textSize="15sp" />
 
+        </LinearLayout>
     </LinearLayout>
     <LinearLayout
         android:id="@+id/vista2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/headerMihogar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -98,7 +103,7 @@
                 android:layout_width="400dp"
                 android:layout_height="wrap_content">
                 <androidx.recyclerview.widget.RecyclerView
-                    android ="@+id/miembrosdelhogar"
+                    android:id="@+id/miembrosdelhogar"
                     android:layout_width="wrap_content"
                     android:layout_height="25dp"
                     android:clipToPadding="false"
@@ -254,7 +259,7 @@
             android:orientation="horizontal"
             android:gravity="center">
             <androidx.recyclerview.widget.RecyclerView
-                android="@+id/coleccionesdelhogar"
+                android:id="@+id/coleccionesdelhogar"
                 android:layout_width="wrap_content"
                 android:layout_height="90dp"
                 android:clipToPadding="false"
@@ -332,7 +337,7 @@
             android:orientation="horizontal"
             android:gravity="center">
             <androidx.recyclerview.widget.RecyclerView
-                android="@+id/proveedoresfavoritosde"
+                android:id="@+id/proveedoresfavoritosde"
                 android:layout_width="wrap_content"
                 android:layout_height="90dp"
                 android:clipToPadding="false"
@@ -379,31 +384,16 @@
                             android:layout_height="match_parent"
                             android:background="@drawable/bg_ovalo_sin_fondo"
                             android:gravity="center" />
-
                         <ImageView
                             android:id="@+id/imgmasproveedores"
                             android:layout_width="45dp"
                             android:layout_height="45dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_mas_azul"
-
                             android:translationZ="10dp" />
-
                     </FrameLayout>
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
         </LinearLayout>
-
-
-
-
     </LinearLayout>
-
-
-
-
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

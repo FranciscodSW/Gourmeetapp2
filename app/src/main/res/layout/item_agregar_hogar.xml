@@ -1,31 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:layout_height="wrap_content"
+    android:background="@color/white">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:orientation="vertical"
-        android:background="@drawable/bg_rectangulo_azul_borde_negro_3">
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:textSize="20dp"
-            android:fontFamily="@font/caviardreams"
-            android:text="Añadir información de mi hogar"
-            android:gravity="center"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            />
-
-    </LinearLayout>
+            android:layout_height="45dp"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_rectangulo_azul_borde_negro_3">
+                <ImageView
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:background="@drawable/bg_circulo_negro"
+                    android:src="@drawable/ic_cerrar_blanco"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:textSize="20dp"
+                    android:fontFamily="@font/caviardreams"
+                    android:text="Añadir información de mi hogar"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:textStyle="bold" />
+        </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="45dp"
@@ -33,8 +40,9 @@
             <ImageView
                 android:layout_width="45dp"
                 android:layout_height="45dp"
-                android:src="@drawable/ic_desayuno"
+                android:src="@drawable/ic_casa_azul"
                 app:tint="@color/white"
+                android:id="@+id/seleccionarimagen"
                 android:background="@drawable/bg_circulo_azul"
                 />
             <EditText
@@ -42,90 +50,106 @@
                 android:layout_height="match_parent"
                 android:layout_marginStart="5dp"
                 android:layout_marginEnd="5dp"
+                android:hint=" Nombre de la casa"
+                android:gravity="center"
 
                 android:background="@drawable/bg_rectangulo_blanco"
                 />
 
         </LinearLayout>
         <androidx.recyclerview.widget.RecyclerView
-            android="@+id/selecciondeicono"
-            android:layout_width="wrap_content"
-            android:layout_height="90dp"
-            android:clipToPadding="false"
-            android:visibility="gone"
-            />
-        <LinearLayout
+            android:id="@+id/selecciondeicono"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="70dp"
+            android:clipToPadding="false"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
+            android:visibility="gone" />
 
-            android:weightSum="2"
-            android:orientation="horizontal">
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/targetagregarusuario"
-                android:layout_width="0dp"
-                android:layout_height="90dp"
-                android:layout_margin="4dp"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="0dp"
-                android:layout_weight="1"
-                app:strokeColor="@android:color/black"
-                app:strokeWidth="1dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:cardBackgroundColor="@color/azulgourmeet">
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/targetagregarusuario"
+            android:layout_width="405dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            app:cardBackgroundColor="@color/azulgourmeet"
+            app:cardCornerRadius="10dp"
+            app:strokeColor="@android:color/black"
+            app:strokeWidth="1dp">
 
-                <LinearLayout
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- TÍTULO -->
+                <TextView
+                    android:layout_width="396dp"
+                    android:layout_height="20dp"
+                    android:fontFamily="@font/caviardreams"
+                    android:gravity="center"
+                    android:text="Invitar a un usuario"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <!-- BUSCADOR -->
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:layout_height="45dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginEnd="5dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
 
-                    <!-- TÍTULO -->
-                    <TextView
+                    <!-- FONDO -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:text="Invitar a un usuario"
-                        android:textColor="@android:color/white"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-
-                        android:fontFamily="@font/caviardreams"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_ovalo_sin_fondo"
                         android:gravity="center" />
 
-                    <!-- ICONO -->
-                    <FrameLayout
+                    <!-- LUPA -->
+                    <ImageView
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:layout_gravity="start|center_vertical"
+                        android:layout_marginStart="5dp"
+                        android:src="@drawable/ic_lupa"
+                        android:translationZ="10dp"
+                        app:tint="@color/azulgourmeet" />
+
+                    <!-- BUSCADOR -->
+                    <EditText
+                        android:id="@+id/txtNombreusuariobuscar"
                         android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:clipChildren="false"
-                        android:clipToPadding="false">
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="35dp"
+                        android:layout_marginEnd="5dp"
+                        android:background="@null"
+                        android:gravity="center"
+                        android:hint="Nombre o correo"
+                        android:inputType="text"
+                        android:textSize="12sp" />
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:background="@drawable/bg_ovalo_sin_fondo"
-                            android:gravity="center" />
+                </FrameLayout>
 
-                        <ImageView
-                            android:id="@+id/calendario"
-                            android:layout_width="45dp"
-                            android:layout_height="45dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_calendario"
-                            app:tint="@color/azulgourmeet"
-                            android:translationZ="10dp" />
+                <!-- RESULTADOS -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerUsuariosBusqueda"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:layout_marginTop="5dp"
+                    android:clipToPadding="false"
+                    android:visibility="gone" />
 
-                    </FrameLayout>
+            </LinearLayout>
 
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-            <com.google.android.material.card.MaterialCardView
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
                 android:id="@+id/targetagregarusuariosincuenta"
-                android:layout_width="0dp"
-                android:layout_height="90dp"
+                android:layout_width="405dp"
+                android:layout_height="130dp"
                 android:layout_margin="4dp"
-                android:layout_weight="1"
                 app:cardCornerRadius="10dp"
                 app:cardElevation="0dp"
                 app:strokeColor="@android:color/black"
@@ -143,7 +167,6 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="20dp"
-
                         android:text="Personas"
                         android:textColor="@android:color/white"
                         android:textSize="14sp"
@@ -162,55 +185,166 @@
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="70dp"
+                            android:layout_height="wrap_content"
                             android:background="@drawable/bg_ovalo_sin_fondo"
                             android:orientation="vertical"
-                            android:gravity="center"
                             android:padding="5dp">
 
-                            <!-- TEXTO -->
+                            <!-- TÍTULO -->
                             <TextView
                                 android:layout_width="match_parent"
-                                android:layout_height="0dp"
-                                android:layout_weight="1"
+                                android:layout_height="25dp"
+                                android:gravity="center"
                                 android:text="Añadir personas sin cuenta GourMeet"
-                                android:textStyle="bold"
                                 android:textColor="@color/azulgourmeet"
-                                android:textSize="9sp"
-                                android:gravity="center" />
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
 
                             <!-- NIÑOS -->
-                            <EditText
-                                android:layout_width="match_parent"
-                                android:layout_height="0dp"
-                                android:layout_weight="1"
-                                android:hint="Niños"
-                                android:gravity="center"
-                                android:textStyle="bold"
-                                android:textSize="10sp"
-                                android:inputType="number" />
+                            <LinearLayout
+                                android:layout_width="150dp"
+                                android:layout_height="25dp"
+                                android:layout_gravity="center"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                >
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_weight="1"
+                                    android:gravity="center_vertical"
+                                    android:text="Niños"
+                                    android:textColor="@color/azulgourmeet"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                                <ImageButton
+                                    android:id="@+id/btnMenosNinos"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:background="@null"
+                                    android:contentDescription="Disminuir niños"
+                                    android:src="@drawable/ic_menos"
+                                     />
+
+                                <TextView
+                                    android:id="@+id/txtCantidadNinos"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:gravity="center"
+                                    android:text="0"
+                                    android:textColor="@color/azulgourmeet"
+                                    android:textSize="10sp"
+                                    android:textStyle="bold" />
+
+                                <ImageButton
+                                    android:id="@+id/btnMasNinos"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:background="@null"
+                                    android:contentDescription="Aumentar niños"
+                                    android:src="@drawable/ic_mas_azul"
+                                     />
+
+                            </LinearLayout>
 
                             <!-- ADULTOS -->
-                            <EditText
-                                android:layout_width="match_parent"
-                                android:layout_height="0dp"
-                                android:layout_weight="1"
-                                android:hint="Adultos"
-                                android:gravity="center"
-                                android:textStyle="bold"
-                                android:textSize="10sp"
-                                android:inputType="number" />
+                            <LinearLayout
+                                android:layout_width="150dp"
+                                android:layout_height="25dp"
+                                android:layout_gravity="center"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                >
 
-                            <!-- ADULTOS 2 -->
-                            <EditText
-                                android:layout_width="match_parent"
-                                android:layout_height="0dp"
-                                android:layout_weight="1"
-                                android:hint="Adultos"
-                                android:gravity="center"
-                                android:textStyle="bold"
-                                android:textSize="10sp"
-                                android:inputType="number" />
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_weight="1"
+                                    android:gravity="center_vertical"
+                                    android:text="Adultos"
+                                    android:textColor="@color/azulgourmeet"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                                <ImageButton
+                                    android:id="@+id/btnMenosAdultos"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:background="@null"
+                                    android:contentDescription="Disminuir adultos"
+                                    android:src="@drawable/ic_menos"
+                                     />
+
+                                <TextView
+                                    android:id="@+id/txtCantidadAdultos"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:gravity="center"
+                                    android:text="0"
+                                    android:textColor="@color/azulgourmeet"
+                                    android:textSize="10sp"
+                                    android:textStyle="bold" />
+
+                                <ImageButton
+                                    android:id="@+id/btnMasAdultos"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:background="@null"
+                                    android:contentDescription="Aumentar adultos"
+                                    android:src="@drawable/ic_mas_azul"
+                                     />
+
+                            </LinearLayout>
+
+                            <!-- ADULTOS MAYORES -->
+                            <LinearLayout
+                                android:layout_width="150dp"
+                                android:layout_height="25dp"
+                                android:layout_gravity="center"
+                                android:orientation="horizontal"
+                                >
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_weight="1"
+                                    android:gravity="center_vertical"
+                                    android:text="Adultos mayores"
+                                    android:textColor="@color/azulgourmeet"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                                <ImageButton
+                                    android:id="@+id/btnMenosAdultosMayores"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:background="@null"
+                                    android:contentDescription="Disminuir adultos mayores"
+                                    android:src="@drawable/ic_menos"
+                                     />
+
+                                <TextView
+                                    android:id="@+id/txtCantidadAdultosMayores"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:gravity="center"
+                                    android:text="0"
+                                    android:textColor="@color/azulgourmeet"
+                                    android:textSize="10sp"
+                                    android:textStyle="bold" />
+
+                                <ImageButton
+                                    android:id="@+id/btnMasAdultosMayores"
+                                    android:layout_width="25dp"
+                                    android:layout_height="25dp"
+                                    android:background="@null"
+                                    android:contentDescription="Aumentar adultos mayores"
+                                    android:src="@drawable/ic_mas_azul"
+                                     />
+
+                            </LinearLayout>
 
                         </LinearLayout>
 
@@ -220,10 +354,153 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="35dp"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_rectangulo_blanco" >
+
+                <EditText
+                    android:id="@+id/editEquipamiento"
+                    android:layout_width="150dp"
+                    android:layout_height="35dp"
+                    android:gravity="center"
+                    android:hint="Equipo básico de cocina"
+                    android:fontFamily="@font/caviardreams"
+                    android:textColorHint="@color/azulgourmeet"
+                    android:textColor="@color/azulgourmeet"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:background="@null" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_flecha_abajo"
+                    android:layout_marginTop="8dp"/>
+
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/editUbicacion"
+                android:layout_width="0dp"
+                android:layout_height="35dp"
+                android:layout_weight="1"
+                android:hint="Ubicación"
+                android:fontFamily="@font/caviardreams"
+                android:textStyle="bold"
+                android:textSize="15sp"
+                android:textColor="@color/azulgourmeet"
+                android:textColorHint="@color/azulgourmeet"
+                android:gravity="center"
+                android:background="@drawable/bg_rectangulo_blanco"
+                android:focusable="false"
+                android:clickable="true"
+                android:cursorVisible="false" />
 
         </LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="Miembros del hogar"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:fontFamily="@font/caviardreams"
+            android:textColor="@color/azulgourmeet" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/miembrosdelhogar"
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:clipToPadding="false"
+            android:visibility="gone" />
+    <LinearLayout
+        android:layout_width="225dp"
+        android:layout_height="35dp"
+        android:layout_gravity="center"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="190dp"
+            android:layout_height="35dp"
+            android:background="@drawable/bg_rectangulo_blanco"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                app:tint="@color/azulgourmeet"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_casa_azul"
+            />
+            <TextView
+                android:id="@+id/txtNombreAlacenaHogar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:fontFamily="@font/caviardreams"
+                android:text="Mi alacena de..."
+                android:textColor="@color/azulgourmeet"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+        <ImageView
+            android:id="@+id/btnAgregarIngredientehogar"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_mas_azul"
+            />
     </LinearLayout>
 
-
-
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/misingredientes"
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:clipToPadding="false"
+            android:visibility="gone"
+            />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="120dp"
+                android:layout_height="50dp"
+                android:text="Limpiar"
+                android:textColor="@color/azulgourmeet"
+                android:backgroundTint="@color/white"
+                app:strokeColor="@android:color/black"
+                app:strokeWidth="2dp"
+                app:cornerRadius="10dp" />
+            <View
+                android:layout_width="50dp"
+                android:layout_height="match_parent"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/guardarHogar"
+                android:layout_width="190dp"
+                android:layout_height="50dp"
+                android:text="Guardar"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/azulgourmeet"
+                app:strokeColor="@android:color/black"
+                app:strokeWidth="2dp"
+                app:cornerRadius="10dp" />
+        </LinearLayout>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

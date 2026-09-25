@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.play.services.cast.framework)
     implementation(libs.play.services.maps3d)
     implementation(libs.gms.play.services.maps3d)
+    implementation(libs.androidx.material3)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
