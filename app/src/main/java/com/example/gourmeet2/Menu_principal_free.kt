@@ -466,58 +466,41 @@ class Menu_principal_free : AppCompatActivity() {
 
                 return@setOnClickListener
             }
-
-
             // ==========================================
             // CERRAR MIS COLECCIONES
             // ==========================================
-
             binding.rvMisColeccionesProveedores.visibility =
                 View.GONE
-
-
             // ==========================================
             // MOSTRAR LISTA NORMAL
             // ==========================================
-
             if (listaProveedores.isNotEmpty()) {
-
                 binding.rvProveedores.visibility =
                     View.VISIBLE
-
                 binding.layoutSinProveedores.visibility =
                     View.GONE
-
             } else {
-
                 binding.rvProveedores.visibility =
                     View.GONE
-
                 binding.layoutSinProveedores.visibility =
                     View.VISIBLE
             }
-
-
             // ==========================================
             // ABRIR PANEL
             // ==========================================
-
             binding.panelProveedores.visibility =
                 View.VISIBLE
-
 
             binding.panelProveedores.post {
 
                 binding.panelProveedores.translationX =
                     -binding.panelProveedores.width.toFloat()
 
-
                 binding.panelProveedores.animate()
                     .translationX(0f)
                     .setDuration(300)
                     .start()
             }
-
 
             // ==========================================
             // CARGAR PROVEEDORES
@@ -2379,19 +2362,14 @@ class Menu_principal_free : AppCompatActivity() {
             "Proveedores encontrados: ${proveedoresFiltrados.size}"
         )
     }
-    private fun obtenerChipsSeleccionados(
-        chipGroup: ChipGroup
-    ): List<String> {
+    private fun obtenerChipsSeleccionados(chipGroup: ChipGroup): List<String> {
 
         return chipGroup.children
             .filter { it is Chip && it.isChecked }
             .map { (it as Chip).text.toString() }
             .toList()
     }
-    private fun cumpleFiltroIngredientes(
-        proveedor: Proveedor,
-        categoriasSeleccionadas: List<String>
-    ): Boolean {
+    private fun cumpleFiltroIngredientes(proveedor: Proveedor, categoriasSeleccionadas: List<String>): Boolean {
 
         // No hay filtro
         if (categoriasSeleccionadas.isEmpty()) {
@@ -2411,10 +2389,7 @@ class Menu_principal_free : AppCompatActivity() {
             }
         }
     }
-    private fun cumpleFiltroRecetas(
-        proveedor: Proveedor,
-        categoriasSeleccionadas: List<String>
-    ): Boolean {
+    private fun cumpleFiltroRecetas(proveedor: Proveedor, categoriasSeleccionadas: List<String>): Boolean {
 
         // No hay filtro
         if (categoriasSeleccionadas.isEmpty()) {
@@ -2434,10 +2409,7 @@ class Menu_principal_free : AppCompatActivity() {
             }
         }
     }
-    private fun cumpleFiltroDistancia(
-        proveedor: Proveedor,
-        chipDistancia: Int
-    ): Boolean {
+    private fun cumpleFiltroDistancia(proveedor: Proveedor, chipDistancia: Int): Boolean {
 
         // ==========================================
         // SIN FILTRO DE DISTANCIA
@@ -8894,15 +8866,12 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-
             } catch (e: Exception) {
-
                 Log.e(
                     "ALACENA_API",
                     "Error al eliminar ingrediente usado en receta",
                     e
                 )
-
                 Toast.makeText(
                     this@Menu_principal_free,
                     "Error de conexión con el servidor.",
@@ -8911,15 +8880,11 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             }
         }
     }
-
     fun cerrarDetalleReceta() {
-
         binding.containerDetalleReceta.visibility =
             View.GONE
-
         binding.containerDetalleProveedor.visibility =
             View.VISIBLE
-
         supportFragmentManager.popBackStack()
     }
 }

@@ -30,8 +30,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
-
-
     </androidx.constraintlayout.widget.ConstraintLayout>
     <LinearLayout
         android:id="@+id/sincuenta"
@@ -90,29 +88,39 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_gravity="center">
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Miembros del hogar"
-                android:layout_gravity="center"
-                android:fontFamily="@font/caviardreams"
-                android:textColor="@color/azulgourmeet"
-                android:textSize="25dp"
-                android:textStyle="bold"/>
+                android:orientation="horizontal"
+                android:layout_gravity="center">
+                <ImageView
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@drawable/lupa"
+                    android:id="@+id/buscar"
+                    android:layout_marginEnd="15dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Miembros del hogar"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/caviardreams"
+                    android:textColor="@color/azulgourmeet"
+                    android:textSize="25dp"
+                    android:textStyle="bold"/>
+
+            </LinearLayout>
+
             <LinearLayout
                 android:layout_width="400dp"
                 android:layout_height="wrap_content">
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/miembrosdelhogar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="25dp"
+                    android:layout_width="400dp"
+                    android:layout_height="70dp"
                     android:clipToPadding="false"
                     />
-                <ImageButton
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/ic_lapiz_editar"
-                    />
+
             </LinearLayout>
 
         </LinearLayout>

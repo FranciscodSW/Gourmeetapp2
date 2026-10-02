@@ -105,6 +105,10 @@
             android:name=".MisColeccionesProveedoresActivity"
             android:exported="false" />
         <activity
+            android:name=".AlacenaActivity"
+            android:exported="false"/>
+
+        <activity
             android:name=".PreferenciasdeCuentaActivity"
             android:exported="false"/>
 

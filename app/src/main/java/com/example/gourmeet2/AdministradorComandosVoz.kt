@@ -1,16 +1,7 @@
 package com.example.gourmeet2
 
 class AdministradorComandosVoz {
-
-    /**
-     * Similitud mínima para aceptar un comando.
-     * Puedes ajustarla entre 0.70 y 0.90.
-     */
     private val umbralSimilitud = 0.75
-
-    /**
-     * Catálogo de comandos y sus sinónimos.
-     */
     private val comandos = mapOf(
 
         ComandoVoz.SIGUIENTE to listOf(

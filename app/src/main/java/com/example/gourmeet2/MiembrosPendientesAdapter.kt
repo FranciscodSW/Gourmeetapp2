@@ -4,44 +4,31 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.gourmeet2.data.models.MiembroHogar
+import com.example.gourmeet2.data.models.UsuarioBusqueda
 import com.example.gourmeet2.databinding.ItemEstadoDeInvitacionBinding
 
-class MiembrosHogarAdapter(
-    private var miembros: List<MiembroHogar>,
-    private val onEliminar: (MiembroHogar) -> Unit
-) : RecyclerView.Adapter<MiembrosHogarAdapter.MiembroViewHolder>() {
+class MiembrosPendientesAdapter(
+    private var miembros: List<UsuarioBusqueda>,
+    private val onEliminar: (UsuarioBusqueda) -> Unit
+) : RecyclerView.Adapter<MiembrosPendientesAdapter.MiembroViewHolder>() {
 
     inner class MiembroViewHolder(
         private val binding: ItemEstadoDeInvitacionBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(miembro: MiembroHogar) {
-
-            // ==========================================
-            // NOMBRE
-            // ==========================================
+        fun bind(usuario: UsuarioBusqueda) {
 
             binding.txtNombreMiembro.text =
-                miembro.HOG_USU_NOMBRE ?: "Sin nombre"
-
-            // ==========================================
-            // ESTADO
-            // ==========================================
+                usuario.CLI_NOMBRE
 
             binding.txtEstadoMiembro.text =
-                miembro.HOG_USU_ESTADO
+                "Por confirmar"
 
             binding.txtEstadoMiembro.visibility =
                 View.VISIBLE
 
-            // ==========================================
-            // ELIMINAR
-            // ==========================================
-
             binding.btnEliminarMiembro.setOnClickListener {
-
-                onEliminar(miembro)
+                onEliminar(usuario)
             }
         }
     }
@@ -65,21 +52,18 @@ class MiembrosHogarAdapter(
         holder: MiembroViewHolder,
         position: Int
     ) {
-
-        holder.bind(
-            miembros[position]
-        )
+        holder.bind(miembros[position])
     }
 
-    override fun getItemCount(): Int {
-        return miembros.size
-    }
+    override fun getItemCount(): Int =
+        miembros.size
 
     fun actualizarMiembros(
-        nuevosMiembros: List<MiembroHogar>
+        nuevosMiembros: List<UsuarioBusqueda>
     ) {
 
-        miembros = nuevosMiembros.toList()
+        miembros =
+            nuevosMiembros.toList()
 
         notifyDataSetChanged()
     }

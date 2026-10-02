@@ -1,18 +1,13 @@
 package com.example.gourmeet2
 
 import android.app.DatePickerDialog
-import android.app.Dialog
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.Gravity
 import android.view.View
-import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
@@ -26,833 +21,437 @@ import android.widget.Toast
 import android.widget.Toast.makeText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.DatePickerDialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.gourmeet2.data.api.ApiClient
-import com.example.gourmeet2.data.models.Hogar
-import com.example.gourmeet2.data.models.IconoHogar
-import com.example.gourmeet2.databinding.ActivityMiHogarBinding
-import com.example.gourmeet2.utils.SesionUsuario
-import kotlinx.coroutines.launch
-import com.example.gourmeet2.databinding.ItemAgregarHogarBinding
 import com.bumptech.glide.Glide
-import com.example.gourmeet2.data.models.*
+import com.example.gourmeet2.MiHogarActivity.ModoIngrediente
+import com.example.gourmeet2.data.api.ApiClient
+import com.example.gourmeet2.data.models.Alacena
+import com.example.gourmeet2.data.models.BuscarIngredientes
+import com.example.gourmeet2.data.models.BuscarRecetasPorIngredientesRequest
+import com.example.gourmeet2.data.models.EliminarIngredienteAlacenaRequest
+import com.example.gourmeet2.data.models.GuardarIngredienteAlacenaRequest
+import com.example.gourmeet2.data.models.IngredienteAlacena
+import com.example.gourmeet2.data.models.ListarIngredientesAlacenaRequest
+import com.example.gourmeet2.data.models.ObtenerIngredientesAlacenaRequest
+import com.example.gourmeet2.data.models.RecetaconFiltro
+import com.example.gourmeet2.databinding.ActivityMiAlacenaBinding
 import com.example.gourmeet2.ui.adapters.IngredienteMiniAdapter
+import com.example.gourmeet2.utils.SesionUsuario
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-class MiHogarActivity : AppCompatActivity() {
-    // Usuarios que estamos seleccionando para INVITAR
-    private val miembrosPendientes =
-        mutableListOf<UsuarioBusqueda>()
-
-    // Miembros que YA existen en el hogar
-    private val miembrosHogar =
-        mutableListOf<MiembroHogar>()
-    private lateinit var adapterMiembrosPendientes:
-            MiembrosPendientesAdapter
-    private var cantidadNinos = 0
-    private val estadosHogar = mutableListOf<String>()
-    private var guardandoHogar = false
-    private lateinit var adapterMiembrosHogar: MiembrosHogarAdapter
-    private var iconoHogarSeleccionado: String = "CASA"
-    private var imagenIngredienteSeleccionada: String? = null
-    private lateinit var adapterCategoriasIngredientes: CategoriaIngredientesAdapter
-    private val ingredientesTemporales =
-        mutableListOf<IngredienteAlacena>()
-    private lateinit var adapterIngredientesTemporales:
-            IngredienteAlacenaAdapter
-    private lateinit var misIngredientes:
-            RecyclerView
-    private var cliIdActual: Int = 0
-    private var latitudHogar: Double? = null
-    private var longitudHogar: Double? = null
-    private var direccionHogar: String? = null
+class AlacenaActivity : AppCompatActivity() {
     private enum class ModoIngrediente {
         AGREGAR,
         EDITAR,
         USAR_EN_RECETA
     }
+
     private var alacenaSeleccionada: Alacena? = null
+    private lateinit var misIngredientes:
+            RecyclerView
+    private lateinit var adapterIngredientesTemporales:
+            IngredienteAlacenaAdapter
+    private val ingredientesTemporales = mutableListOf<IngredienteAlacena>()
     private val listaAlacenas = mutableListOf<Alacena>()
-
-    private val tiposAlmacenamientoHogar =
-        mutableListOf<String>()
-    private var adapterEstadosHogar:
-            ArrayAdapter<String>? = null
-    private var adapterAlmacenamientoHogar:
-            ArrayAdapter<String>? = null
-    private var popupEstadoHogar:
-            PopupWindow? = null
-    private var popupAlmacenamientoHogar:
-            PopupWindow? = null
-    private var cantidadAdultos = 0
-    private lateinit var adapterConsumePrimero: IngredienteAlacenaAdapter
-    private var cantidadAdultosMayores = 0
-    private var ingredienteSeleccionadoId: Int? = null
-    private lateinit var binding: ActivityMiHogarBinding
-    // Guardaremos aquí el hogar que pertenece al usuario
-    private lateinit var usuariosBusquedaAdapter: UsuariosBusquedaAdapter
-    private var busquedaRunnable: Runnable? = null
-    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     private var familiaIngredienteSeleccionado: String? = null
-    private var hogarActual: Hogar? = null
-    private var dialogAgregarHogar: Dialog? = null
-    private var dialogAgregarHogarBinding: ItemAgregarHogarBinding? = null
-    private val equiposSeleccionados = mutableSetOf<Int>()
-    private val equiposCocina = arrayOf(
-        "Freidora de aire",
-        "Horno",
-        "Olla express",
-        "Batidora",
-        "Microondas",
-        "Sartenes",
-        "Ollas",
-        "Licuadora",
-        "Refrigerador",
-        "Tostador",
-        "Extractor",
-        "Estufa",
-        "Parrilla eléctrica"
-    )
-    private val mapaLauncher =
-        registerForActivityResult(
-            androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
-        ) { resultado ->
-            if (resultado.resultCode == RESULT_OK) {
+    private var imagenIngredienteSeleccionada: String? = null
+    private var ingredienteSeleccionadoId: Int? = null
 
-                val datos = resultado.data
+    // ==========================================
+    // BINDING
+    // ==========================================
 
-                direccionHogar =
-                    datos?.getStringExtra("direccion")
+    private lateinit var binding: ActivityMiAlacenaBinding
 
-                latitudHogar =
-                    datos?.getDoubleExtra("lat", 0.0)
+    // ==========================================
+    // HOGAR
+    // ==========================================
 
-                longitudHogar =
-                    datos?.getDoubleExtra("lng", 0.0)
+    private var hogId: Int = 0
 
-                if (!direccionHogar.isNullOrEmpty()) {
+    // ==========================================
+    // ALACENA
+    // ==========================================
 
-                    dialogAgregarHogarBinding
-                        ?.editUbicacion
-                        ?.setText(direccionHogar)
+    private var alcId: Int = 0
 
-                    // Guardaremos estos datos después
-                    // cuando conectemos la creación del hogar.
+    // ==========================================
+    // ADAPTERS
+    // ==========================================
 
-                }
-            }
-        }
+    private lateinit var adapterConsumePrimero: IngredienteAlacenaAdapter
+
+    private lateinit var adapterCategoriasIngredientes:
+            CategoriaIngredientesAdapter
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityMiHogarBinding.inflate(layoutInflater)
+        binding =
+            ActivityMiAlacenaBinding.inflate(layoutInflater)
+
         setContentView(binding.root)
 
-        configurarListaMiembrosHogar()
+        // ==========================================
+        // RECIBIR HOG_ID
+        // ==========================================
 
-        binding.btnAgregarHogar.setOnClickListener {
-            mostrarVentanaAgregarHogar()
-        }
-        binding.organizadespensa.setOnClickListener {
-
-            val hogar = hogarActual
-
-            if (hogar == null) {
-
-                Toast.makeText(
-                    this,
-                    "No se encontró el hogar.",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                return@setOnClickListener
-            }
-
-            val intent = Intent(
-                this,
-                AlacenaActivity::class.java
-            )
-
-            intent.putExtra(
+        hogId =
+            intent.getIntExtra(
                 "HOG_ID",
-                hogar.HOG_ID
+                0
             )
 
-            startActivity(intent)
-        }
-
-        cargarHogar()
-    }
-    private fun cargarHogar() {
-
-        val cliId = obtenerCliId()
-
-        if (cliId == null) {
+        if (hogId <= 0) {
 
             Toast.makeText(
                 this,
-                "No se pudo obtener el usuario",
+                "No se encontró el hogar.",
                 Toast.LENGTH_SHORT
             ).show()
 
-            mostrarSinHogar()
+            finish()
+
             return
         }
+
+        Log.d(
+            "ALACENA_HOGAR",
+            "HOG_ID recibido: $hogId"
+        )
+
+        // ==========================================
+        // CONFIGURAR RECYCLERVIEWS
+        // ==========================================
+
+        configurarRecyclerViews()
+
+        // ==========================================
+        // REGRESAR
+        // ==========================================
+
+        binding.btnRegresarAlacena.setOnClickListener {
+
+            finish()
+        }
+        binding.btnAgregarIngrediente.setOnClickListener {
+            mostrarDialogAgregarIngrediente()
+        }
+        binding.actAlacena.visibility = View.GONE
+
+        // ==========================================
+        // CARGAR ALACENA DEL HOGAR
+        // ==========================================
+
+        cargarAlacenaHogar()
+    }
+
+
+    // ==================================================
+    // CONFIGURAR RECYCLERVIEWS
+    // ==================================================
+
+    private fun configurarRecyclerViews() {
+
+        // ==========================================
+        // CONSUME PRIMERO
+        // ==========================================
+
+        binding.rvConsumePrimero.layoutManager =
+            LinearLayoutManager(
+                this,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
+
+        adapterConsumePrimero =
+            IngredienteAlacenaAdapter(
+                emptyList()
+            ) { ingrediente ->
+
+                mostrarDetalleIngrediente(
+                    ingrediente
+                )
+            }
+
+        binding.rvConsumePrimero.adapter =
+            adapterConsumePrimero
+
+
+        // ==========================================
+        // MIS INGREDIENTES
+        // ==========================================
+
+        binding.rvMisIngredientes.layoutManager =
+            LinearLayoutManager(
+                this
+            )
+
+        adapterCategoriasIngredientes =
+            CategoriaIngredientesAdapter(
+                emptyList()
+            ) { ingrediente ->
+
+                mostrarDetalleIngrediente(
+                    ingrediente
+                )
+            }
+
+        binding.rvMisIngredientes.adapter =
+            adapterCategoriasIngredientes
+    }
+
+
+    // ==================================================
+    // BUSCAR ALACENA DEL HOGAR
+    // ==================================================
+
+    private fun cargarAlacenaHogar() {
 
         lifecycleScope.launch {
 
             try {
 
                 val respuesta =
-                    ApiClient.apiService.obtenerHogarUsuario(cliId)
+                    ApiClient.apiService
+                        .obtenerAlacenaHogar(
+                            hogId = hogId
+                        )
 
                 if (!respuesta.success) {
 
                     Toast.makeText(
-                        this@MiHogarActivity,
-                        respuesta.mensaje,
+                        this@AlacenaActivity,
+                        respuesta.message,
                         Toast.LENGTH_SHORT
                     ).show()
 
                     return@launch
                 }
 
-                if (respuesta.tiene_hogar && respuesta.hogar != null) {
-
-                    // Guardamos el hogar actual
-                    hogarActual = respuesta.hogar
-
-                    mostrarConHogar()
-
-                    cargarMiembrosHogar(
-                        respuesta.hogar.HOG_ID
-                    )
-
-                } else {
-
-                    mostrarSinHogar()
-                }
-
-            } catch (e: Exception) {
-
-                e.printStackTrace()
-
-                Toast.makeText(
-                    this@MiHogarActivity,
-                    "Error al consultar el hogar",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                mostrarSinHogar()
-            }
-        }
-    }
-    private fun mostrarSinHogar() {
-
-        binding.sincuenta.visibility = View.VISIBLE
-        binding.vista2.visibility = View.GONE
-    }
-    private fun mostrarConHogar() {
-
-        binding.sincuenta.visibility = View.GONE
-        binding.vista2.visibility = View.VISIBLE
-    }
-    private fun obtenerCliId(): Int? {
-
-        val id = SesionUsuario.obtenerId(this)
-
-        return if (id > 0) {
-            id
-        } else {
-            null
-        }
-    }
-    private fun mostrarVentanaAgregarHogar() {
-
-        val dialog = Dialog(this)
-
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-
-        val dialogBinding =
-            ItemAgregarHogarBinding.inflate(layoutInflater)
-
-        dialog.setContentView(dialogBinding.root)
-
-        dialog.setCancelable(true)
-
-        // Guardamos referencias
-        dialogAgregarHogar = dialog
-        dialogAgregarHogarBinding = dialogBinding
-
-        val window = dialog.window
-
-        if (window != null) {
-
-            window.setBackgroundDrawable(
-                ColorDrawable(Color.TRANSPARENT)
-            )
-
-            window.setDimAmount(0.55f)
-
-            window.addFlags(
-                WindowManager.LayoutParams.FLAG_DIM_BEHIND
-            )
-
-            window.setGravity(Gravity.BOTTOM)
-        }
-
-        // Configuramos la ubicación
-        configurarSeleccionUbicacion(dialogBinding)
-        configurarSelectorIconos(dialogBinding, dialog)
-        configurarEquipamiento(dialogBinding)
-        configurarBusquedaUsuarios(dialogBinding)
-        configurarContadoresPersonas(dialogBinding)
-        configurarMiembrosHogar(dialogBinding)
-        configurarAlacenaHogar(dialogBinding)
-        dialogBinding.guardarHogar.setOnClickListener {
-            guardarHogar()
-        }
-        dialog.show()
-
-        dialog.window?.setLayout(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.WRAP_CONTENT
-        )
-
-        dialog.window?.setGravity(Gravity.BOTTOM)
-    }
-    private fun configurarSeleccionUbicacion(
-        dialogBinding: ItemAgregarHogarBinding
-    ) {
-
-        dialogBinding.editUbicacion.setOnClickListener {
-
-            val intent = Intent(
-                this,
-                MapaSeleccionActivity::class.java
-            )
-
-            mapaLauncher.launch(intent)
-        }
-    }
-    private fun configurarSelectorIconos(
-        dialogBinding: ItemAgregarHogarBinding,
-        dialog: Dialog
-    ) {
-
-        // Inicialmente oculto
-        dialogBinding.selecciondeicono.visibility =
-            View.GONE
-
-        // RecyclerView horizontal
-        dialogBinding.selecciondeicono.layoutManager =
-            androidx.recyclerview.widget.LinearLayoutManager(
-                this,
-                androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL,
-                false
-            )
-
-        // Adapter
-        dialogBinding.selecciondeicono.adapter =
-            IconosHogarAdapter(iconosHogar) { iconoSeleccionado ->
-
-                dialogBinding.seleccionarimagen.setImageResource(
-                    iconoSeleccionado.recurso
-                )
-
-                iconoHogarSeleccionado =
-                    iconoSeleccionado.nombre
-
-                dialogBinding.selecciondeicono.visibility =
-                    View.GONE
-            }
-
-        // Abrir selector
-        dialogBinding.seleccionarimagen.setOnClickListener {
-
-            dialogBinding.selecciondeicono.visibility =
-                View.VISIBLE
-        }
-    }
-    private fun configurarEquipamiento(
-        dialogBinding: ItemAgregarHogarBinding
-    ) {
-
-        dialogBinding.editEquipamiento.setOnClickListener {
-
-            mostrarChecklistEquipamiento(dialogBinding)
-        }
-    }
-    private val iconosHogar = listOf(
-
-        IconoHogar(
-            "Casa",
-            R.drawable.ic_casa_azul
-        ),
-
-        IconoHogar(
-            "Casa 2",
-            R.drawable.ic_casa1
-        ),
-
-        IconoHogar(
-            "Departamento",
-            R.drawable.ic_casa2
-        ),
-
-        IconoHogar(
-            "Edificio",
-            R.drawable.ic_casa_azul
-        )
-    )
-    private fun configurarBusquedaUsuarios(
-        dialogBinding: ItemAgregarHogarBinding
-    ) {
-
-        usuariosBusquedaAdapter =
-            UsuariosBusquedaAdapter(emptyList()) { usuario ->
-
-                agregarMiembroTemporal(usuario)
-            }
-
-        dialogBinding.recyclerUsuariosBusqueda.layoutManager =
-            androidx.recyclerview.widget.LinearLayoutManager(this)
-
-        dialogBinding.recyclerUsuariosBusqueda.adapter =
-            usuariosBusquedaAdapter
-
-        dialogBinding.txtNombreusuariobuscar.addTextChangedListener(
-            object : android.text.TextWatcher {
-
-                override fun beforeTextChanged(
-                    s: CharSequence?,
-                    start: Int,
-                    count: Int,
-                    after: Int
-                ) {
-                }
-
-                override fun onTextChanged(
-                    s: CharSequence?,
-                    start: Int,
-                    before: Int,
-                    count: Int
-                ) {
-                }
-
-                override fun afterTextChanged(
-                    s: android.text.Editable?
-                ) {
-
-                    val texto = s?.toString()?.trim() ?: ""
-
-                    busquedaRunnable?.let {
-                        handler.removeCallbacks(it)
-                    }
-
-                    if (texto.length < 2) {
-
-                        dialogBinding.recyclerUsuariosBusqueda.visibility =
-                            View.GONE
-
-                        return
-                    }
-
-                    busquedaRunnable = Runnable {
-
-                        buscarUsuarios(
-                            texto,
-                            dialogBinding
-                        )
-                    }
-
-                    handler.postDelayed(
-                        busquedaRunnable!!,
-                        500
-                    )
-                }
-            }
-        )
-    }
-    private fun buscarUsuarios(
-        texto: String,
-        dialogBinding: ItemAgregarHogarBinding
-    ) {
-
-        val cliId = obtenerCliId()
-
-        if (cliId == null) {
-            return
-        }
-
-        lifecycleScope.launch {
-
-            try {
-
-                val respuesta =
-                    ApiClient.apiService.buscarUsuariosHogar(
-                        texto,
-                        cliId
-                    )
-
-                if (!respuesta.success) {
-
-                    dialogBinding.recyclerUsuariosBusqueda.visibility =
-                        View.GONE
+                val alacena =
+                    respuesta.alacena
+
+                if (alacena == null) {
+
+                    Toast.makeText(
+                        this@AlacenaActivity,
+                        "No se encontró la alacena del hogar.",
+                        Toast.LENGTH_SHORT
+                    ).show()
 
                     return@launch
                 }
 
-                usuariosBusquedaAdapter.actualizarUsuarios(
-                    respuesta.usuarios
+                val idAlacena =
+                    alacena.ALC_ID
+
+                // Aquí ya podemos cargar los ingredientes
+                cargarIngredientesAlacena(
+                    idAlacena
                 )
-
-                if (respuesta.usuarios.isNotEmpty()) {
-
-                    dialogBinding.recyclerUsuariosBusqueda.visibility =
-                        View.VISIBLE
-
-                } else {
-
-                    dialogBinding.recyclerUsuariosBusqueda.visibility =
-                        View.GONE
-                }
 
             } catch (e: Exception) {
 
                 e.printStackTrace()
 
-                dialogBinding.recyclerUsuariosBusqueda.visibility =
-                    View.GONE
-
                 Toast.makeText(
-                    this@MiHogarActivity,
-                    "Error al buscar usuarios",
-                    Toast.LENGTH_SHORT
+                    this@AlacenaActivity,
+                    "Error al obtener la alacena: ${e.message}",
+                    Toast.LENGTH_LONG
                 ).show()
             }
         }
     }
-    private fun mostrarChecklistEquipamiento(
-        dialogBinding: ItemAgregarHogarBinding
+
+
+    // ==================================================
+    // CARGAR INGREDIENTES
+    // ==================================================
+
+    private fun cargarIngredientesAlacena(
+        alcId: Int
     ) {
-
-        val seleccionados = BooleanArray(equiposCocina.size) { index ->
-            equiposSeleccionados.contains(index)
-        }
-
-        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Equipo básico de cocina")
-            .setMultiChoiceItems(
-                equiposCocina,
-                seleccionados
-            ) { _, which, isChecked ->
-
-                if (isChecked) {
-                    equiposSeleccionados.add(which)
-                } else {
-                    equiposSeleccionados.remove(which)
-                }
-            }
-            .setNegativeButton("CANCELAR", null)
-            .setPositiveButton("LISTO") { _, _ ->
-
-                val textoSeleccionado =
-                    equiposSeleccionados
-                        .sorted()
-                        .map { equiposCocina[it] }
-                        .joinToString(", ")
-
-                dialogBinding.editEquipamiento.setText(
-                    "Equipo seleccionado"
-                )
-            }
-            .create()
-
-        // Mostrar primero el diálogo
-        dialog.show()
-
-        // --------------------------------
-        // COLOR DEL BOTÓN LISTO
-        // --------------------------------
-
-        dialog.getButton(
-            androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE
-        ).setTextColor(
-            androidx.core.content.ContextCompat.getColor(
-                this,
-                R.color.azulgourmeet
-            )
-        )
-
-        // --------------------------------
-        // COLOR DEL BOTÓN CANCELAR
-        // --------------------------------
-
-        dialog.getButton(
-            androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE
-        ).setTextColor(
-            androidx.core.content.ContextCompat.getColor(
-                this,
-                R.color.azulgourmeet
-            )
-        )
-
-        // --------------------------------
-        // COLOR DE LAS PALOMITAS
-        // --------------------------------
-
-        val listView = dialog.listView
-
-        for (i in 0 until listView.childCount) {
-
-            val view = listView.getChildAt(i)
-
-            if (view is android.widget.CheckedTextView) {
-
-                view.checkMarkTintList =
-                    android.content.res.ColorStateList.valueOf(
-                        androidx.core.content.ContextCompat.getColor(
-                            this,
-                            R.color.azulgourmeet
-                        )
-                    )
-            }
-        }
-    }
-    private fun configurarContadoresPersonas(
-        binding: ItemAgregarHogarBinding
-    ) {
-
-        // NIÑOS
-        binding.btnMasNinos.setOnClickListener {
-            cantidadNinos++
-            binding.txtCantidadNinos.text = cantidadNinos.toString()
-        }
-
-        binding.btnMenosNinos.setOnClickListener {
-            if (cantidadNinos > 0) {
-                cantidadNinos--
-                binding.txtCantidadNinos.text = cantidadNinos.toString()
-            }
-        }
-
-
-        // ADULTOS
-        binding.btnMasAdultos.setOnClickListener {
-            cantidadAdultos++
-            binding.txtCantidadAdultos.text = cantidadAdultos.toString()
-        }
-
-        binding.btnMenosAdultos.setOnClickListener {
-            if (cantidadAdultos > 0) {
-                cantidadAdultos--
-                binding.txtCantidadAdultos.text = cantidadAdultos.toString()
-            }
-        }
-
-
-        // ADULTOS MAYORES
-        binding.btnMasAdultosMayores.setOnClickListener {
-            cantidadAdultosMayores++
-            binding.txtCantidadAdultosMayores.text =
-                cantidadAdultosMayores.toString()
-        }
-
-        binding.btnMenosAdultosMayores.setOnClickListener {
-            if (cantidadAdultosMayores > 0) {
-                cantidadAdultosMayores--
-                binding.txtCantidadAdultosMayores.text =
-                    cantidadAdultosMayores.toString()
-            }
-        }
-    }
-    private fun agregarMiembroTemporal(
-        usuario: UsuarioBusqueda
-    ) {
-
-        if (miembrosPendientes.any {
-                it.CLI_ID == usuario.CLI_ID
-            }
-        ) {
-
-            Toast.makeText(
-                this,
-                "Este usuario ya fue agregado",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            return
-        }
-
-        miembrosPendientes.add(usuario)
-
-        adapterMiembrosPendientes.actualizarMiembros(
-            miembrosPendientes
-        )
-
-        dialogAgregarHogarBinding
-            ?.miembrosdelhogar
-            ?.visibility = View.VISIBLE
-
-        Toast.makeText(
-            this,
-            "${usuario.CLI_NOMBRE} agregado al hogar",
-            Toast.LENGTH_SHORT
-        ).show()
-    }
-    private fun configurarMiembrosHogar(
-        dialogBinding: ItemAgregarHogarBinding
-    ) {
-
-        adapterMiembrosPendientes =
-            MiembrosPendientesAdapter(
-                miembrosPendientes.toList()
-            ) { usuario ->
-
-                miembrosPendientes.removeAll {
-                    it.CLI_ID == usuario.CLI_ID
-                }
-
-                adapterMiembrosPendientes.actualizarMiembros(
-                    miembrosPendientes
-                )
-
-                if (miembrosPendientes.isEmpty()) {
-
-                    dialogBinding.miembrosdelhogar.visibility =
-                        View.GONE
-
-                }
-            }
-
-        dialogBinding.miembrosdelhogar.layoutManager =
-            LinearLayoutManager(
-                this,
-                LinearLayoutManager.HORIZONTAL,
-                false
-            )
-
-        dialogBinding.miembrosdelhogar.adapter =
-            adapterMiembrosPendientes
-
-        dialogBinding.miembrosdelhogar.visibility =
-            if (miembrosPendientes.isEmpty()) {
-                View.GONE
-            } else {
-                View.VISIBLE
-            }
-    }
-
-    private fun invitarUsuarioAlHogar(
-        usuario: UsuarioBusqueda
-    ) {
-
-        val cliIdPropietario = obtenerCliId()
-
-        val hogar = hogarActual
-
-        if (cliIdPropietario == null) {
-
-            Toast.makeText(
-                this,
-                "No se pudo identificar al usuario",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            return
-        }
-
-        if (hogar == null) {
-
-            Toast.makeText(
-                this,
-                "No se encontró el hogar",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            return
-        }
 
         lifecycleScope.launch {
 
             try {
 
-                val respuesta =
-                    ApiClient.apiService.invitarUsuarioHogar(
-                        hogar.HOG_ID,
-                        cliIdPropietario,
-                        usuario.CLI_ID
+                // ==========================================
+                // GUARDAR ALC_ID
+                // ==========================================
+
+                this@AlacenaActivity.alcId = alcId
+
+                Log.d(
+                    "ALACENA_ING",
+                    "HOG_ID=$hogId ALC_ID=$alcId"
+                )
+
+                // ==========================================
+                // REQUEST
+                // ==========================================
+
+                val request =
+                    ObtenerIngredientesAlacenaRequest(
+                        HOG_ID = hogId,
+                        ALC_ID = alcId
                     )
 
-                Toast.makeText(
-                    this@MiHogarActivity,
-                    respuesta.mensaje,
-                    Toast.LENGTH_SHORT
-                ).show()
+                // ==========================================
+                // CONSULTAR API
+                // ==========================================
 
-                if (respuesta.success) {
+                val respuesta =
+                    ApiClient.apiService
+                        .listarIngredientesAlacenaHogar(
+                            request
+                        )
 
-                    // Por ahora solamente confirmamos
-                    // que la invitación fue enviada.
+                // ==========================================
+                // VERIFICAR RESPUESTA
+                // ==========================================
 
+                if (!respuesta.success) {
+
+                    Toast.makeText(
+                        this@AlacenaActivity,
+                        respuesta.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@launch
                 }
+
+                // ==========================================
+                // OBTENER INGREDIENTES
+                // ==========================================
+
+                val ingredientes =
+                    respuesta.ingredientes ?: emptyList()
+
+                Log.d(
+                    "ALACENA_ING",
+                    "Ingredientes encontrados: ${ingredientes.size}"
+                )
+
+                // ==========================================
+                // CATEGORÍAS
+                // ==========================================
+
+                val ingredientesPorCategoria =
+                    ingredientes
+                        .groupBy {
+
+                            it.categoria
+                                ?.trim()
+                                ?.ifEmpty {
+                                    "Sin categoría"
+                                }
+                                ?: "Sin categoría"
+                        }
+                        .map { (categoria, lista) ->
+
+                            CategoriaIngredientesAdapter
+                                .CategoriaIngredientes(
+                                    nombreCategoria = categoria,
+                                    ingredientes = lista
+                                )
+                        }
+
+                adapterCategoriasIngredientes
+                    .actualizarLista(
+                        ingredientesPorCategoria
+                    )
+
+                // ==========================================
+                // CONSUME PRIMERO
+                // ==========================================
+
+                val consumePrimero =
+                    ingredientes
+                        .filter {
+
+                            val estado =
+                                it.AI_ESTADO
+                                    ?.trim()
+                                    ?.lowercase()
+
+                            estado == "pasado" ||
+                                    estado == "descompuesto"
+                        }
+                        .sortedWith(
+
+                            compareBy<IngredienteAlacena> {
+
+                                when (
+                                    it.AI_ESTADO
+                                        ?.trim()
+                                        ?.lowercase()
+                                ) {
+
+                                    "descompuesto" -> 0
+                                    "pasado" -> 1
+                                    else -> 2
+                                }
+
+                            }.thenBy {
+
+                                it.AI_FECHA_VENCIMIENTO
+                            }
+                        )
+
+                adapterConsumePrimero
+                    .actualizarLista(
+                        consumePrimero
+                    )
 
             } catch (e: Exception) {
 
-                e.printStackTrace()
+                Log.e(
+                    "ALACENA_ING",
+                    "Error al cargar ingredientes",
+                    e
+                )
 
                 Toast.makeText(
-                    this@MiHogarActivity,
-                    "Error al enviar la invitación",
-                    Toast.LENGTH_SHORT
+                    this@AlacenaActivity,
+                    "Error al cargar ingredientes: ${e.message}",
+                    Toast.LENGTH_LONG
                 ).show()
             }
         }
     }
 
-    private fun configurarAlacenaHogar(
-        dialogBinding: ItemAgregarHogarBinding
+
+    // ==================================================
+    // DETALLE DEL INGREDIENTE
+    // ==================================================
+
+    private fun mostrarDetalleIngrediente(
+        ingrediente: IngredienteAlacena
     ) {
 
-        misIngredientes = dialogBinding.misingredientes
+        Log.d(
+            "ALACENA",
+            "Ingrediente seleccionado: ${ingrediente.ING_DESCRIPCION}"
+        )
 
-        misIngredientes.layoutManager =
-            LinearLayoutManager(
-                this,
-                LinearLayoutManager.HORIZONTAL,
-                false
-            )
-
-        adapterIngredientesTemporales =
-            IngredienteAlacenaAdapter(
-                ingredientesTemporales
-            ) { ingrediente ->
-
-                mostrarDialogAgregarIngrediente(
-                    ingredienteEditar = ingrediente
-                )
-            }
-
-        misIngredientes.adapter =
-            adapterIngredientesTemporales
-
-        dialogBinding.btnAgregarIngredientehogar.setOnClickListener {
-
-            mostrarDialogAgregarIngrediente()
-        }
+        // Aquí posteriormente conectamos
+        // el BottomSheet de editar ingrediente.
     }
     private fun mostrarDialogAgregarIngrediente(
         ingredienteEditar: IngredienteAlacena? = null) {
@@ -860,7 +459,7 @@ class MiHogarActivity : AppCompatActivity() {
         val modoIngrediente =
             when {
                 ingredienteEditar == null ->
-                    ModoIngrediente.AGREGAR
+                    AlacenaActivity.ModoIngrediente.AGREGAR
 
                 ingredienteEditar.AI_ESTADO
                     ?.trim()
@@ -868,17 +467,20 @@ class MiHogarActivity : AppCompatActivity() {
                         "descompuesto",
                         ignoreCase = true
                     ) == true ->
-                    ModoIngrediente.USAR_EN_RECETA
+                    AlacenaActivity.ModoIngrediente.USAR_EN_RECETA
 
                 else ->
-                    ModoIngrediente.EDITAR
+                    AlacenaActivity.ModoIngrediente.EDITAR
             }
 
         val view = layoutInflater.inflate(
             R.layout.dialog_agregar_ingrediente,
             null
         )
-
+        val flechaSeleccionarAlacena =
+            view.findViewById<ImageView>(
+                R.id.flechaseleccionaralacena
+            )
         val txtTituloIngrediente =
             view.findViewById<TextView>(
                 R.id.txtTituloIngrediente
@@ -925,7 +527,21 @@ class MiHogarActivity : AppCompatActivity() {
             txtTituloIngrediente.text = "AGREGAR INGREDIENTE"
         }
 
+        flechaSeleccionarAlacena.setOnClickListener {
 
+            val txtAlacenaSeleccionada =
+                view.findViewById<TextView>(
+                    R.id.txtAlacenaSeleccionada
+                )
+
+            val flechaSeleccionarAlacena =
+                view.findViewById<ImageView>(
+                    R.id.flechaseleccionaralacena
+                )
+
+
+
+        }
         bottomSheet.setContentView(view)
         val txtFechaCompra =
             view.findViewById<TextView>(R.id.txtFechadecompra)
@@ -994,11 +610,15 @@ class MiHogarActivity : AppCompatActivity() {
             val sheet = dialog.findViewById<View>(
                 com.google.android.material.R.id.design_bottom_sheet
             )
+
             sheet?.let { bottomSheetView ->
+
                 val behavior =
                     BottomSheetBehavior.from(bottomSheetView)
+
                 behavior.state =
                     BottomSheetBehavior.STATE_EXPANDED
+
                 behavior.skipCollapsed = true
             }
         }
@@ -1368,7 +988,8 @@ class MiHogarActivity : AppCompatActivity() {
 
 
         btnGuardar.setOnClickListener {
-            if (modoIngrediente == ModoIngrediente.USAR_EN_RECETA) {
+            if (modoIngrediente == AlacenaActivity.ModoIngrediente.USAR_EN_RECETA) {
+
                 eliminarIngredienteUsadoEnReceta(
                     ingredienteEditar!!,
                     bottomSheet
@@ -1477,7 +1098,16 @@ class MiHogarActivity : AppCompatActivity() {
 
                 return@setOnClickListener
             }
+            if (alcId <= 0) {
 
+                makeText(
+                    this,
+                    "No se encontró la alacena del hogar.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return@setOnClickListener
+            }
             // ==========================================
             // VALIDAR CANTIDAD
             // ==========================================
@@ -1541,54 +1171,246 @@ class MiHogarActivity : AppCompatActivity() {
             // CREAR REQUEST
             // ==========================================
 
+            val request = GuardarIngredienteAlacenaRequest(
 
-            agregarIngredienteTemporal(
-                ingredienteDescripcion = ingrediente,
-                fotoIngrediente = imagenIngredienteSeleccionada,
-                categoria = familiaIngredienteSeleccionado,
+                // ==========================================
+                // ALACENA DEL HOGAR
+                // ==========================================
 
-                cantidadDouble = cantidadDouble,
+                ALC_ID = alcId,
 
-                unidad = unidad,
+                HOG_ID = hogId,
 
-                fechaCompra =
+                ALC_CLI_ID = null,
+
+                // ==========================================
+                // INGREDIENTE
+                // ==========================================
+
+                ING_ID = ingredienteSeleccionadoId!!,
+
+                // ==========================================
+                // CANTIDAD
+                // ==========================================
+
+                AI_CANTIDAD = cantidadDouble,
+
+                AI_UNIDAD = unidad,
+
+                // ==========================================
+                // FECHAS
+                // ==========================================
+
+                AI_FECHA_COMPRA =
                     convertirFechaMySQL(
-                        txtFechaCompra.text.toString()
+                        txtFechaCompra.text
+                            .toString()
+                            .trim()
                     ),
 
-                fechaVencimiento =
+                AI_FECHA_VENCIMIENTO =
                     convertirFechaMySQL(
-                        txtFechaConsumo.text.toString()
+                        txtFechaConsumo.text
+                            .toString()
+                            .trim()
                     ),
 
-                estado =
-                     txtTipoEstado.text
+                // ==========================================
+                // ESTADO
+                // ==========================================
+
+                AI_ESTADO =
+                    txtTipoEstado.text
                         .toString()
-                        .trim()
-                        .ifEmpty { null },
+                        .trim(),
 
-                precioDouble = precioDouble,
+                // ==========================================
+                // PRECIO
+                // ==========================================
 
-                almacenamiento =
+                AI_PRECIO_COMPRA = precioDouble,
+
+                // ==========================================
+                // ALMACENAMIENTO
+                // ==========================================
+
+                AI_ALMACENAMIENTO =
                     txtTipoAlmacenamiento.text
                         .toString()
-                        .trim()
-                        .ifEmpty { null },
+                        .trim(),
 
-                frecuenciaConsumo =
-                   txtTipoFrecuencia.text
+                // ==========================================
+                // FRECUENCIA
+                // ==========================================
+
+                AI_FRECUENCIA_CONSUMO =
+                    txtTipoFrecuencia.text
                         .toString()
-                        .trim()
-                        .ifEmpty { null },
+                        .trim(),
 
-                tipoAbastecimiento =
+                // ==========================================
+                // ABASTECIMIENTO
+                // ==========================================
+
+                AI_TIPO_ABASTECIMIENTO =
                     txtTipoAbastecimiento.text
                         .toString()
                         .trim()
-                        .ifEmpty { null }
             )
-            bottomSheet.dismiss()
 
+
+            // ==========================================
+            // MOSTRAR DATOS
+            // ==========================================
+
+            Log.d(
+                "ALACENA_API",
+                """
+===== DATOS A ENVIAR =====
+MODO: ${
+                    if (ingredienteEditar == null)
+                        "AGREGAR"
+                    else
+                        "EDITAR"
+                }
+ALC_ID: ${request.ALC_ID}
+ING_ID: ${request.ING_ID}
+CANTIDAD: ${request.AI_CANTIDAD}
+UNIDAD: ${request.AI_UNIDAD}
+FECHA COMPRA: ${request.AI_FECHA_COMPRA}
+FECHA VENCIMIENTO: ${request.AI_FECHA_VENCIMIENTO}
+ESTADO: ${request.AI_ESTADO}
+PRECIO: ${request.AI_PRECIO_COMPRA}
+ALMACENAMIENTO: ${request.AI_ALMACENAMIENTO}
+FRECUENCIA: ${request.AI_FRECUENCIA_CONSUMO}
+ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
+==========================
+""".trimIndent()
+            )
+
+
+            // ==========================================
+            // CONECTAR CON LA API
+            // ==========================================
+
+            lifecycleScope.launch {
+
+                try {
+
+                    val response =
+
+                        if (ingredienteEditar == null) {
+
+                            // ==================================
+                            // AGREGAR NUEVO INGREDIENTE
+                            // ==================================
+
+                            Log.d(
+                                "ALACENA_API",
+                                "Agregando ingrediente..."
+                            )
+
+                            ApiClient.apiService
+                                .guardarIngredienteAlacena(
+                                    request
+                                )
+
+                        } else {
+
+                            // ==================================
+                            // EDITAR INGREDIENTE EXISTENTE
+                            // ==================================
+
+                            Log.d(
+                                "ALACENA_API",
+                                "Editando ingrediente..."
+                            )
+
+                            ApiClient.apiService
+                                .editarIngredienteAlacena(
+                                    request
+                                )
+                        }
+
+
+                    // ==========================================
+                    // RESPUESTA EXITOSA
+                    // ==========================================
+
+                    if (response.success) {
+
+                        Log.d(
+                            "ALACENA_API",
+                            "ÉXITO: ${response.message}"
+                        )
+
+                        makeText(
+                            this@AlacenaActivity,
+                            response.message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+
+                        // ======================================
+                        // CERRAR BOTTOM SHEET
+                        // ======================================
+
+                        bottomSheet.dismiss()
+
+                        cargarIngredientesAlacena(
+                            alcId
+                        )
+
+
+                        // ======================================
+                        // RECARGAR ALACENA
+                        // ======================================
+
+                        alacenaSeleccionada?.let {
+                            actualizarEstadosYCargarAlacena(
+                                alacenaSeleccionada!!.ALC_ID,
+                                alacenaSeleccionada!!.ALC_CLI_ID
+                            )
+                        }
+
+
+                    } else {
+
+                        // ======================================
+                        // ERROR DE LA API
+                        // ======================================
+
+                        Log.e(
+                            "ALACENA_API",
+                            "ERROR: ${response.message}"
+                        )
+
+                        makeText(
+                            this@AlacenaActivity,
+                            response.message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                } catch (e: Exception) {
+
+                    // ==========================================
+                    // ERROR DE CONEXIÓN
+                    // ==========================================
+
+                    Log.e(
+                        "ALACENA_API",
+                        "Error al conectar con la API",
+                        e
+                    )
+
+                    makeText(
+                        this@AlacenaActivity,
+                        "Error de conexión con el servidor.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
         // =========================================================
 // CONFIGURACIÓN DE BOTONES SEGÚN EL MODO
@@ -1600,7 +1422,7 @@ class MiHogarActivity : AppCompatActivity() {
 
         when (modoIngrediente) {
 
-            ModoIngrediente.AGREGAR -> {
+            AlacenaActivity.ModoIngrediente.AGREGAR -> {
 
                 btnLimpiar.text = "LIMPIAR"
                 btnGuardar.text = "AGREGAR"
@@ -1609,7 +1431,7 @@ class MiHogarActivity : AppCompatActivity() {
                 txtcontenedeor.visibility = View.GONE
             }
 
-            ModoIngrediente.EDITAR -> {
+            AlacenaActivity.ModoIngrediente.EDITAR -> {
 
                 btnLimpiar.text = "ELIMINAR"
                 btnGuardar.text = "GUARDAR CAMBIOS"
@@ -1618,7 +1440,7 @@ class MiHogarActivity : AppCompatActivity() {
                 txtcontenedeor.visibility = View.GONE
             }
 
-            ModoIngrediente.USAR_EN_RECETA -> {
+            AlacenaActivity.ModoIngrediente.USAR_EN_RECETA -> {
 
                 vermasrecetas.visibility = View.GONE
                 txtcontenedeor.visibility = View.VISIBLE
@@ -1631,14 +1453,12 @@ class MiHogarActivity : AppCompatActivity() {
                         android.R.color.white
                     )
                 )
-
                 cardFechadecon.setCardBackgroundColor(
                     ContextCompat.getColor(
                         this,
                         R.color.rojo
                     )
                 )
-
                 btnLimpiar.backgroundTintList =
                     ContextCompat.getColorStateList(
                         this,
@@ -1647,8 +1467,6 @@ class MiHogarActivity : AppCompatActivity() {
 
                 btnGuardar.text = "LO USÉ EN UNA RECETA"
             }
-
-            else -> {}
         }
 
         // =========================================================
@@ -2730,8 +2548,6 @@ class MiHogarActivity : AppCompatActivity() {
 
                 ingredienteSeleccionadoId =
                     ingredienteSeleccionado.id
-                imagenIngredienteSeleccionada =
-                    ingredienteSeleccionado.imagen_url
 
                 familiaIngredienteSeleccionado =
                     ingredienteSeleccionado.categoria
@@ -3093,67 +2909,6 @@ class MiHogarActivity : AppCompatActivity() {
         }
         cargandoIngredienteEditar = false
         bottomSheet.show()
-
-    }
-    private fun agregarIngredienteTemporal(
-        ingredienteDescripcion: String,
-        fotoIngrediente: String?,
-        categoria: String?,
-        cantidadDouble: Double,
-        unidad: String,
-        fechaCompra: String?,
-        fechaVencimiento: String?,
-        estado: String?,
-        precioDouble: Double?,
-        almacenamiento: String?,
-        frecuenciaConsumo: String?,
-        tipoAbastecimiento: String?
-    ) {
-
-        val ingredienteTemporal = IngredienteAlacena(
-
-            ALC_ID = 0,
-
-            ING_ID = ingredienteSeleccionadoId!!,
-
-            ING_DESCRIPCION = ingredienteDescripcion,
-
-            Foto_Ingrediente = fotoIngrediente,
-
-            AI_CANTIDAD = cantidadDouble,
-
-            AI_UNIDAD = unidad,
-
-            AI_FECHA_COMPRA = fechaCompra,
-
-            AI_FECHA_VENCIMIENTO = fechaVencimiento,
-
-            AI_ESTADO = estado,
-
-            AI_PRECIO_COMPRA = precioDouble,
-
-            AI_ALMACENAMIENTO = almacenamiento,
-
-            AI_FRECUENCIA_CONSUMO = frecuenciaConsumo,
-
-            AI_TIPO_ABASTECIMIENTO = tipoAbastecimiento,
-
-            ALC_NOMBRE = null,
-
-            ALC_ICONO = null,
-
-            categoria = categoria
-        )
-
-        ingredientesTemporales.add(
-            ingredienteTemporal
-        )
-
-        adapterIngredientesTemporales.actualizarLista(
-            ingredientesTemporales
-        )
-
-        misIngredientes.visibility = View.VISIBLE
     }
     private fun buscarIngredientes(
         busqueda: String,
@@ -3236,6 +2991,7 @@ class MiHogarActivity : AppCompatActivity() {
         // Quitar el foco del campo que estaba escribiendo
         view.clearFocus()
     }
+
     private fun convertirFechaMySQL(
         fecha: String
     ): String? {
@@ -4297,7 +4053,7 @@ class MiHogarActivity : AppCompatActivity() {
 
 
                     makeText(
-                        this@MiHogarActivity,
+                        this@AlacenaActivity,
                         response.message,
                         Toast.LENGTH_SHORT
                     ).show()
@@ -4330,7 +4086,7 @@ class MiHogarActivity : AppCompatActivity() {
                     )
 
                     makeText(
-                        this@MiHogarActivity,
+                        this@AlacenaActivity,
                         response.message,
                         Toast.LENGTH_SHORT
                     ).show()
@@ -4346,7 +4102,7 @@ class MiHogarActivity : AppCompatActivity() {
                 )
 
                 makeText(
-                    this@MiHogarActivity,
+                    this@AlacenaActivity,
                     "Error de conexión con el servidor.",
                     Toast.LENGTH_SHORT
                 ).show()
@@ -4384,7 +4140,7 @@ class MiHogarActivity : AppCompatActivity() {
                 } else {
 
                     Toast.makeText(
-                        this@MiHogarActivity,
+                        this@AlacenaActivity,
                         "No se encontraron recetas.",
                         Toast.LENGTH_SHORT
                     ).show()
@@ -4399,7 +4155,7 @@ class MiHogarActivity : AppCompatActivity() {
                 )
 
                 Toast.makeText(
-                    this@MiHogarActivity,
+                    this@AlacenaActivity,
                     "Error de conexión.",
                     Toast.LENGTH_SHORT
                 ).show()
@@ -4467,7 +4223,6 @@ class MiHogarActivity : AppCompatActivity() {
 
         dialog.show()
     }
-
     private fun abrirDetalleReceta2(recetaId: Int) {
 
         if (recetaId <= 0) {
@@ -4548,52 +4303,24 @@ class MiHogarActivity : AppCompatActivity() {
 
                     Log.d(
                         "ALACENA_API",
-                        "Ingrediente eliminado: ${response.message}"
+                        "ÉXITO: ${response.message}"
                     )
 
-
-                    // ======================================
-                    // MOSTRAR MENSAJE
-                    // ======================================
-
-                    Toast.makeText(
-                        this@MiHogarActivity,
+                    makeText(
+                        this@AlacenaActivity,
                         response.message,
                         Toast.LENGTH_SHORT
                     ).show()
-
-
-                    // ======================================
-                    // CERRAR BOTTOM SHEET
-                    // ======================================
 
                     bottomSheet.dismiss()
 
+                    // ==========================================
+                    // RECARGAR ALACENA DEL HOGAR
+                    // ==========================================
 
-                    // ======================================
-                    // RECARGAR ALACENA
-                    // ======================================
-
-                    alacenaSeleccionada?.let {
-
-                        actualizarEstadosYCargarAlacena(
-                            it.ALC_ID,
-                            it.ALC_CLI_ID
-                        )
-                    }
-
-                } else {
-
-                    Log.e(
-                        "ALACENA_API",
-                        "Error al eliminar: ${response.message}"
+                    cargarIngredientesAlacena(
+                        alcId
                     )
-
-                    Toast.makeText(
-                        this@MiHogarActivity,
-                        response.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
                 }
             } catch (e: Exception) {
                 Log.e(
@@ -4602,632 +4329,12 @@ class MiHogarActivity : AppCompatActivity() {
                     e
                 )
                 Toast.makeText(
-                    this@MiHogarActivity,
+                    this@AlacenaActivity,
                     "Error de conexión con el servidor.",
                     Toast.LENGTH_SHORT
                 ).show()
             }
         }
     }
-    private fun guardarHogar() {
-
-        // ==========================================
-        // EVITAR DOBLE CLIC
-        // ==========================================
-
-        if (guardandoHogar) {
-            return
-        }
-
-        guardandoHogar = true
-
-        lifecycleScope.launch {
-
-            val dialogBinding =
-                dialogAgregarHogarBinding
-
-            // Desactivar botón inmediatamente
-            dialogBinding?.guardarHogar?.isEnabled = false
-
-            try {
-
-                // ==========================================
-                // VERIFICAR DIALOG
-                // ==========================================
-
-                if (dialogBinding == null) {
-
-                    guardandoHogar = false
-
-                    return@launch
-                }
-
-                // ==========================================
-                // OBTENER USUARIO DE LA SESIÓN
-                // ==========================================
-
-                val cliId =
-                    SesionUsuario.obtenerId(
-                        this@MiHogarActivity
-                    )
-
-                if (cliId <= 0) {
-
-                    Toast.makeText(
-                        this@MiHogarActivity,
-                        "No se encontró el usuario de la sesión.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    return@launch
-                }
-
-                // ==========================================
-                // OBTENER NOMBRE DEL HOGAR
-                // ==========================================
-
-                val nombreHogar =
-                    dialogBinding.txtNombreHogar.text
-                        .toString()
-                        .trim()
-
-                if (nombreHogar.isEmpty()) {
-
-                    Toast.makeText(
-                        this@MiHogarActivity,
-                        "Ingresa el nombre del hogar.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    return@launch
-                }
-
-                // ==========================================
-                // CREAR REQUEST DEL HOGAR
-                // ==========================================
-
-                val requestHogar =
-                    CrearHogarRequest(
-
-                        CLI_ID = cliId,
-
-                        HOG_NOMBRE =
-                            nombreHogar,
-
-                        HOG_ICONO =
-                            iconoHogarSeleccionado,
-
-                        HOG_LATITUD =
-                            latitudHogar,
-
-                        HOG_LONGITUD =
-                            longitudHogar,
-
-                        HOG_DIRECCION =
-                            direccionHogar
-                    )
-
-                // ==========================================
-                // CREAR HOGAR
-                // ==========================================
-
-                val responseHogar =
-                    ApiClient.apiService.crearHogar(
-                        requestHogar
-                    )
-
-                // ==========================================
-                // VERIFICAR CREACIÓN DEL HOGAR
-                // ==========================================
-
-                if (!responseHogar.success) {
-
-                    Toast.makeText(
-                        this@MiHogarActivity,
-                        responseHogar.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    return@launch
-                }
-
-                // ==========================================
-                // OBTENER HOG_ID
-                // ==========================================
-
-                val hogId =
-                    responseHogar.HOG_ID
-
-                if (hogId == null) {
-
-                    Toast.makeText(
-                        this@MiHogarActivity,
-                        "No se recibió el ID del hogar.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    return@launch
-                }
-
-                // ==========================================
-                // CREAR ALACENA
-                // ==========================================
-
-                val requestAlacena =
-                    CrearAlacenaHogarRequest(
-
-                        HOG_ID =
-                            hogId,
-
-                        ALC_CLI_ID =
-                            null,
-
-                        ALC_NOMBRE =
-                            "Alacena de $nombreHogar",
-
-                        ALC_ICONO =
-                            iconoHogarSeleccionado
-                    )
-
-                // ==========================================
-                // LLAMAR API ALACENA
-                // ==========================================
-
-                val responseAlacena =
-                    ApiClient.apiService.crearAlacenaHogar(
-                        requestAlacena
-                    )
-
-                // ==========================================
-                // VERIFICAR ALACENA
-                // ==========================================
-
-                if (!responseAlacena.success) {
-
-                    Toast.makeText(
-                        this@MiHogarActivity,
-                        responseAlacena.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    return@launch
-                }
-
-                // ==========================================
-                // OBTENER ALC_ID
-                // ==========================================
-
-                val alcId =
-                    responseAlacena.ALC_ID
-
-                if (alcId == null) {
-
-                    Toast.makeText(
-                        this@MiHogarActivity,
-                        "No se recibió el ID de la alacena.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    return@launch
-                }
-
-                // ==========================================
-                // ENVIAR INVITACIONES
-                // ==========================================
-
-                val invitacionesCorrectas =
-                    enviarInvitacionesHogar(
-
-                        hogId = hogId,
-
-                        miembros =
-                            miembrosPendientes.toList()
-                    )
-
-                if (!invitacionesCorrectas) {
-
-                    Toast.makeText(
-                        this@MiHogarActivity,
-                        "No se pudieron enviar todas las invitaciones.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    return@launch
-                }
-
-                // ==========================================
-                // GUARDAR INGREDIENTES TEMPORALES
-                // ==========================================
-
-                for (ingrediente in ingredientesTemporales) {
-
-                    val requestIngrediente =
-                        GuardarIngredienteAlacenaRequest(
-
-                            ALC_ID =
-                                alcId,
-
-                            ING_ID =
-                                ingrediente.ING_ID,
-
-                            AI_CANTIDAD =
-                                ingrediente.AI_CANTIDAD,
-
-                            AI_UNIDAD =
-                                ingrediente.AI_UNIDAD,
-
-                            AI_FECHA_COMPRA =
-                                ingrediente.AI_FECHA_COMPRA,
-
-                            AI_FECHA_VENCIMIENTO =
-                                ingrediente.AI_FECHA_VENCIMIENTO,
-
-                            AI_ESTADO =
-                                ingrediente.AI_ESTADO,
-
-                            AI_PRECIO_COMPRA =
-                                ingrediente.AI_PRECIO_COMPRA,
-
-                            AI_ALMACENAMIENTO =
-                                ingrediente.AI_ALMACENAMIENTO,
-
-                            AI_FRECUENCIA_CONSUMO =
-                                ingrediente.AI_FRECUENCIA_CONSUMO,
-
-                            AI_TIPO_ABASTECIMIENTO =
-                                ingrediente.AI_TIPO_ABASTECIMIENTO
-                        )
-
-                    val responseIngrediente =
-                        ApiClient.apiService
-                            .guardarIngredienteAlacena(
-                                requestIngrediente
-                            )
-
-                    // ==========================================
-                    // VERIFICAR INGREDIENTE
-                    // ==========================================
-
-                    if (!responseIngrediente.success) {
-
-                        Toast.makeText(
-                            this@MiHogarActivity,
-                            "Error al guardar ${ingrediente.ING_DESCRIPCION}: " +
-                                    responseIngrediente.message,
-                            Toast.LENGTH_LONG
-                        ).show()
-
-                        return@launch
-                    }
-                }
-
-                // ==========================================
-                // ACTUALIZAR HOGAR ACTUAL
-                // ==========================================
-
-                cargarHogar()
-
-                // ==========================================
-                // LIMPIAR DATOS TEMPORALES
-                // ==========================================
-
-                ingredientesTemporales.clear()
-
-                miembrosPendientes.clear()
-
-                // ==========================================
-                // CERRAR DIALOG
-                // ==========================================
-
-                dialogAgregarHogar?.dismiss()
-
-                dialogAgregarHogar = null
-                dialogAgregarHogarBinding = null
-
-                // ==========================================
-                // MENSAJE FINAL
-                // ==========================================
-
-                Toast.makeText(
-                    this@MiHogarActivity,
-                    "Hogar creado correctamente.",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-            } catch (e: Exception) {
-
-                e.printStackTrace()
-
-                Toast.makeText(
-                    this@MiHogarActivity,
-                    "Error al crear el hogar: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-
-            } finally {
-
-                // ==========================================
-                // LIBERAR BLOQUEO
-                // ==========================================
-
-                guardandoHogar = false
-
-                dialogAgregarHogarBinding
-                    ?.guardarHogar
-                    ?.isEnabled = true
-            }
-        }
-    }
-
-    private suspend fun enviarInvitacionesHogar(
-        hogId: Int,
-        miembros: List<UsuarioBusqueda>
-    ): Boolean {
-
-        for (usuario in miembros) {
-
-            try {
-
-                val cliIdPropietario =
-                    SesionUsuario.obtenerId(this)
-
-                if (cliIdPropietario <= 0) {
-
-                    Toast.makeText(
-                        this,
-                        "No se encontró el usuario propietario.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    return false
-                }
-
-                val response =
-                    ApiClient.apiService.invitarUsuarioHogar(
-                        hogId,
-                        cliIdPropietario,
-                        usuario.CLI_ID
-                    )
-
-                if (!response.success) {
-
-                    Toast.makeText(
-                        this,
-                        "No se pudo invitar a ${usuario.CLI_NOMBRE}: ${response.mensaje}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    return false
-                }
-            } catch (e: Exception) {
-
-                Toast.makeText(
-                    this,
-                    "Error al invitar a ${usuario.CLI_NOMBRE}: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-
-                return false
-            }
-        }
-
-        return true
-    }
-    private fun configurarListaMiembrosHogar() {
-
-        binding.miembrosdelhogar.layoutManager =
-            LinearLayoutManager(
-                this,
-                LinearLayoutManager.HORIZONTAL,
-                false
-            )
-
-        adapterMiembrosHogar =
-            MiembrosHogarAdapter(
-                miembrosHogar
-            ) { miembro ->
-
-                eliminarMiembroHogar(
-                    miembro = miembro
-                )
-            }
-
-        binding.miembrosdelhogar.adapter =
-            adapterMiembrosHogar
-    }
-    private fun cargarMiembrosHogar(
-        hogId: Int
-    ) {
-
-        lifecycleScope.launch {
-
-            try {
-
-                val request =
-                    ListarMiembrosHogarRequest(
-                        HOG_ID = hogId
-                    )
-
-                val response =
-                    ApiClient.apiService.listarMiembrosHogar(
-                        request
-                    )
-
-                if (!response.success) {
-
-                    Toast.makeText(
-                        this@MiHogarActivity,
-                        response.mensaje,
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    return@launch
-                }
-
-                // ==========================================
-                // ACTUALIZAR LISTA
-                // ==========================================
-
-                miembrosHogar.clear()
-
-                miembrosHogar.addAll(
-                    response.miembros
-                )
-
-                // ==========================================
-                // ACTUALIZAR ADAPTER
-                // ==========================================
-
-                adapterMiembrosHogar.actualizarMiembros(
-                    miembrosHogar
-                )
-
-                // ==========================================
-                // MOSTRAR / OCULTAR
-                // ==========================================
-
-                binding.miembrosdelhogar.visibility =
-                    if (miembrosHogar.isEmpty()) {
-                        View.GONE
-                    } else {
-                        View.VISIBLE
-                    }
-
-            } catch (e: Exception) {
-
-                e.printStackTrace()
-
-                Toast.makeText(
-                    this@MiHogarActivity,
-                    "Error al cargar los miembros: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
-    private fun eliminarMiembroHogar(
-        miembro: MiembroHogar
-    ) {
-
-        // ==========================================
-        // OBTENER HOGAR
-        // ==========================================
-
-        val hogId = hogarActual?.HOG_ID
-
-        // ==========================================
-        // OBTENER PROPIETARIO
-        // ==========================================
-
-        val cliIdPropietario =
-            SesionUsuario.obtenerId(this)
-
-        // ==========================================
-        // VALIDAR HOGAR
-        // ==========================================
-
-        if (hogId == null) {
-
-            Toast.makeText(
-                this,
-                "No se encontró el hogar.",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            return
-        }
-
-        // ==========================================
-        // VALIDAR PROPIETARIO
-        // ==========================================
-
-        if (cliIdPropietario <= 0) {
-
-            Toast.makeText(
-                this,
-                "No se encontró el usuario de la sesión.",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            return
-        }
-
-        // ==========================================
-        // ELIMINAR MIEMBRO
-        // ==========================================
-
-        lifecycleScope.launch {
-
-            try {
-
-                val request =
-                    EliminarMiembroHogarRequest(
-
-                        HOG_ID = hogId,
-
-                        CLI_ID_PROPIETARIO =
-                            cliIdPropietario,
-
-                        HOG_USU_ID =
-                            miembro.HOG_USU_ID
-                    )
-
-                // ==========================================
-                // LLAMAR API
-                // ==========================================
-
-                val response =
-                    ApiClient.apiService
-                        .eliminarMiembroHogar(request)
-
-                // ==========================================
-                // MOSTRAR MENSAJE
-                // ==========================================
-
-                Toast.makeText(
-                    this@MiHogarActivity,
-                    response.message,
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                // ==========================================
-                // ACTUALIZAR LISTA
-                // ==========================================
-
-                if (response.success) {
-
-                    miembrosHogar.removeAll {
-
-                        it.HOG_USU_ID ==
-                                miembro.HOG_USU_ID
-                    }
-
-                    adapterMiembrosHogar.actualizarMiembros(
-                        miembrosHogar
-                    )
-
-                    // ==========================================
-                    // OCULTAR SI NO HAY MIEMBROS
-                    // ==========================================
-
-                    binding.miembrosdelhogar.visibility =
-                        if (miembrosHogar.isEmpty()) {
-                            View.GONE
-                        } else {
-                            View.VISIBLE
-                        }
-                }
-
-            } catch (e: Exception) {
-
-                Toast.makeText(
-                    this@MiHogarActivity,
-                    "Error al eliminar miembro: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
-
 
 }

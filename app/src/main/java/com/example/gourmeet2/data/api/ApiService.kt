@@ -237,5 +237,45 @@ interface ApiService {
         @Field("cli_id_propietario") cliIdPropietario: Int,
         @Field("cli_id_invitado") cliIdInvitado: Int
     ): InvitarUsuarioResponse
+    @POST("hogar/crear_hogar.php")
+    suspend fun crearHogar(
+        @Body request: CrearHogarRequest
+    ): CrearHogarResponse
+
+
+    @POST("hogar/agregar_usuario_hogar.php")
+    suspend fun agregarUsuarioHogar(
+        @Body request: AgregarUsuarioHogarRequest
+    ): AgregarUsuarioHogarResponse
+
+
+    @POST("hogar/crear_alacena_hogar.php")
+    suspend fun crearAlacenaHogar(
+        @Body request: CrearAlacenaHogarRequest
+    ): CrearAlacenaHogarResponse
+
+    @POST("hogar/agregar_miembros_sin_cuenta.php")
+    suspend fun agregarMiembrosSinCuenta(
+        @Body request: CrearMiembrosHogarRequest
+    ): CrearMiembrosHogarResponse
+
+    @POST("hogar/listar_miembros_hogar.php")
+    suspend fun listarMiembrosHogar(
+        @Body request: ListarMiembrosHogarRequest
+    ): MiembroHogarResponse
+
+    @POST("hogar/eliminar_miembro_hogar.php")
+    suspend fun eliminarMiembroHogar(
+        @Body request: EliminarMiembroHogarRequest
+    ): EliminarMiembroHogarResponse
+    @GET("hogar/obtener_alacena_hogar.php")
+    suspend fun obtenerAlacenaHogar(
+        @Query("HOG_ID") hogId: Int
+    ): ObtenerAlacenaHogarResponse
+
+    @POST("alacena/listar_ingredientes_alacena.php")
+    suspend fun listarIngredientesAlacenaHogar(
+        @Body request: ObtenerIngredientesAlacenaRequest
+    ): IngredientesAlacenaResponse
 
 }

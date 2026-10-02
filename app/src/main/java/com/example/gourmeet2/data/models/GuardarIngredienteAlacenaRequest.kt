@@ -11,5 +11,7 @@ data class GuardarIngredienteAlacenaRequest(
     val AI_PRECIO_COMPRA: Double?,
     val AI_ALMACENAMIENTO: String?,
     val AI_FRECUENCIA_CONSUMO: String?,
-    val AI_TIPO_ABASTECIMIENTO: String?
+    val AI_TIPO_ABASTECIMIENTO: String?,
+    val HOG_ID: Int? = null,
+    val ALC_CLI_ID: Int? = null
 )
