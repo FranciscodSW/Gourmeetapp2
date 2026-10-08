@@ -277,5 +277,23 @@ interface ApiService {
     suspend fun listarIngredientesAlacenaHogar(
         @Body request: ObtenerIngredientesAlacenaRequest
     ): IngredientesAlacenaResponse
+    @POST("hogar/agregar_miembro_hogar.php")
+    suspend fun agregarMiembroHogar(
+        @Body request: AgregarMiembroHogarRequest
+    ): AgregarMiembroHogarResponse
 
+    @POST("notificaciones/marcar_notificacion_leida.php")
+    suspend fun marcarNotificacionLeida(
+        @Body request: MarcarNotificacionLeidaRequest
+    ): MarcarNotificacionLeidaResponse
+
+    @POST("notificaciones/aceptar_invitacion_hogar.php")
+    suspend fun aceptarInvitacionHogar(
+        @Body request: AceptarInvitacionHogarRequest
+    ): AceptarInvitacionHogarResponse
+
+    @POST("notificaciones/rechazar_invitacion_hogar.php")
+    suspend fun rechazarInvitacionHogar(
+        @Body request: RechazarInvitacionHogarRequest
+    ): RechazarInvitacionHogarResponse
 }

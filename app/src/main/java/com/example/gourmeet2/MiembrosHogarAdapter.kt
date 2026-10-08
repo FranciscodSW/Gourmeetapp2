@@ -25,22 +25,48 @@ class MiembrosHogarAdapter(
             binding.txtNombreMiembro.text =
                 miembro.HOG_USU_NOMBRE ?: "Sin nombre"
 
+
             // ==========================================
             // ESTADO
             // ==========================================
 
-            binding.txtEstadoMiembro.text =
-                miembro.HOG_USU_ESTADO
+            val estado = miembro.HOG_USU_ESTADO ?: ""
 
-            binding.txtEstadoMiembro.visibility =
-                View.VISIBLE
+            if (estado.equals("Aceptado", ignoreCase = true)) {
 
+                // La invitación ya fue aceptada
+                binding.txtEstadoMiembro.visibility = View.GONE
+
+                // Nombre en blanco
+                binding.txtNombreMiembro.setTextColor(
+                    binding.root.context.getColor(R.color.white)
+                )
+
+                // Fondo para integrante aceptado
+                binding.txtNombreMiembro.setBackgroundResource(
+                    R.drawable.bg_usuario_hogar_aceptado
+                )
+
+            } else {
+
+                // La invitación todavía no ha sido aceptada
+                binding.txtEstadoMiembro.visibility = View.VISIBLE
+                binding.txtEstadoMiembro.text = estado
+
+                // Diseño normal
+                binding.txtNombreMiembro.setTextColor(
+                    binding.root.context.getColor(R.color.azulgourmeet)
+                )
+
+                binding.txtNombreMiembro.setBackgroundResource(
+                    R.drawable.bg_usuario_hogar
+                )
+            }
             // ==========================================
             // ELIMINAR
             // ==========================================
 
             binding.btnEliminarMiembro.setOnClickListener {
-
                 onEliminar(miembro)
             }
         }

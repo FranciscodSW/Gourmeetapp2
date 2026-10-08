@@ -545,13 +545,23 @@
             android:layout_height="match_parent"
             android:background="@android:color/white"
             android:visibility="gone">
-
             <include
                 android:id="@+id/includePreferenciasCuenta"
                 layout="@layout/activity_preferencias_de_cuenta"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
-
+        </FrameLayout>
+        <FrameLayout
+            android:id="@+id/panelnotificaciones"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white"
+            android:visibility="gone">
+            <include
+                android:id="@+id/includenotificaiones"
+                layout="@layout/dialog_mostrar_notificaciones_usuario"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
         </FrameLayout>
 
     </FrameLayout>

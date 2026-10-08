@@ -31,68 +31,9 @@ class PremiumActivity : AppCompatActivity() {
         }
 
 
-        // ==========================================
-        // PLANES
-        // ==========================================
-
-        val planes = listOf(
-
-            PlanPremium(
-                R.drawable.ic_plan_basico,
-                "Plan Básico"
-            ),
-
-            PlanPremium(
-                R.drawable.ic_plan_medio,
-                "Plan Medio"
-            ),
-
-            PlanPremium(
-                R.drawable.ic_plan_pro,
-                "Plan Pro"
-            ),
-
-            PlanPremium(
-                R.drawable.ic_plan_pro_max,
-                "Plan Pro Max"
-            )
-
-        )
 
 
-        // ==========================================
-        // ADAPTER
-        // ==========================================
-
-        val adapter =
-            PlanPremiumAdapter(
-                planes
-            )
 
 
-        // ==========================================
-        // RECYCLER HORIZONTAL
-        // ==========================================
-
-        binding.rvPlanesPremium.apply {
-
-            layoutManager =
-                LinearLayoutManager(
-                    this@PremiumActivity,
-                    LinearLayoutManager.HORIZONTAL,
-                    false
-                )
-
-            this.adapter =
-                adapter
-
-            setHasFixedSize(true)
-
-            isNestedScrollingEnabled =
-                false
-
-            overScrollMode =
-                android.view.View.OVER_SCROLL_NEVER
-        }
     }
 }

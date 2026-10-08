@@ -319,6 +319,7 @@ class Menu_principal_free : AppCompatActivity() {
         inicializarMenuLateral()
 
         configurarPreferenciasCuenta()
+        configurarNotificaciones()
 
 
         fusedLocationClient =
@@ -1140,9 +1141,7 @@ class Menu_principal_free : AppCompatActivity() {
         cargarRecetasInicio()
     }
     companion object {
-
         private const val REQUEST_PERMISO_UBICACION = 1001
-
     }
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -1745,6 +1744,11 @@ class Menu_principal_free : AppCompatActivity() {
             )
 
             when (item.itemId) {
+                R.id.menu_notificaciones ->{
+                    Log.d("notificaciones","abriendo notificaciones")
+                    abrir_notificaciones_usuarios()
+                    return@setNavigationItemSelectedListener true
+                }
 
                 R.id.menu_preferencias -> {
                     Log.d(
@@ -8887,4 +8891,39 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             View.VISIBLE
         supportFragmentManager.popBackStack()
     }
+    /////////////Apartado de notificaciones del usuario///////////////////////////////////////////
+    private fun abrir_notificaciones_usuarios() {
+
+        Log.d("PREFERENCIAS", "ENTRANDO A abrirnotificaciones()")
+
+        binding.navigationView.visibility = View.GONE
+
+        binding.panelnotificaciones.visibility = View.VISIBLE
+
+        binding.panelnotificaciones.bringToFront()
+
+        Log.d(
+            "PREFERENCIAS",
+            "panelnotificaciones VISIBLE"
+        )
+    }
+    private fun cerrarNotificaciones_usuario() {
+
+        Log.d("PREFERENCIAS", "CERRANDO PREFERENCIAS")
+
+        binding.panelnotificaciones.visibility = View.GONE
+
+        binding.navigationView.visibility = View.VISIBLE
+    }
+    private fun configurarNotificaciones(){
+        // REGRESAR
+        val btnRegresar = binding.panelnotificaciones
+            .findViewById<View>(R.id.btnRegresar)
+
+        btnRegresar?.setOnClickListener {
+            cerrarNotificaciones_usuario()
+        }
+
+    }
+
 }

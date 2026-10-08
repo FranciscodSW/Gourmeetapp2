@@ -16,6 +16,7 @@ import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -159,9 +160,7 @@ class MiHogarActivity : AppCompatActivity() {
 
         binding = ActivityMiHogarBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         configurarListaMiembrosHogar()
-
         binding.btnAgregarHogar.setOnClickListener {
             mostrarVentanaAgregarHogar()
         }
@@ -192,8 +191,11 @@ class MiHogarActivity : AppCompatActivity() {
 
             startActivity(intent)
         }
+        binding.masUsuarios.setOnClickListener {
+            mostrarDialogNuevosUsuarios()
+        }
 
-        cargarHogar()
+    cargarHogar()
     }
     private fun cargarHogar() {
 
@@ -5228,6 +5230,622 @@ class MiHogarActivity : AppCompatActivity() {
             }
         }
     }
+    private fun mostrarDialogNuevosUsuarios() {
+
+        val bottomSheet = BottomSheetDialog(this)
+
+        val view = layoutInflater.inflate(
+            R.layout.dialog_buscar_nuevos_usuarios,
+            null
+        )
+
+        bottomSheet.setContentView(view)
+
+        // ==========================================
+        // REFERENCIAS
+        // ==========================================
+
+        val txtBuscar = view.findViewById<EditText>(
+            R.id.txtNombreusuariobuscar
+        )
+
+        val recyclerUsuarios = view.findViewById<RecyclerView>(
+            R.id.recyclerUsuariosBusqueda
+        )
+
+        val recyclerSeleccionados = view.findViewById<RecyclerView>(
+            R.id.miembrosdelhogar
+        )
+
+        val btnCancelar = view.findViewById<Button>(
+            R.id.btnCancelarMiembros
+        )
+
+        val btnGuardar = view.findViewById<Button>(
+            R.id.btnGuardarMiembros
+        )
 
 
+
+        val nuevosMiembros = mutableListOf<UsuarioBusqueda>()
+
+        // ==========================================
+        // LISTA VISUAL COMBINADA
+        // ==========================================
+        // Contendrá:
+        //
+        // 1. Miembros que ya pertenecen al hogar
+        // 2. Nuevos miembros seleccionados
+        // ==========================================
+
+        val itemsMiembrosEditar =
+            mutableListOf<MiembroEditarItem>()
+
+        // ==========================================
+        // ADAPTER DE MIEMBROS
+        // ==========================================
+
+        lateinit var adapterEditar: MiembrosEditarHogarAdapter
+
+        adapterEditar = MiembrosEditarHogarAdapter(
+            itemsMiembrosEditar
+        ) { usuario ->
+
+            // ======================================
+            // ELIMINAR SOLO UN NUEVO MIEMBRO
+            // ======================================
+
+            nuevosMiembros.removeAll {
+                it.CLI_ID == usuario.CLI_ID
+            }
+
+            // Quitar de la lista visual
+            itemsMiembrosEditar.removeAll { item ->
+
+                item is MiembroEditarItem.Nuevo &&
+                        item.usuario.CLI_ID == usuario.CLI_ID
+            }
+
+            adapterEditar.actualizarItems(
+                itemsMiembrosEditar
+            )
+        }
+
+        // ==========================================
+        // CONFIGURAR RECYCLERVIEW DE MIEMBROS
+        // ==========================================
+
+        recyclerSeleccionados.layoutManager =
+            LinearLayoutManager(
+                this,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
+
+        recyclerSeleccionados.adapter = adapterEditar
+
+        // ==========================================
+        // CARGAR MIEMBROS EXISTENTES
+        // ==========================================
+
+        val hogar = hogarActual
+
+        if (hogar != null) {
+
+            lifecycleScope.launch {
+
+                try {
+
+                    val response =
+                        ApiClient.apiService.listarMiembrosHogar(
+                            ListarMiembrosHogarRequest(
+                                HOG_ID = hogar.HOG_ID
+                            )
+                        )
+
+                    if (response.success) {
+
+                        // Limpiar por seguridad
+                        itemsMiembrosEditar.clear()
+
+                        // ==================================
+                        // AGREGAR MIEMBROS EXISTENTES
+                        // ==================================
+
+                        response.miembros.forEach { miembro ->
+
+                            itemsMiembrosEditar.add(
+                                MiembroEditarItem.Existente(
+                                    miembro
+                                )
+                            )
+                        }
+
+                        recyclerSeleccionados.visibility =
+                            View.VISIBLE
+
+                        adapterEditar.actualizarItems(
+                            itemsMiembrosEditar
+                        )
+
+                    } else {
+
+                        recyclerSeleccionados.visibility =
+                            View.GONE
+                    }
+
+                } catch (e: Exception) {
+
+                    Log.e(
+                        "MiHogar",
+                        "Error cargando miembros del hogar",
+                        e
+                    )
+
+                    Toast.makeText(
+                        this@MiHogarActivity,
+                        "No se pudieron cargar los integrantes.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+        } else {
+
+            recyclerSeleccionados.visibility =
+                View.GONE
+        }
+
+        // ==========================================
+        // ADAPTER DE BÚSQUEDA
+        // ==========================================
+
+        val adapterBusqueda =
+            UsuariosBusquedaAdapter(emptyList()) { usuario ->
+
+                // ======================================
+                // COMPROBAR SI YA PERTENECE AL HOGAR
+                // ======================================
+
+                val yaExiste = miembrosHogar.any {
+
+                    it.CLI_ID != null &&
+                            it.CLI_ID == usuario.CLI_ID
+                }
+
+                if (yaExiste) {
+
+                    Toast.makeText(
+                        this,
+                        "${usuario.CLI_NOMBRE} ya pertenece al hogar.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@UsuariosBusquedaAdapter
+                }
+
+                // ======================================
+                // COMPROBAR SI YA FUE SELECCIONADO
+                // ======================================
+
+                val yaSeleccionado = nuevosMiembros.any {
+
+                    it.CLI_ID == usuario.CLI_ID
+                }
+
+                if (yaSeleccionado) {
+
+                    Toast.makeText(
+                        this,
+                        "${usuario.CLI_NOMBRE} ya está seleccionado.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@UsuariosBusquedaAdapter
+                }
+
+                // ======================================
+                // AGREGAR A LISTA TEMPORAL
+                // ======================================
+
+                nuevosMiembros.add(usuario)
+
+                // ======================================
+                // AGREGAR A LISTA VISUAL
+                // ======================================
+
+                itemsMiembrosEditar.add(
+                    MiembroEditarItem.Nuevo(
+                        usuario
+                    )
+                )
+
+                // ======================================
+                // ACTUALIZAR RECYCLERVIEW
+                // ======================================
+
+                recyclerSeleccionados.visibility =
+                    View.VISIBLE
+
+                adapterEditar.actualizarItems(
+                    itemsMiembrosEditar
+                )
+
+                // ======================================
+                // OCULTAR RESULTADOS
+                // ======================================
+
+                recyclerUsuarios.visibility =
+                    View.GONE
+
+                txtBuscar.setText("")
+            }
+
+        recyclerUsuarios.layoutManager =
+            LinearLayoutManager(this)
+
+        recyclerUsuarios.adapter =
+            adapterBusqueda
+
+        recyclerUsuarios.visibility =
+            View.GONE
+
+        // ==========================================
+        // BUSCADOR
+        // ==========================================
+
+        var runnableBusqueda: Runnable? = null
+
+        txtBuscar.addTextChangedListener(
+
+            object : TextWatcher {
+
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                }
+
+                override fun onTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    before: Int,
+                    count: Int
+                ) {
+                }
+
+                override fun afterTextChanged(
+                    s: Editable?
+                ) {
+
+                    val texto =
+                        s?.toString()
+                            ?.trim()
+                            ?: ""
+
+                    runnableBusqueda?.let {
+                        handler.removeCallbacks(it)
+                    }
+
+                    if (texto.length < 2) {
+
+                        recyclerUsuarios.visibility =
+                            View.GONE
+
+                        return
+                    }
+
+                    runnableBusqueda =
+                        Runnable {
+
+                            buscarUsuariosParaAgregar(
+                                texto,
+                                adapterBusqueda,
+                                recyclerUsuarios
+                            )
+                        }
+
+                    handler.postDelayed(
+                        runnableBusqueda!!,
+                        500
+                    )
+                }
+            }
+        )
+
+        // ==========================================
+        // CANCELAR
+        // ==========================================
+
+        btnCancelar.setOnClickListener {
+
+            // Los nuevos miembros solamente estaban
+            // en memoria.
+            //
+            // Al cancelar no se guarda nada.
+            // No se envían invitaciones.
+
+            nuevosMiembros.clear()
+
+            bottomSheet.dismiss()
+        }
+
+        // ==========================================
+        // GUARDAR
+        // ==========================================
+
+        btnGuardar.setOnClickListener {
+
+            if (nuevosMiembros.isEmpty()) {
+
+                Toast.makeText(
+                    this,
+                    "No agregaste ningún integrante.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return@setOnClickListener
+            }
+
+            // ======================================
+            // AQUÍ SÍ SE GUARDAN / INVITAN
+            // ======================================
+
+            guardarNuevosMiembros(
+                nuevosMiembros,
+                bottomSheet
+            )
+        }
+
+        // ==========================================
+        // CONFIGURAR BOTTOM SHEET
+        // ==========================================
+
+        bottomSheet.setOnShowListener {
+
+            val dialog =
+                it as BottomSheetDialog
+
+            val bottomSheetView =
+                dialog.findViewById<View>(
+                    com.google.android.material.R.id.design_bottom_sheet
+                )
+
+            bottomSheetView?.let { sheet ->
+
+                val behavior =
+                    BottomSheetBehavior.from(sheet)
+
+                behavior.state =
+                    BottomSheetBehavior.STATE_EXPANDED
+
+                behavior.skipCollapsed =
+                    true
+
+                sheet.background =
+                    ContextCompat.getDrawable(
+                        this,
+                        R.drawable.bg_bottom_sheet_alacena
+                    )
+            }
+        }
+
+        bottomSheet.show()
+    }
+    private fun buscarUsuariosParaAgregar(
+        texto: String,
+        adapter: UsuariosBusquedaAdapter,
+        recycler: RecyclerView
+    ) {
+
+        val cliId = obtenerCliId()
+
+        if (cliId == null) {
+            return
+        }
+
+        lifecycleScope.launch {
+
+            try {
+
+                val respuesta =
+                    ApiClient.apiService.buscarUsuariosHogar(
+                        texto,
+                        cliId
+                    )
+
+                if (!respuesta.success) {
+
+                    recycler.visibility =
+                        View.GONE
+
+                    return@launch
+                }
+
+                adapter.actualizarUsuarios(
+                    respuesta.usuarios
+                )
+
+                recycler.visibility =
+                    if (respuesta.usuarios.isNotEmpty()) {
+                        View.VISIBLE
+                    } else {
+                        View.GONE
+                    }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                recycler.visibility =
+                    View.GONE
+
+                Toast.makeText(
+                    this@MiHogarActivity,
+                    "Error al buscar usuarios",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+    private fun guardarNuevosMiembros(
+        nuevosMiembros: List<UsuarioBusqueda>,
+        bottomSheet: BottomSheetDialog
+    ) {
+
+        val hogar = hogarActual
+
+        if (hogar == null) {
+
+            Toast.makeText(
+                this,
+                "No se encontró el hogar.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        if (nuevosMiembros.isEmpty()) {
+
+            Toast.makeText(
+                this,
+                "No hay nuevos integrantes.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        lifecycleScope.launch {
+
+            try {
+
+                val cliIdPropietario =
+                    SesionUsuario.obtenerId(this@MiHogarActivity)
+
+                if (cliIdPropietario <= 0) {
+
+                    Toast.makeText(
+                        this@MiHogarActivity,
+                        "No se encontró el usuario propietario.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@launch
+                }
+
+
+                // ==========================================
+                // AGREGAR CADA USUARIO
+                // ==========================================
+
+                var agregados = 0
+
+                for (usuario in nuevosMiembros) {
+
+                    val request =
+                        AgregarMiembroHogarRequest(
+
+                            HOG_ID =
+                                hogar.HOG_ID,
+
+                            CLI_ID_PROPIETARIO =
+                                cliIdPropietario,
+
+                            CLI_ID =
+                                usuario.CLI_ID
+                        )
+
+
+                    val response =
+                        ApiClient.apiService
+                            .agregarMiembroHogar(
+                                request
+                            )
+
+
+                    if (response.success) {
+
+                        agregados++
+
+                    } else {
+
+                        Toast.makeText(
+                            this@MiHogarActivity,
+                            "${usuario.CLI_NOMBRE}: ${response.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+
+                // ==========================================
+                // SI SE AGREGÓ AL MENOS UNO
+                // ==========================================
+
+                if (agregados > 0) {
+
+                    Toast.makeText(
+                        this@MiHogarActivity,
+                        "$agregados integrante(s) agregado(s) correctamente.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    bottomSheet.dismiss()
+
+                    // Recargar lista
+                    cargarMiembrosHogar(
+                        hogar.HOG_ID
+                    )
+                }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                Toast.makeText(
+                    this@MiHogarActivity,
+                    "Error al guardar integrantes: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+    private fun agregarNuevoMiembro(
+        usuario: UsuarioBusqueda,
+        recycler: RecyclerView
+    ) {
+
+        // ==========================================
+        // YA EXISTE EN EL HOGAR
+        // ==========================================
+
+        val yaEsMiembro =
+            miembrosHogar.any {
+                it.CLI_ID == usuario.CLI_ID
+            }
+
+        if (yaEsMiembro) {
+
+            Toast.makeText(
+                this,
+                "${usuario.CLI_NOMBRE} ya pertenece al hogar.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        Toast.makeText(
+            this,
+            "${usuario.CLI_NOMBRE} seleccionado.",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        // Aquí agregaremos el usuario
+        // a la lista temporal.
+    }
 }

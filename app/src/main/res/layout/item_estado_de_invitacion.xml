@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="125dp"
     android:layout_height="75dp">
 
     <FrameLayout
-        android:layout_width="125dp"
+        android:layout_width="115dp"
         android:layout_height="65dp"
-        android:layout_margin="5dp">
+        android:layout_margin="5dp"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <!-- NOMBRE -->
         <TextView
@@ -15,43 +17,46 @@
             android:layout_width="110dp"
             android:layout_height="42dp"
             android:background="@drawable/bg_usuario_hogar"
+            android:elevation="2dp"
             android:fontFamily="@font/caviardreams"
             android:gravity="center"
             android:text="Dany"
             android:textColor="@color/azulgourmeet"
             android:textSize="15sp"
-            android:textStyle="bold"
-            android:elevation="2dp" />
+            android:textStyle="bold" />
 
         <!-- ESTADO -->
+
+        <!-- X ELIMINAR -->
+
         <TextView
             android:id="@+id/txtEstadoMiembro"
-            android:layout_width="110dp"
+            android:layout_width="90dp"
             android:layout_height="32dp"
-            android:visibility="gone"
-            android:layout_gravity="bottom"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="10dp"
             android:background="@drawable/bg_usuario_hogar"
+            android:elevation="3dp"
             android:fontFamily="@font/caviardreams"
             android:gravity="center"
             android:text="Por confirmar"
             android:textColor="@color/azulgourmeet"
             android:textSize="11sp"
             android:textStyle="bold"
-            android:elevation="3dp" />
+            android:visibility="visible" />
 
-        <!-- X ELIMINAR -->
         <ImageView
             android:id="@+id/btnEliminarMiembro"
             android:layout_width="18dp"
             android:layout_height="18dp"
             android:layout_gravity="top|end"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="-1dp"
+            android:layout_marginEnd="12dp"
             android:background="@drawable/bg_circulo_azul"
-            android:padding="4dp"
-            android:src="@drawable/ic_cerrar_blanco"
             android:contentDescription="Eliminar miembro"
-            android:elevation="10dp" />
+            android:elevation="10dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_cerrar_blanco" />
 
     </FrameLayout>
 

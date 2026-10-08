@@ -36,7 +36,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:visibility="visible"
+        android:visibility="gone"
         android:background="@color/white"
         app:layout_constraintTop_toBottomOf="@id/headerMihogar"
         app:layout_constraintStart_toStartOf="parent"
@@ -77,7 +77,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintTop_toBottomOf="@id/headerMihogar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -93,12 +93,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_gravity="center">
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/lupa"
-                    android:id="@+id/buscar"
-                    android:layout_marginEnd="15dp"/>
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -112,14 +107,21 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="400dp"
+                android:layout_width="405dp"
                 android:layout_height="wrap_content">
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/miembrosdelhogar"
-                    android:layout_width="400dp"
+                    android:layout_width="370dp"
                     android:layout_height="70dp"
                     android:clipToPadding="false"
                     />
+                <ImageView
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:id="@+id/mas_usuarios"
+                    android:src="@drawable/lupa"
+                    android:layout_gravity="center"
+                   />
 
             </LinearLayout>
 

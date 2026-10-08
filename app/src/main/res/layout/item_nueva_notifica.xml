@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/notificacion_de_hogar"
+        android:orientation="vertical"
+        android:background="@drawable/bg_rectangulo_blanco"
+        tools:ignore="MissingConstraints">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/imgIconoHogar"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:src="@drawable/ic_casa_azul"
+                android:contentDescription="Hogar"
+                app:tint="@color/azulgourmeet"/>
+            <TextView
+                android:id="@+id/txtMensajeHogar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="20dp"
+                android:text="Juan te invitó a unirte a su hogar en: "
+                android:textColor="@color/azulgourmeet"
+                android:textSize="16sp"
+                android:fontFamily="@font/caviardreams" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/contenedorBotonesHogar"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="20dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:weightSum="2">
+
+            <!-- CANCELAR -->
+            <Button
+                android:id="@+id/btnCancelarMiembros"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="5dp"
+                android:text="Rechazar"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/caviardreams"
+                android:textColor="@color/azulgourmeet"
+                android:background="@drawable/bg_rectangulo_blanco"
+                android:backgroundTint="@null"
+                app:backgroundTint="@null"
+                />
+
+            <!-- GUARDAR -->
+
+            <Button
+                android:id="@+id/btnGuardarMiembros"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_weight="1"
+                android:layout_marginStart="5dp"
+                android:text="Aceptar"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/caviardreams"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/azulgourmeet" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
