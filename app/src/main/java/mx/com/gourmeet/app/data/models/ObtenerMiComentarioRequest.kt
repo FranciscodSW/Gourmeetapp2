@@ -1,0 +1,9 @@
+package mx.com.gourmeet.app.data.models
+
+data class ObtenerMiComentarioRequest(
+
+    val CLI_ID: Int,
+
+    val REC_ID: Int
+
+)

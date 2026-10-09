@@ -1,0 +1,1453 @@
+package mx.com.gourmeet.app
+import android.app.Dialog
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.net.wifi.WifiManager
+import android.os.Bundle
+import android.util.Log
+import android.util.Patterns
+import android.view.*
+import android.widget.*
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSnapHelper
+import androidx.recyclerview.widget.RecyclerView
+import mx.com.gourmeet.app.data.api.ApiClient
+import mx.com.gourmeet.app.data.models.*
+import mx.com.gourmeet.app.databinding.ActivityRegistroBinding
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.FacebookSdk
+import com.facebook.GraphRequest
+import com.facebook.appevents.AppEventsLogger
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Collections.addAll
+import kotlin.collections.emptyList
+
+class Registro : AppCompatActivity() {
+    lateinit var btnEdad: MaterialButton
+    lateinit var callbackManager: CallbackManager
+    private enum class EstadoContenedor {
+        EXPANDIDO,      // Altura máxima
+        MINIMIZADO,     // Altura mínima (solo se ve la barra)
+        CERRADO         // Completamente oculto
+    }
+    data class NivelCocina(
+        val id: Int,
+        val nombre: String,
+        val descripcion: String,
+        val imagen: Int
+    )
+    var edadSeleccionada = 0
+    var nivelSeleccionado: Int = 0
+    var avatarSeleccionado = "avatar1.png"
+    var latitudSeleccionada = 0.0
+    var longitudSeleccionada = 0.0
+    var nombreSeleccionado = ""
+    var correoSeleccionado = ""
+    var passSeleccionado = ""
+    var facebookIdSeleccionado: String = ""
+    var googleIdSeleccionado: String = ""
+    private var etapaRegistro = 1
+    private var correoVerificado = false
+    private var correoVerificadoPara = ""
+    var restriccionesSeleccionadas = mutableListOf<Restriccion>()
+    private var estadoActual = EstadoContenedor.CERRADO
+    private var alturaExpandida = 0
+    private var alturaMinimizada = 0
+    private var lastY = 0f
+    private var contenedorExpandido = false
+    private val alturaMinima = 400 // Altura mínima en píxeles
+    private val alturaMaxima = 2000 // Altura máxima en píxeles
+    private val MAP_REQUEST = 100
+    private val ALTURA_BARRA = 80
+    private var ubicacionSeleccionada: String = ""
+    private var restricciones = RestriccionesData(
+        alergia = emptyList(),
+        alimento = emptyList(),
+        cultural = emptyList(),
+        intolerancia = emptyList()
+    )
+    lateinit var googleSignInClient: GoogleSignInClient
+    val RC_SIGN_IN = 1001
+    private val TAG = "RegistroDebug"
+    private var avatar: String = ""
+    private val mapaLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            result.data?.let { data ->
+                latitudSeleccionada = data.getDoubleExtra("lat", 0.0)
+                longitudSeleccionada = data.getDoubleExtra("lng", 0.0)
+                val direccion = data.getStringExtra("direccion") ?: ""
+                // Actualizar el texto del botón con la ubicación seleccionada
+                binding.btneditUbicacion.text = direccion
+                ubicacionSeleccionada = direccion
+                // Mostrar un toast de confirmación
+                Toast.makeText(this, "Ubicación seleccionada", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    private lateinit var binding: ActivityRegistroBinding
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        FacebookSdk.sdkInitialize(applicationContext)
+        AppEventsLogger.activateApp(application)
+        enableEdgeToEdge()
+        val data = intent?.data
+        if (data != null) {
+            Log.d("TIKTOK", "Intent en onCreate: $data")
+
+            val code = data.getQueryParameter("code")
+
+            if (code != null) {
+                Log.d("TIKTOK", "✅ CODE (onCreate): $code")
+            }
+        }
+        callbackManager = CallbackManager.Factory.create()
+        LoginManager.getInstance().registerCallback(callbackManager,
+            object : FacebookCallback<LoginResult> {
+                override fun onSuccess(result: LoginResult) {
+                    val request = GraphRequest.newMeRequest(
+                        result.accessToken
+                    ) { obj, _ ->
+                        val json = obj ?: return@newMeRequest
+                        val facebookId = json.optString("id", "")
+                        val nombre = json.optString("name", "")
+                        val correo = json.optString("email", "")
+                        val avatar = "https://graph.facebook.com/$facebookId/picture?type=large"
+                        Log.d("FACEBOOK_LOGIN", "Nombre: $nombre")
+                        Log.d("FACEBOOK_LOGIN", "Correo: $correo")
+                        Log.d("FACEBOOK_LOGIN","ID: $facebookId")
+
+
+                        // 🔥 MISMA VALIDACIÓN QUE GOOGLE
+                        lifecycleScope.launch {
+                            try {
+                                val requestApi = VerificarUsuario(nombre, correo)
+                                val response = ApiClient.apiService.verificarUsuario(requestApi)
+                                if (response.correoExiste) {
+                                    mostrarError("Este correo ya está registrado, inicia sesión")
+                                    return@launch
+                                }
+                                // 🔥 MISMAS VARIABLES
+                                nombreSeleccionado = nombre
+                                correoSeleccionado = correo
+                                avatarSeleccionado = avatar
+                                facebookIdSeleccionado = facebookId
+
+                                // 🔥 MISMO FLUJO
+                                mostrarPersonalizar(nombreSeleccionado, correoSeleccionado)
+
+                            } catch (e: Exception) {
+                                mostrarError("Error al conectar con el servidor")
+                            }
+                        }
+                    }
+
+                    val parameters = Bundle()
+                    parameters.putString("fields", "id,name,email")
+                    request.parameters = parameters
+                    request.executeAsync()
+                }
+                override fun onCancel() {
+                    mostrarError("Inicio cancelado")
+                }
+                override fun onError(error: FacebookException) {
+                    mostrarError("Error Facebook")
+                }
+            })
+        binding = ActivityRegistroBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        btnEdad = binding.btneditSeleccionEdad
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+        binding.btnReenviarcodigo.setOnClickListener {
+
+            if (etapaRegistro != 2) {
+                return@setOnClickListener
+            }
+
+            val correo = binding.editCorreo.text.toString().trim()
+
+            if (!validarCorreo(correo)) {
+                return@setOnClickListener
+            }
+
+            enviarCodigoVerificacion(correo)
+        }
+        binding.btneditUbicacion.setOnClickListener {
+            if (binding.contenedorInferior.visibility == View.VISIBLE) {
+                ocultarContenedorInferior()
+                limpiarContenedorInferior()
+            }
+            val intent = Intent(this, MapaSeleccionActivity::class.java)
+            mapaLauncher.launch(intent)
+        }
+        setupContenedor()
+        cargarRestricciones()
+        binding.btnSeleccionAvatar.setOnClickListener {
+            mostrarSelectorAvatarEnContenedor()
+            setupBarraArrastre()
+        }
+
+        binding.btneditSeleccionEdad.setOnClickListener {
+            mostrarSelectorEdad()
+            setupBarraArrastre()
+        }
+
+
+        binding.btnFin.setOnClickListener {
+
+            when {
+                googleIdSeleccionado.isNotEmpty() -> {
+                    Log.d("DEBUG", "Entró a registrarUsuarioGoogle()")
+                    registrarUsuarioGoogle()
+                }
+
+                facebookIdSeleccionado.isNotEmpty() -> {
+                    Log.d("DEBUG", "Entró a registrarUsuarioFacebook()")
+                    //registrarUsuarioFacebook()
+                }
+
+                else -> {
+                    Log.d("DEBUG", "Entró a registrarUsuario normal")
+                    registrarUsuario()
+                }
+            }
+
+            mostrarPantallaFinal()
+        }
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestId()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+        binding.btnGoogle.setOnClickListener {
+            val googleSignInClient = GoogleSignIn.getClient(this, gso)
+            // 🔥 FORZAR SELECCIÓN DE CUENTA
+            googleSignInClient.revokeAccess().addOnCompleteListener {
+                val signInIntent = googleSignInClient.signInIntent
+                startActivityForResult(signInIntent, RC_SIGN_IN)
+            }
+            Log.d("DEBUG", "Entró a obtenerDatosGoogle()")
+            obtenerDatosGoogle()
+        }
+
+        setupValidaciones()
+    }
+    fun obtenerDatosGoogle() {
+        val signInIntent = googleSignInClient.signInIntent
+        startActivityForResult(signInIntent, RC_SIGN_IN)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        callbackManager.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == RC_SIGN_IN) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+
+            try {
+                val account = task.getResult(ApiException::class.java)
+                val nombre = account.displayName ?: ""
+                val correo = account.email ?: ""
+                val avatar = account.photoUrl?.toString() ?: ""
+                val googleId = account.id ?: ""
+
+                Log.d("GOOGLE_LOGIN", "Nombre: $nombre")
+                Log.d("GOOGLE_LOGIN", "Correo: $correo")
+
+                // 🔥 VALIDACIÓN ANTES DE AVANZAR
+                lifecycleScope.launch {
+                    try {
+                        val request = VerificarUsuario(nombre, correo)
+                        val response = ApiClient.apiService.verificarUsuario(request)
+                        if (response.correoExiste) {
+                            mostrarError("Este correo ya está registrado, inicia sesión")
+                            return@launch
+                        }
+                        // ✅ SI TODO BIEN → GUARDAS Y AVANZAS
+                        nombreSeleccionado = nombre
+                        correoSeleccionado = correo
+                        avatarSeleccionado = avatar
+                        googleIdSeleccionado = googleId
+
+                        mostrarPersonalizar(nombreSeleccionado, correoSeleccionado)
+
+                    } catch (e: Exception) {
+                        mostrarError("Error al conectar con el servidor")
+                    }
+                }
+
+            } catch (e: ApiException) {
+                Log.e("GOOGLE_LOGIN", "Error código: ${e.statusCode}")
+                Toast.makeText(this, "Error: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    fun mostrarPersonalizar(nombre:String, correo:String){
+        Log.d("mostrarPersonalizar", "mostrarPersonalizar")
+        val editNombre = findViewById<TextInputEditText>(R.id.editNombre)
+        val editCorreo = findViewById<TextInputEditText>(R.id.editCorreo)
+        val layoutRegistro = findViewById<LinearLayout>(R.id.layoutRegistro)
+        val layoutPersonalizar = findViewById<LinearLayout>(R.id.layoutPersonalizar)
+        layoutRegistro.visibility = View.GONE
+        layoutPersonalizar.visibility = View.VISIBLE
+        editNombre.setText(nombre)
+        editCorreo.setText(correo)
+    }
+    private fun mostrarPantallaFinal() {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_registro_exitoso)
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val btnContinuar = dialog.findViewById<Button>(R.id.btnContinuar)
+        btnContinuar.setOnClickListener {
+            dialog.dismiss()
+            val intent = Intent(this, Menu_principal_free::class.java)
+            startActivity(intent)
+            finish()
+        }
+        dialog.show()
+    }
+    private fun cargarRestricciones() {
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.apiService.obtenerRestricciones()
+                if (response.success) {
+                    restricciones = response.restricciones
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@Registro,
+                    "Error cargando restricciones",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun setupContenedor() {
+        // Convertir dp a píxeles
+        val barraHeight = (ALTURA_BARRA * resources.displayMetrics.density).toInt()
+        // Calcular alturas basadas en la pantalla
+        val displayMetrics = resources.displayMetrics
+        val screenHeight = displayMetrics.heightPixels
+        // Altura expandida: 70% de la pantalla
+        alturaExpandida = (screenHeight * 0.9).toInt()
+        // Altura minimizada: solo la barra + padding
+        alturaMinimizada = barraHeight + 32 // 16dp padding top + 16dp padding bottom
+        // Estado inicial: minimizado
+        estadoActual = EstadoContenedor.MINIMIZADO
+        actualizarAlturaContenedor(alturaMinimizada)
+        actualizarTextoBarra()
+        binding.barraArrastre.setOnClickListener {
+            toggleContenedor()
+        }
+        binding.barraArrastre.setOnLongClickListener {
+            ocultarContenedorInferior()
+            true
+        }
+    }
+    private fun actualizarAlturaContenedor(altura: Int) {
+        val params = binding.contenedorInferior.layoutParams
+        params.height = altura
+        binding.contenedorInferior.layoutParams = params
+    }
+    private fun setupBarraArrastre() {
+
+        binding.barraArrastre.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    lastY = event.rawY
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val deltaY = event.rawY - lastY
+                    val newHeight = (binding.contenedorInferior.height - deltaY).toInt()
+
+                    if (newHeight in alturaMinimizada..alturaExpandida) {
+                        val params = binding.contenedorInferior.layoutParams
+                        params.height = newHeight
+                        binding.contenedorInferior.layoutParams = params
+                    }
+                    lastY = event.rawY
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    val alturaActual = binding.contenedorInferior.height
+                    contenedorExpandido = alturaActual > (alturaMinimizada + alturaExpandida) / 2
+                    actualizarTextoBarra()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+    private fun toggleContenedor() {
+        contenedorExpandido = !contenedorExpandido
+        val params = binding.contenedorInferior.layoutParams
+        params.height = if (contenedorExpandido) alturaMaxima else alturaMinima
+        binding.contenedorInferior.layoutParams = params
+        // Animar el cambio
+        binding.contenedorInferior.animate()
+            .setDuration(300)
+            .start()
+        actualizarTextoBarra()
+    }
+    private fun actualizarTextoBarra() {
+        binding.tvExpandirContraer.text = if (contenedorExpandido) {
+            "Desliza para contraer"
+        } else {
+            "Desliza para expandir"
+        }
+    }
+    private fun setupValidaciones() {
+
+        binding.btnRegistrar.setOnClickListener {
+
+            val nombre = binding.editNombre.text
+                .toString()
+                .trim()
+
+            val correo = binding.editCorreo.text
+                .toString()
+                .trim()
+
+
+            when (etapaRegistro) {
+
+                // ==========================================
+                // ETAPA 1
+                // ENVIAR CÓDIGO
+                // ==========================================
+                1 -> {
+
+                    if (!validarNombre(nombre)) {
+                        return@setOnClickListener
+                    }
+
+                    if (!validarCorreo(correo)) {
+                        return@setOnClickListener
+                    }
+
+
+                    // Primero comprobamos que el correo
+                    // y nombre no estén registrados
+                    lifecycleScope.launch {
+
+                        try {
+
+                            val request =
+                                VerificarUsuario(
+                                    nombre,
+                                    correo
+                                )
+
+                            val response =
+                                ApiClient.apiService
+                                    .verificarUsuario(request)
+
+
+                            if (response.correoExiste) {
+
+                                mostrarError(
+                                    "El correo ya está registrado"
+                                )
+
+                                return@launch
+                            }
+
+
+                            if (response.nombreExiste) {
+
+                                mostrarError(
+                                    "El nombre de usuario ya está ocupado"
+                                )
+
+                                return@launch
+                            }
+
+
+                            // ==================================
+                            // TODO CORRECTO
+                            // ENVIAMOS CÓDIGO
+                            // ==================================
+
+                            nombreSeleccionado = nombre
+                            correoSeleccionado = correo
+
+                            enviarCodigoVerificacion(correo)
+
+                        } catch (e: Exception) {
+
+                            Log.e(
+                                "REGISTRO",
+                                "Error verificando usuario",
+                                e
+                            )
+
+                            mostrarError(
+                                "Error al conectar con el servidor"
+                            )
+                        }
+                    }
+                }
+
+
+                // ==========================================
+                // ETAPA 2
+                // VERIFICAR CÓDIGO
+                // ==========================================
+                2 -> {
+
+                    val codigo = binding.verificacion.text
+                        .toString()
+                        .trim()
+
+
+                    if (codigo.length != 6) {
+
+                        mostrarError(
+                            "Introduce el código de 6 dígitos"
+                        )
+
+                        return@setOnClickListener
+                    }
+
+
+                    verificarCodigoCorreo(
+                        correo,
+                        codigo
+                    )
+                }
+
+
+                // ==========================================
+                // ETAPA 3
+                // CREAR CUENTA
+                // ==========================================
+                3 -> {
+
+                    val pass =
+                        binding.editPassword.text
+                            .toString()
+
+                    val confirmPass =
+                        binding.editConfirmPassword.text
+                            .toString()
+
+
+                    // Seguridad adicional
+                    if (!correoVerificado) {
+
+                        mostrarError(
+                            "Primero debes verificar tu correo"
+                        )
+
+                        return@setOnClickListener
+                    }
+
+
+                    if (correo != correoVerificadoPara) {
+
+                        correoVerificado = false
+
+                        mostrarError(
+                            "El correo cambió. Debes verificarlo nuevamente"
+                        )
+
+                        return@setOnClickListener
+                    }
+
+
+                    if (!validarPassword(pass)) {
+                        return@setOnClickListener
+                    }
+
+
+                    if (pass != confirmPass) {
+
+                        mostrarError(
+                            "Las contraseñas no coinciden"
+                        )
+
+                        return@setOnClickListener
+                    }
+
+
+                    nombreSeleccionado = nombre
+                    correoSeleccionado = correo
+                    passSeleccionado = pass
+
+
+                    // ==================================
+                    // CREAR CUENTA
+                    // ==================================
+
+                    mostrarExito()
+                }
+            }
+        }
+    }
+    private fun enviarCodigoVerificacion(correo: String) {
+
+        lifecycleScope.launch {
+
+            try {
+
+                val request =
+                    EnviarCodigoVerificacionRequest(
+                        correo = correo
+                    )
+
+
+                Log.d(
+                    "VERIFICACION",
+                    "Enviando código a producción: $correo"
+                )
+
+
+                val response =
+                    ApiClient.apiService
+                        .enviarCodigoVerificacion(
+                            request
+                        )
+
+
+                Log.d(
+                    "VERIFICACION",
+                    "Respuesta: ${response.success}"
+                )
+
+                Log.d(
+                    "VERIFICACION",
+                    "Mensaje: ${response.mensaje}"
+                )
+
+
+                if (response.success) {
+
+                    Toast.makeText(
+                        this@Registro,
+                        "Código enviado a tu correo",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+
+                    // ==================================
+                    // CAMBIAR A ETAPA 2
+                    // ==================================
+
+                    etapaRegistro = 2
+
+
+                    // Mostrar código
+                    binding.layoutVerificacion.visibility =
+                        View.VISIBLE
+
+
+                    // Cambiar botón
+                    binding.btnRegistrar.text =
+                        "Verificar código"
+                    binding.btnReenviarcodigo.visibility=
+                        View.VISIBLE
+
+
+                    // Limpiar error
+                    binding.txtError.visibility =
+                        View.GONE
+
+
+                    // Guardamos el correo
+                    correoVerificadoPara = correo
+
+
+                } else {
+
+                    mostrarError(
+                        response.mensaje
+                    )
+                }
+
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "VERIFICACION",
+                    "Error enviando código",
+                    e
+                )
+
+                mostrarError(
+                    "Error al conectar con el servidor"
+                )
+            }
+        }
+    }
+    private fun verificarCodigoCorreo(
+        correo: String,
+        codigo: String
+    ) {
+
+        lifecycleScope.launch {
+
+            try {
+
+                val request =
+                    VerificarCodigoCorreoRequest(
+                        correo = correo,
+                        codigo = codigo
+                    )
+
+
+                Log.d(
+                    "VERIFICACION",
+                    "Verificando código..."
+                )
+
+
+                val response =
+                    ApiClient.apiService
+                        .verificarCodigoCorreo(
+                            request
+                        )
+
+
+                if (response.success) {
+
+                    // ==================================
+                    // CÓDIGO CORRECTO
+                    // ==================================
+
+                    correoVerificado = true
+                    correoVerificadoPara = correo
+
+
+                    Toast.makeText(
+                        this@Registro,
+                        "Correo verificado correctamente",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+
+                    // ==================================
+                    // MOSTRAR CONTRASEÑAS
+                    // ==================================
+
+                    binding.editPassword.parent
+                    binding.layoutPassword.visibility =
+                        View.VISIBLE
+
+                    binding.layoutConfirmPassword.visibility =
+                        View.VISIBLE
+                    binding.btnReenviarcodigo.visibility =
+                        View.GONE
+
+                    // ==================================
+                    // CAMBIAR BOTÓN
+                    // ==================================
+
+                    etapaRegistro = 3
+
+                    binding.btnRegistrar.text =
+                        "Crear cuenta"
+
+
+                    binding.txtError.visibility =
+                        View.GONE
+
+
+                    // Ya no necesitamos modificar
+                    // el correo durante este proceso
+                    binding.editCorreo.isEnabled = false
+
+
+                } else {
+
+                    // ==================================
+                    // CÓDIGO INCORRECTO
+                    // ==================================
+
+                    correoVerificado = false
+
+                    mostrarError(
+                        response.mensaje
+                    )
+                }
+
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "VERIFICACION",
+                    "Error verificando código",
+                    e
+                )
+
+                mostrarError(
+                    "Error al conectar con el servidor"
+                )
+            }
+        }
+    }
+
+    private fun registrarUsuarioGoogle() {
+
+        binding.txtError.visibility = View.GONE
+
+        CoroutineScope(Dispatchers.IO).launch {
+
+            try {
+
+                val request = RegistroGoogle(
+
+                    correo = correoSeleccionado,
+
+                    nombre = nombreSeleccionado,
+
+                    google_id = googleIdSeleccionado,
+
+                    avatar = avatar,
+
+                    edad = edadSeleccionada,
+
+                    nivel = nivelSeleccionado,
+
+                    latitud = latitudSeleccionada,
+
+                    longitud = longitudSeleccionada,
+
+                    restricciones = restriccionesSeleccionadas.map { it.id }
+
+                )
+
+                val response =
+                    ApiClient.apiService.registroGoogle(request)
+
+                withContext(Dispatchers.Main) {
+
+                    if (response.success && response.usuario != null) {
+
+                        val usuario = response.usuario
+
+                        //------------------------------------------------
+                        // Guardar sesión
+                        //------------------------------------------------
+
+                        val shared =
+                            getSharedPreferences("user", MODE_PRIVATE)
+
+                        shared.edit()
+                            .putInt("id", usuario.id)
+                            .putString("nombre", usuario.nombre)
+                            .putString("correo", usuario.correo)
+                            .putString("foto", usuario.foto)
+                            .putString("origen", usuario.origen)
+                            .apply()
+
+                        mostrarExito()
+
+                    } else {
+
+                        mostrarError(response.message)
+
+                    }
+
+                }
+
+            } catch (e: Exception) {
+
+                e.printStackTrace()
+
+                withContext(Dispatchers.Main) {
+
+                    mostrarError("Error de conexión")
+
+                }
+
+            }
+
+        }
+
+    }
+    private fun registrarUsuario() {
+        val ip = obtenerIP()
+        binding.txtError.visibility = View.GONE
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // 🔹 datos que ya obtienes en tu pantalla de registro
+                val edad = edadSeleccionada
+                val nivel = nivelSeleccionado
+                val avatar = avatarSeleccionado
+                val latitud = latitudSeleccionada
+                val longitud = longitudSeleccionada
+                val  nombre = nombreSeleccionado
+                val correo = correoSeleccionado
+                val pass = passSeleccionado
+                val origen = "APP_GOURMEET"
+                // lista de ids de restricciones seleccionadas
+                val restriccionesIds = restriccionesSeleccionadas.map { it.id }
+                val usuario = UsuarioRegistro(
+                    nombre = nombre,
+                    correo = correo,
+                    password = pass,
+                    cliPrimerIp = ip,
+                    origen = origen,
+                    edad = edad,
+                    nivel = nivel,
+                    avatar = avatar,
+                    latitud = latitud,
+                    longitud = longitud,
+                    restricciones = restriccionesIds
+                )
+                val response = ApiClient.apiService.registrarUsuario(usuario)
+                withContext(Dispatchers.Main) {
+                    if (response.success) {
+                        mostrarExito()
+                    } else {
+                        mostrarError( "Error desconocido")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    mostrarError("Error de conexión")
+                }
+
+            }
+        }
+    }
+    // =========================
+    // ✅ VALIDAR NOMBRE
+    // =========================
+    private fun validarNombre(nombre: String): Boolean {
+
+        if (nombre.isEmpty()) {
+            mostrarError("Ingresa tu nombre")
+            return false
+        }
+        val regex = Regex("^[A-ZÁÉÍÓÚÑ][a-záéíóúñA-ZÁÉÍÓÚÑ ]*$")
+
+        if (!regex.matches(nombre)) {
+            mostrarError("Nombre inválido. Solo letras y debe iniciar con mayúscula")
+            return false
+        }
+        return true
+    }
+    // =========================
+    // ✅ VALIDAR CORREO
+    // =========================
+    private fun validarCorreo(correo: String): Boolean {
+
+        if (correo.isEmpty()) {
+            mostrarError("Ingresa tu correo")
+            return false
+        }
+        if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+            mostrarError("Correo inválido")
+            return false
+        }
+
+        return true
+    }
+    // =========================
+    // ✅ VALIDAR PASSWORD
+    // =========================
+    private fun validarPassword(pass: String): Boolean {
+
+        if (pass.length < 8) {
+            mostrarError("La contraseña debe tener mínimo 8 caracteres")
+            return false
+        }
+
+        val regexMayuscula = Regex(".*[A-Z].*")
+
+        if (!regexMayuscula.matches(pass)) {
+            mostrarError("La contraseña debe contener al menos una mayúscula")
+            return false
+        }
+
+        return true
+    }
+    // =========================
+    // ✅ MENSAJES
+    // =========================
+    private fun mostrarError(msg: String) {
+        binding.txtError.apply {
+            text = msg
+            visibility = View.VISIBLE
+            alpha = 0f
+            animate().alpha(1f).setDuration(250).start()
+        }
+    }
+    private fun mostrarExito() {
+        binding.layoutRegistro.visibility = View.GONE
+        binding.layoutPersonalizar.visibility = View.VISIBLE
+    }
+    private fun obtenerIP(): String {
+        return try {
+            val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
+            val ipInt = wifiManager.connectionInfo.ipAddress
+
+            String.format(
+                "%d.%d.%d.%d",
+                ipInt and 0xff,
+                ipInt shr 8 and 0xff,
+                ipInt shr 16 and 0xff,
+                ipInt shr 24 and 0xff
+            )
+        } catch (e: Exception) {
+            "0.0.0.0"
+        }
+    }
+    private fun limpiarContenedorInferior() {
+        Log.d("RegistroDebug", "Entrando a limpiar")
+        val avatar = binding.contenedorInferior.findViewWithTag<View>("avatar_container")
+        avatar?.let { binding.contenedorInferior.removeView(it) }
+        val nivel = binding.contenedorInferior.findViewWithTag<View>("nivel_container")
+        nivel?.let { binding.contenedorInferior.removeView(it) }
+        val restricciones = binding.contenedorInferior.findViewWithTag<View>("restricciones_container")
+        restricciones?.let { binding.contenedorInferior.removeView(it) }
+        val edad = binding.contenedorInferior.findViewWithTag<View>("edad_container")
+        edad?.let { binding.contenedorInferior.removeView(it) }
+
+    }
+    private fun mostrarSelectorAvatarEnContenedor() {
+        Log.d(TAG, "Entrando a avatar")
+        if (binding.contenedorInferior.visibility == View.VISIBLE) {
+            limpiarContenedorInferior()
+        }
+        binding.tvTituloContenedor.text = "Selecciona tu avatar"
+        // Inflar el layout de avatares
+        val avatarView = layoutInflater.inflate(R.layout.dialog_avatar, null)
+        val radioGroup = avatarView.findViewById<RadioGroup>(R.id.radiogroupgenero)
+        val grid = avatarView.findViewById<GridLayout>(R.id.gridavatares)
+        val contenedorAvatar = LinearLayout(this)
+        contenedorAvatar.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+
+        fun cargarAvatares(genero: String) {
+            grid.removeAllViews()
+            for (i in 1..5) {
+                val imageView = ImageView(this)
+                val params = GridLayout.LayoutParams()
+                params.width = 250
+                params.height = 250
+                params.setMargins(16, 16, 16, 16)
+                imageView.layoutParams = params
+                imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+                val nombreImagen = if (genero == "M") {
+                    "ic_usuario_$i"
+                } else {
+                    "ic_usuario_f$i"
+                }
+                val resourceId = resources.getIdentifier(
+                    nombreImagen,
+                    "drawable",
+                    packageName
+                )
+                if (resourceId != 0) {
+                    imageView.setImageResource(resourceId)
+                }
+                imageView.setOnClickListener {
+                    avatarSeleccionado = "$nombreImagen.png"   // 🔥 ESTE ES EL QUE VA A LA API
+                    binding.btnSeleccionAvatar.text = "Avatar seleccionado"
+                    val resourceId = resources.getIdentifier(
+                        nombreImagen,
+                        "drawable",
+                        packageName
+                    )
+                    binding.btnSeleccionAvatar.iconTint = null
+                    binding.btnSeleccionAvatar.setIconResource(resourceId)
+                    ocultarContenedorInferior()
+                    Toast.makeText(this, "Avatar seleccionado", Toast.LENGTH_SHORT).show()
+                    avatar = avatarSeleccionado
+                }
+                grid.addView(imageView)
+            }
+        }
+
+        // Cargar avatares masculinos por defecto
+        if (googleIdSeleccionado.isNotEmpty()) {
+            val btnGoogleAvatar = avatarView.findViewById<Button>(R.id.btnGoogleAvatar)
+
+            btnGoogleAvatar.visibility = View.VISIBLE
+
+            btnGoogleAvatar.setOnClickListener {
+                binding.btnSeleccionAvatar.text = "Foto de Google seleccionada"
+                ocultarContenedorInferior()
+
+            }
+        }
+        cargarAvatares("M")
+
+        // Configurar cambio de género
+        radioGroup.setOnCheckedChangeListener { _, checkedId ->
+            if (checkedId == R.id.rbmasculino) {
+                cargarAvatares("M")
+            } else {
+                cargarAvatares("F")
+            }
+        }
+
+        contenedorAvatar.orientation = LinearLayout.VERTICAL
+        contenedorAvatar.addView(avatarView)
+        // Reemplazar el contenido del contenedor inferior
+        val parent = binding.recyclerOpciones.parent as? ViewGroup
+        val index = (parent?.indexOfChild(binding.recyclerOpciones) ?: 0) + 1
+        // Ocultar RecyclerView y mostrar el contenedor personalizado
+        binding.recyclerOpciones.visibility = View.GONE
+        // Buscar si ya existe un contenedor personalizado y eliminarlo
+        val existingContainer = binding.contenedorInferior.findViewWithTag<View>("avatar_container")
+        existingContainer?.let { binding.contenedorInferior.removeView(it) }
+        // Agregar el nuevo contenedor con tag para identificarlo
+        contenedorAvatar.tag = "avatar_container"
+        binding.contenedorInferior.addView(contenedorAvatar, binding.contenedorInferior.childCount - 1)
+        mostrarContenedorInferior()
+    }
+    private fun ocultarContenedorInferior() {
+        Log.d(TAG, "Entrando a contenedor inferior")
+
+        binding.contenedorInferior.animate()
+            .translationY(binding.contenedorInferior.height.toFloat()) // baja
+            .alpha(0f) // desaparece
+            .setDuration(300)
+            .withEndAction {
+
+                binding.contenedorInferior.visibility = View.GONE
+
+                // resetear posición para cuando vuelva a mostrarse
+                binding.contenedorInferior.translationY = 0f
+                binding.contenedorInferior.alpha = 1f
+
+                // limpiar vistas dinámicas
+                val viewsToRemove = mutableListOf<View>()
+
+                for (i in 0 until binding.contenedorInferior.childCount) {
+
+                    val child = binding.contenedorInferior.getChildAt(i)
+
+                    if (child.tag != null &&
+                        child != binding.tvTituloContenedor
+
+                    ) {
+                        viewsToRemove.add(child)
+                    }
+                }
+
+                viewsToRemove.forEach {
+                    binding.contenedorInferior.removeView(it)
+                }
+
+                // mostrar recycler otra vez
+                binding.recyclerOpciones.visibility = View.VISIBLE
+            }
+    }
+    private fun mostrarContenedorInferior() {
+
+        binding.contenedorInferior.visibility = View.VISIBLE
+
+        // 🔥 Forzar expansión
+        val params = binding.contenedorInferior.layoutParams
+        params.height = alturaExpandida
+        binding.contenedorInferior.layoutParams = params
+
+        contenedorExpandido = true
+        actualizarTextoBarra()
+
+        // Iniciar desde abajo
+        binding.contenedorInferior.translationY = binding.contenedorInferior.height.toFloat()
+        binding.contenedorInferior.alpha = 0f
+        binding.contenedorInferior.animate()
+            .translationY(0f) // sube
+            .alpha(1f)        // aparece
+            .setDuration(300)
+            .setListener(null)
+    }
+    class NivelAdapter(private val lista: List<NivelCocina>) :
+        RecyclerView.Adapter<NivelAdapter.ViewHolder>() {
+        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val img = view.findViewById<ImageView>(R.id.img)
+            val txt = view.findViewById<TextView>(R.id.txtNivel)
+        }
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.aceptar_terminos, parent, false)
+            return ViewHolder(view)
+        }
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val item = lista[position]
+            holder.img.setImageResource(item.imagen)
+            holder.txt.text = item.nombre
+        }
+        override fun getItemCount() = lista.size
+    }
+    private fun mostrarSelectorEdad() {
+        Log.d(TAG, "Entrando a edad")
+        if (binding.contenedorInferior.visibility == View.VISIBLE) {
+            limpiarContenedorInferior()
+        }
+        binding.tvTituloContenedor.text = "Selecciona tu edad"
+        // Crear contenedor principal
+        val contenedorEdad = LinearLayout(this)
+        contenedorEdad.orientation = LinearLayout.VERTICAL
+        contenedorEdad.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        // Crear TextView para mostrar la edad seleccionada
+        val txtEdadSeleccionada = TextView(this).apply {
+            text = "18 años"
+            textSize = 24f
+            gravity = Gravity.CENTER
+            setTextColor(Color.BLACK)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = 32
+                bottomMargin = 32
+            }
+        }
+        // Crear RecyclerView para el carrusel
+        val recyclerView = RecyclerView(this)
+        recyclerView.layoutParams = RecyclerView.LayoutParams(
+            RecyclerView.LayoutParams.MATCH_PARENT,
+            400 // Altura fija para el carrusel
+        )
+        // Configurar LayoutManager horizontal con centrado
+        val layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        recyclerView.layoutManager = layoutManager
+        // Agregar SnapHelper para efecto de centrado
+        val snapHelper = LinearSnapHelper()
+        snapHelper.attachToRecyclerView(recyclerView)
+        // Crear lista de edades (18 a 100 años)
+        val edades = (18..100).toList()
+        // Crear y configurar el adaptador
+        val adapter = EdadAdapter(edades) { edad ->
+            txtEdadSeleccionada.text = "$edad años"
+            edadSeleccionada = edad
+        }
+        recyclerView.adapter = adapter
+        // Scroll a la edad por defecto (18)
+        recyclerView.post {
+            layoutManager.scrollToPosition(0)
+        }
+        // Agregar vistas al contenedor
+        contenedorEdad.addView(txtEdadSeleccionada)
+        contenedorEdad.addView(recyclerView)
+        // Botón para confirmar selección
+        val btnConfirmar = MaterialButton(this).apply {
+            text = "CONFIRMAR EDAD"
+            setBackgroundColor(ContextCompat.getColor(context, R.color.azulgourmeet))
+            typeface = ResourcesCompat.getFont(context, R.font.caviardreams)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = 32
+                leftMargin = 32
+                rightMargin = 32
+                bottomMargin = 32
+            }
+            cornerRadius = 20
+            setOnClickListener {
+                // Si no seleccionó edad → usar 18
+                if (edadSeleccionada <= 0) {
+                    edadSeleccionada = 18
+                }
+                btnEdad.text = "$edadSeleccionada años"
+                ocultarContenedorInferior()
+
+                Toast.makeText(
+                    this@Registro,
+                    "Edad seleccionada: $edadSeleccionada",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        contenedorEdad.addView(btnConfirmar)
+        // Ocultar RecyclerView principal
+        binding.recyclerOpciones.visibility = View.GONE
+        // Eliminar contenedor anterior si existe
+        val existing = binding.contenedorInferior.findViewWithTag<View>("edad_container")
+        existing?.let { binding.contenedorInferior.removeView(it) }
+        contenedorEdad.tag = "edad_container"
+        binding.contenedorInferior.addView(contenedorEdad, binding.contenedorInferior.childCount - 1)
+        mostrarContenedorInferior()
+    }
+    inner class EdadAdapter(
+        private val edades: List<Int>,
+        private val onItemClick: (Int) -> Unit
+    ) : RecyclerView.Adapter<EdadAdapter.EdadViewHolder>() {
+        private var selectedPosition = 0
+        inner class EdadViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            private val txtEdad: TextView = itemView.findViewById(R.id.txtEdad)
+            private val cardView: CardView = itemView.findViewById(R.id.cardView)
+            fun bind(edad: Int, isSelected: Boolean) {
+                txtEdad.text = edad.toString()
+                // Cambiar estilo según si está seleccionado
+                if (isSelected) {
+                    cardView.setCardBackgroundColor(Color.parseColor("#0E90E4"))
+                    txtEdad.setTextColor(Color.WHITE)
+                    cardView.cardElevation = 8f
+                } else {
+                    cardView.setCardBackgroundColor(Color.WHITE)
+                    txtEdad.setTextColor(Color.BLACK)
+                    cardView.cardElevation = 2f
+                }
+                itemView.setOnClickListener {
+                    val previousPosition = selectedPosition
+                    selectedPosition = adapterPosition
+                    notifyItemChanged(previousPosition)
+                    notifyItemChanged(selectedPosition)
+                    onItemClick(edad)
+                }
+            }
+        }
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EdadViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_edad, parent, false)
+            return EdadViewHolder(view)
+        }
+        override fun onBindViewHolder(holder: EdadViewHolder, position: Int) {
+            val edad = edades[position]
+            val isSelected = position == selectedPosition
+            holder.bind(edad, isSelected)
+        }
+        override fun getItemCount() = edades.size
+    }
+    private fun mostrarSelectorRestricciones(titulo: String, lista: List<Restriccion>) {
+        binding.tvTituloContenedor.text = titulo
+
+        // Contenedor principal
+        val contenedorPrincipal = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+        // Contenedor SOLO para la lista
+        val contenedorLista = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+        val seleccionadas = mutableSetOf<Int>().apply {
+            addAll(restriccionesSeleccionadas)
+        }
+        lista.forEach { restriccion ->
+            val item = layoutInflater.inflate(R.layout.item_restriccion, null)
+            val nombre = item.findViewById<TextView>(R.id.tvNombre)
+            val descripcion = item.findViewById<TextView>(R.id.tvDescripcion)
+            val typeface = ResourcesCompat.getFont(this, R.font.caviardreams)
+            nombre.typeface = typeface
+            descripcion.typeface = typeface
+            nombre.text = restriccion.nombre
+            descripcion.text = restriccion.descripcion
+            item.setOnClickListener {
+                if (seleccionadas.contains(restriccion.id)) {
+                    seleccionadas.remove(restriccion.id)
+                    nombre.setTextColor(Color.BLACK)
+                    descripcion.setTextColor(Color.GRAY)
+                    item.setBackgroundColor(Color.TRANSPARENT)
+                } else {
+                    seleccionadas.add(restriccion.id)
+                    nombre.setTextColor(Color.WHITE)
+                    descripcion.setTextColor(Color.WHITE)
+                    item.setBackgroundColor(Color.parseColor("#0E90E4"))
+                }
+            }
+            contenedorLista.addView(item)
+        }
+        // Botón confirmar
+        val btnConfirmar = MaterialButton(this).apply {
+            text = "CONFIRMAR"
+            setBackgroundColor(ContextCompat.getColor(context, R.color.azulgourmeet))
+            setTextColor(Color.WHITE)
+            textSize = 18f
+            typeface = ResourcesCompat.getFont(context, R.font.caviardreams)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = 32
+                leftMargin = 32
+                rightMargin = 32
+            }
+            setOnClickListener {
+                Toast.makeText(
+                    this@Registro,
+                    "Seleccionaste ${seleccionadas.size} restricciones",
+                    Toast.LENGTH_SHORT
+                ).show()
+                binding.contenedorContenido.removeView(contenedorPrincipal)
+                ocultarContenedorInferior()
+            }
+        }
+        // Orden correcto
+        contenedorPrincipal.addView(contenedorLista)
+        contenedorPrincipal.addView(btnConfirmar)
+        binding.recyclerOpciones.visibility = View.GONE
+// eliminar contenedor anterior si existe
+        val existing = binding.contenedorContenido.findViewWithTag<View>("restricciones_container")
+        existing?.let { binding.contenedorContenido.removeView(it) }
+// agregar nuevo contenedor
+        contenedorPrincipal.tag = "restricciones_container"
+        binding.contenedorContenido.addView(contenedorPrincipal)
+        mostrarContenedorInferior()
+    }
+
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        val data = intent?.data
+        Log.d("TIKTOK", "==============================")
+        Log.d("TIKTOK", "Intent recibido: $data")
+        val code = data?.getQueryParameter("code")
+        val state = data?.getQueryParameter("state")
+        if (code != null) {
+            Log.d("TIKTOK", "✅ CODE RECIBIDO:")
+            Log.d("TIKTOK", code)
+        } else {
+            Log.e("TIKTOK", "❌ No se recibió code")
+        }
+        if (state != null) {
+            Log.d("TIKTOK", "STATE:")
+            Log.d("TIKTOK", state)
+        }
+        Log.d("TIKTOK", "==============================")
+    }
+}

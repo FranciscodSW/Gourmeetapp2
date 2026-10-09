@@ -152,7 +152,7 @@
                     <!-- TITULO                    -->
                     <!-- ========================= -->
 
-                    <com.example.gourmeet2.views.StrokeTextView
+                    <mx.com.gourmeet.app.views.StrokeTextView
                         android:id="@+id/txtTitulo"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -168,7 +168,7 @@
                     <!-- COINCIDENCIA              -->
                     <!-- ========================= -->
 
-                    <com.example.gourmeet2.views.BlueStrokeTextView
+                    <mx.com.gourmeet.app.views.BlueStrokeTextView
                         android:id="@+id/txtCoincidencia"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
