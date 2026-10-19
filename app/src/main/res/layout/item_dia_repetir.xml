@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="64dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="4dp">
+
+    <TextView
+        android:id="@+id/txtInicialDia"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:text="L"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/azulgourmeet"
+        android:background="@drawable/bg_ovalo_sin_fondo"
+        android:clickable="false"
+        android:focusable="false"/>
+
+    <TextView
+        android:id="@+id/txtNombreDia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Lunes"
+        android:textSize="10sp"
+        android:textColor="@color/azulgourmeet"
+        android:maxLines="1"/>
+</LinearLayout>

@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:background="@drawable/bg_bottom_sheet_alacena">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_rectangulo_azul_borde_negro_3"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <!-- TÍTULO -->
+        <TextView
+            android:id="@+id/txtTituloIngrediente"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Agregar recetas a mi comida"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:paddingStart="55dp"
+            android:paddingEnd="35dp"/>
+
+        <!-- BOTÓN CERRAR -->
+        <ImageButton
+            android:id="@+id/btnCerrarIngrediente"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="start"
+            android:translationY="8dp"
+            android:translationX="5dp"
+            android:layout_marginStart="1dp"
+            app:tint="@color/azulgourmeet"
+            android:background="@drawable/bg_circulo_blanco_sin_fondo"
+            android:src="@drawable/ic_cerrar_blanco"
+            android:scaleType="centerInside"
+            android:contentDescription="Cerrar"/>
+
+    </FrameLayout>
+
+    <!-- TIPOS DE RECETAS -->
+    <LinearLayout
+        android:id="@+id/contenedorTiposReceta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEntrada"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="5dp"
+            android:text="Entrada"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textColor="@color/azulgourmeet"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/white"
+            app:strokeColor="@color/azulgourmeet"
+            app:strokeWidth="1dp"
+            app:cornerRadius="12dp"
+             />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPlatoFuerte"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="5dp"
+            android:text="Plato fuerte"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textColor="@color/azulgourmeet"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/white"
+            app:strokeColor="@color/azulgourmeet"
+            app:strokeWidth="1dp"
+            app:cornerRadius="12dp"
+             />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPostre"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="5dp"
+            android:text="Postre"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textColor="@color/azulgourmeet"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/white"
+            app:strokeColor="@color/azulgourmeet"
+            app:strokeWidth="1dp"
+            app:cornerRadius="12dp"
+             />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBebida"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="5dp"
+            android:text="Bebida"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textColor="@color/azulgourmeet"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/white"
+            app:strokeColor="@color/azulgourmeet"
+            app:strokeWidth="1dp"
+            app:cornerRadius="12dp"
+             />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAnadirExtra"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="5dp"
+            android:text="+ Añadir extra"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textColor="@color/azulgourmeet"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/white"
+            app:strokeColor="@color/azulgourmeet"
+            app:strokeWidth="1dp"
+            app:cornerRadius="12dp"
+             />
+
+    </LinearLayout>
+
+    <!-- BUSCADOR + ICONO -->
+
+    <FrameLayout
+        android:layout_width="300dp"
+        android:layout_height="37dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_ovalo_sin_fondo">
+
+        <!-- Casa + texto centrados -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <ImageView
+                android:id="@+id/imgIconoAlacenaSeleccionada"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/ic_casa2"
+                android:contentDescription="Casa" />
+
+            <TextView
+                android:id="@+id/txtAlacenaSeleccionada"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="5dp"
+                android:gravity="center"
+                android:text="Mi alacena en hogar"
+                android:fontFamily="@font/caviardreams"
+                android:textColor="@color/azulgourmeet" />
+
+        </LinearLayout>
+
+        <!-- Flecha pegada a la derecha -->
+        <ImageView
+            android:id="@+id/flechaseleccionaralacena"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="5dp"
+            android:background="@drawable/ic_flecha_abajo"
+            android:contentDescription="Abrir" />
+
+    </FrameLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMisIngredientes"
+        android:layout_width="match_parent"
+        android:visibility="gone"
+        android:layout_height="110dp"
+        android:layout_marginTop="10dp"
+        android:clipToPadding="false"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:overScrollMode="never"/>
+    <TextView
+        android:id="@+id/txtcontenedeor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ingrediente caducado "
+        android:textColor="@color/rojo"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        android:fontFamily="@font/caviardreams"
+        android:gravity="center"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:paddingStart="55dp"
+        android:paddingEnd="35dp"/>
+
+    <!-- ====================================== -->
+    <!-- BOTONES -->
+    <!-- ====================================== -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="22dp"
+        android:layout_marginBottom="5dp">
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelarIngrediente"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="6dp"
+            android:text="Limpiar"
+            android:textColor="@color/azulgourmeet"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/white"
+            app:strokeColor="@color/azulgourmeet"
+            app:strokeWidth="2dp"
+            app:cornerRadius="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGuardarIngrediente"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="5dp"
+            android:text="Guardar recetas"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/azulgourmeet"
+            app:cornerRadius="12dp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/quepasoconeling"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/vermasrecetas"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="5dp"
+            android:text="Ver recetas disponibles"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:backgroundTint="@color/azulgourmeet"
+            app:cornerRadius="12dp"/>
+    </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="150dp">
+    </View>
+
+</LinearLayout>

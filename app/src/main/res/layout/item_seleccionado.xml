@@ -42,7 +42,7 @@
         android:layout_marginTop="2dp"
         android:layout_marginEnd="2dp"
         android:src="@drawable/ic_close"
-        android:background="@drawable/bg_circulo_blanco"
+        android:background="@drawable/bg_circulo_azul_margen_blanco"
         android:padding="3dp"/>
 
 </FrameLayout>

@@ -108,60 +108,20 @@
             android:textSize="14sp"
             android:fontFamily="@font/caviardreams"
             android:gravity="center"/>
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/planes"
+
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
 
+            android:layout_marginTop="15dp"
 
-        <LinearLayout
-            android:layout_width="200dp"
-            android:layout_height="450dp"
-            android:orientation="vertical">
+            android:clipToPadding="false"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="350dp"
-                android:src="@drawable/ic_plan_individual"
-                />
-            <Button
-                android:id="@+id/btnComprarPlan"
-                android:layout_width="150dp"
-                android:layout_height="50dp"
-                android:layout_gravity="center"
-                android:backgroundTint="@color/azulgourmeet"
-                android:textColor="@color/white"
-                android:textSize="15dp"
-                android:fontFamily="@font/caviardreams"
-                android:text="Comprar"
+            android:overScrollMode="never"
 
-                />
-        </LinearLayout>
-            <View
-                android:layout_width="10dp"
-                android:layout_height="0dp"/>
-            <LinearLayout
-                android:layout_width="200dp"
-                android:layout_height="450dp"
-                android:orientation="vertical">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="350dp"
-                    android:src="@drawable/ic_plan_familiar"
-                    />
-                <Button
-                    android:id="@+id/btnComprarPlanHogar"
-                    android:layout_width="150dp"
-                    android:layout_height="50dp"
-                    android:layout_gravity="center"
-                    android:backgroundTint="@color/azulgourmeet"
-                    android:textColor="@color/white"
-                    android:textSize="15dp"
-                    android:fontFamily="@font/caviardreams"
-                    android:text="Comprar"
-                    />
-            </LinearLayout>
-        </LinearLayout>
+            android:visibility="visible"/>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

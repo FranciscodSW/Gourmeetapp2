@@ -7,97 +7,85 @@ import mx.com.gourmeet.app.databinding.ItemPlanPremiumBinding
 
 class PlanPremiumAdapter(
 
-    private val planes: List<PlanPremium>
+    private val planes: List<PlanPremium>,
+
+    private val onSeleccionarPlan: (
+        productoId: String,
+        periodicidad: String,
+        nombrePlan: String
+    ) -> Unit
 
 ) : RecyclerView.Adapter<PlanPremiumAdapter.ViewHolder>() {
 
 
-    // ==========================================
-    // VIEW HOLDER
-    // ==========================================
-
     inner class ViewHolder(
-
         val binding: ItemPlanPremiumBinding
+    ) : RecyclerView.ViewHolder(binding.root)
 
-    ) : RecyclerView.ViewHolder(
-        binding.root
-    )
-
-
-    // ==========================================
-    // CREAR VIEW HOLDER
-    // ==========================================
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
     ): ViewHolder {
 
-        val binding =
-            ItemPlanPremiumBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
-            )
-
-        return ViewHolder(
-            binding
+        val binding = ItemPlanPremiumBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
         )
+
+        return ViewHolder(binding)
     }
 
-
-    // ==========================================
-    // BIND
-    // ==========================================
 
     override fun onBindViewHolder(
         holder: ViewHolder,
         position: Int
     ) {
 
-        val plan =
-            planes[position]
+        val plan = planes[position]
 
-
-        // ==========================================
         // IMAGEN
-        // ==========================================
-
         holder.binding.imgPlanPremium
-            .setImageResource(
-                plan.imagen
-            )
+            .setImageResource(plan.imagen)
 
-
-        // ==========================================
         // NOMBRE
-        // ==========================================
-
-        holder.binding.txtNombrePlan
-            .text =
+        holder.binding.txtNombrePlan.text =
             plan.nombre
 
+        // PRECIO MENSUAL
+        holder.binding.txtPrecioMensual.text =
+            plan.precioMensual
 
-        // ==========================================
-        // BOTÓN COMPRAR
-        // ==========================================
+        // PRECIO ANUAL
+        holder.binding.txtPrecioAnual.text =
+            plan.precioAnual
 
-        holder.binding.btnComprarPlan
-            .setOnClickListener {
 
-                // ==================================
-                // POR EL MOMENTO NO HACE NADA
-                // ==================================
+        // COMPRAR MENSUAL
+        holder.binding.btnComprarPlan.setOnClickListener {
+            onSeleccionarPlan(
+                plan.productoId,
+                plan.planBasicoMensual,
+                plan.nombre
+            )
+        }
 
-            }
+
+        // COMPRAR ANUAL
+        holder.binding.btnComprarPlanAN.setOnClickListener {
+
+            onSeleccionarPlan(
+                plan.productoId,
+                plan.planBasicoAnual,
+                plan.nombre
+            )
+
+        }
+
     }
-
-
-    // ==========================================
-    // TOTAL
-    // ==========================================
 
     override fun getItemCount(): Int =
         planes.size
+
 }

@@ -18,21 +18,19 @@
         android:layout_height="wrap_content"
 
         android:orientation="vertical"
-
-        android:padding="8dp"
-
+        android:padding="12dp"
         android:background="@android:color/white">
 
 
         <!-- ================================= -->
-        <!-- IMAGEN DEL PLAN -->
+        <!-- IMAGEN -->
         <!-- ================================= -->
 
         <ImageView
             android:id="@+id/imgPlanPremium"
 
             android:layout_width="match_parent"
-            android:layout_height="500dp"
+            android:layout_height="220dp"
 
             android:scaleType="centerCrop"
 
@@ -49,18 +47,58 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
 
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
 
-            android:text="Plan Básico"
+            android:text="Plan Individual"
             android:textColor="@color/azulgourmeet"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textStyle="bold"
             android:fontFamily="@font/caviardreams"
             android:gravity="center"/>
 
 
         <!-- ================================= -->
-        <!-- BOTÓN COMPRAR -->
+        <!-- PRECIO MENSUAL -->
+        <!-- ================================= -->
+
+        <TextView
+            android:id="@+id/txtPrecioMensual"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="8dp"
+
+            android:text="$50 / mes"
+            android:textColor="#333333"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"/>
+
+
+        <!-- ================================= -->
+        <!-- PRECIO ANUAL -->
+        <!-- ================================= -->
+
+        <TextView
+            android:id="@+id/txtPrecioAnual"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="4dp"
+
+            android:text="$550 / año"
+            android:textColor="@color/azulgourmeet"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"/>
+
+
+        <!-- ================================= -->
+        <!-- BOTÓN MENSUAL -->
         <!-- ================================= -->
 
         <com.google.android.material.button.MaterialButton
@@ -69,11 +107,10 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
 
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginTop="12dp"
 
-            android:text="COMPRAR"
-            android:textSize="15sp"
+            android:text="Comprar mensual"
+            android:textSize="14sp"
             android:textStyle="bold"
             android:fontFamily="@font/caviardreams"
 
@@ -82,6 +119,33 @@
             app:backgroundTint="@color/azulgourmeet"
 
             app:cornerRadius="14dp"/>
+
+
+        <!-- ================================= -->
+        <!-- BOTÓN ANUAL -->
+        <!-- ================================= -->
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnComprarPlanAN"
+
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="5dp"
+
+            android:text="Comprar anual"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/caviardreams"
+
+            android:textColor="@color/azulgourmeet"
+
+            app:backgroundTint="@android:color/white"
+            app:strokeColor="@color/azulgourmeet"
+            app:strokeWidth="2dp"
+            app:cornerRadius="14dp"/>
+
 
     </LinearLayout>
 

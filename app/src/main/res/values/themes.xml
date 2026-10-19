@@ -18,4 +18,19 @@
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
+    <style name="TemaRelojGourMeet" parent="Theme.MaterialComponents.Light.Dialog.Alert">
+        <!-- Fondo blanco -->
+        <item name="android:colorBackground">@android:color/white</item>
+
+        <!-- Azul GourMeet para los elementos de selección -->
+        <item name="colorAccent">@color/azulgourmeet</item>
+
+        <!-- Texto oscuro/azul -->
+        <item name="android:textColorPrimary">@color/azulgourmeet</item>
+        <item name="android:textColorSecondary">@color/azulgourmeet</item>
+
+        <!-- Botones de confirmación y cancelación -->
+        <item name="colorControlActivated">@color/azulgourmeet</item>
+        <item name="colorControlHighlight">@color/azulgourmeet</item>
+    </style>
 </resources>

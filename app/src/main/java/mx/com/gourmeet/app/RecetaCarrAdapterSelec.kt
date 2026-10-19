@@ -11,13 +11,10 @@ import com.bumptech.glide.Glide
 import mx.com.gourmeet.app.data.models.RecetaconFiltro
 
 class RecetaCarrAdapterSelec(
-
     private val recetas:
     MutableList<RecetaconFiltro> = mutableListOf(),
-
     private val onRecetaClick:
     ((RecetaconFiltro) -> Unit)? = null
-
 ) : RecyclerView.Adapter<RecetaCarrAdapterSelec.ViewHolder>() {
 
 

@@ -207,7 +207,7 @@ class Registro : AppCompatActivity() {
             mapaLauncher.launch(intent)
         }
         setupContenedor()
-        cargarRestricciones()
+
         binding.btnSeleccionAvatar.setOnClickListener {
             mostrarSelectorAvatarEnContenedor()
             setupBarraArrastre()
@@ -337,23 +337,6 @@ class Registro : AppCompatActivity() {
         }
         dialog.show()
     }
-    private fun cargarRestricciones() {
-        lifecycleScope.launch {
-            try {
-                val response = ApiClient.apiService.obtenerRestricciones()
-                if (response.success) {
-                    restricciones = response.restricciones
-                }
-            } catch (e: Exception) {
-                Toast.makeText(
-                    this@Registro,
-                    "Error cargando restricciones",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }
-
     private fun setupContenedor() {
         // Convertir dp a píxeles
         val barraHeight = (ALTURA_BARRA * resources.displayMetrics.density).toInt()

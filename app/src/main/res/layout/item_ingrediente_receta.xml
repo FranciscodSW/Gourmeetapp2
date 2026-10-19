@@ -10,7 +10,7 @@
         android:id="@+id/imgIngrediente"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:background="@drawable/bg_circulo_blanco"
+        android:background="@drawable/bg_circulo_azul_margen_blanco"
         android:padding="4dp"/>
 
     <TextView

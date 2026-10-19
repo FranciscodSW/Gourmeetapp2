@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/bg_bottom_sheet_alacena">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:backgroundTint="@color/white"
+        >
+        <!-- Fila superior: encabezado y flecha independientes -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Encabezado existente: seleccionar el día -->
+            <LinearLayout
+                android:id="@+id/Encabezado_dia"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/seleccionar_dia"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@drawable/ic_check_white"
+                    android:background="@drawable/bg_circulo_azul"
+                    android:contentDescription="Seleccionar día" />
+
+                <TextView
+                    android:id="@+id/dia_de_la_semana"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Lunes"
+                    android:gravity="center"
+                    android:fontFamily="@font/caviardreams"
+                    android:textSize="25sp" />
+
+            </LinearLayout>
+
+            <!-- Flecha independiente: contraer o expandir -->
+            <ImageView
+                android:id="@+id/btnContraerDia"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_flecha_abajo"
+                android:contentDescription="Contraer o expandir comidas"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+    <!-- Contenedor de los elementos inferiores del día -->
+    <LinearLayout
+        android:id="@+id/contenido_dia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Aquí permanecen las comidas, colaciones y cocinero -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/contenedores"/>
+        <LinearLayout
+            android:layout_width="65dp"
+            android:layout_height="65dp"
+            android:orientation="vertical"
+            android:layout_gravity="center_vertical"
+            android:id="@+id/agregar_comida"
+            android:background="@drawable/bg_circulo_azul">
+            <ImageView
+                android:layout_marginTop="1dp"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+
+                android:src="@drawable/ic_mas_blanco"
+                android:layout_gravity="center"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Agregar"
+                android:textColor="@color/white"
+                android:fontFamily="@font/caviardreams"
+                android:textSize="15dp"/>
+        </LinearLayout>
+
+
+
+    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="15dp">
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/contenedores_colaciones"/>
+            <LinearLayout
+                android:layout_width="65dp"
+                android:layout_height="65dp"
+                android:orientation="vertical"
+                android:layout_gravity="center_vertical"
+                android:id="@+id/agregar_colacion"
+                android:background="@drawable/bg_circulo_azul">
+                <ImageView
+                    android:layout_marginTop="1dp"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+
+                    android:src="@drawable/ic_mas_blanco"
+                    android:layout_gravity="center"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Agregar"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/caviardreams"
+                    android:textSize="15dp"/>
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/sin_cocinero"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="visible"
+            android:weightSum="2">
+
+            <Button
+                android:id="@+id/btnAsignarCocinero"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="Asignar\ncocinero"
+                android:textSize="15sp"
+                android:fontFamily="@font/caviardreams"
+                android:backgroundTint="@color/azulgourmeet"/>
+
+            <Button
+                android:id="@+id/btnSegundo"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="Iniciar mis\nrecetas"
+                android:textColor="@color/azulgourmeet"
+                android:background="@drawable/bg_boton_blanco_borde"
+                android:backgroundTint="@null"
+                android:textSize="15sp"
+                android:fontFamily="@font/caviardreams"
+                android:textAllCaps="false"
+                app:backgroundTint="@null" />
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/yo_cocinero"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:weightSum="2">
+            <Button
+                android:id="@+id/btnSegundo4"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="cocinero designado:\n nombre"
+                android:textColor="@color/azulgourmeet"
+                android:background="@drawable/bg_boton_blanco_borde"
+                android:backgroundTint="@null"
+                android:textSize="12sp"
+                android:fontFamily="@font/caviardreams"
+                android:textAllCaps="false"
+                app:backgroundTint="@null" />
+
+            <Button
+                android:id="@+id/btniniciar2"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="Iniciar mis  \nrecetas  "
+                android:textSize="15sp"
+                android:fontFamily="@font/caviardreams"
+                android:backgroundTint="@color/azulgourmeet"/>
+
+
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/cocina_algienmas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:weightSum="2">
+            <Button
+                android:id="@+id/btnSegundo5"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="cocinero designado:\n nombre"
+                android:textColor="@color/azulgourmeet"
+                android:background="@drawable/bg_boton_blanco_borde"
+                android:backgroundTint="@null"
+                android:textSize="12sp"
+                android:fontFamily="@font/caviardreams"
+                android:textAllCaps="false"
+                app:backgroundTint="@null" />
+            <Button
+                android:id="@+id/btnSegundo6"
+                android:layout_width="0dp"
+                android:layout_height="64dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="Algien mas \ncocina hoy "
+                android:textColor="@color/azulgourmeet"
+                android:background="@drawable/bg_boton_blanco_borde"
+                android:backgroundTint="@null"
+                android:textSize="12sp"
+                android:fontFamily="@font/caviardreams"
+                android:textAllCaps="false"
+                app:backgroundTint="@null" />
+        </LinearLayout>
+    </LinearLayout>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

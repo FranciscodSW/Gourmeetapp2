@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="3dp">
+
+    <ImageView
+        android:id="@+id/puntoazul"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:src="@drawable/ic_circulo_azul_punto"
+        android:contentDescription="@null"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <ImageView
+        android:id="@+id/btnEliminarComida"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:src="@drawable/ic_cerrar_blanco"
+        android:background="@drawable/bg_circulo_azul"
+        android:padding="6dp"
+        android:contentDescription="Eliminar comida"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <TextView
+        android:id="@+id/nombreComida"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
+        android:fontFamily="@font/caviardreams"
+        android:text="Enchiladas"
+        android:textColor="@color/black"
+        android:textSize="13sp"
+        app:layout_constraintStart_toEndOf="@id/puntoazul"
+        app:layout_constraintEnd_toStartOf="@id/btnEliminarComida"
+        app:layout_constraintTop_toTopOf="@id/puntoazul"
+        app:layout_constraintBottom_toBottomOf="@id/puntoazul" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

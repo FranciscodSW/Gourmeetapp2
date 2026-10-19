@@ -52,6 +52,7 @@ import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.jvm.java
 import kotlin.toString
 
 class MiHogarActivity : AppCompatActivity() {
@@ -193,6 +194,41 @@ class MiHogarActivity : AppCompatActivity() {
 
             startActivity(intent)
         }
+
+        binding.cardplanearecetasdelasemana.setOnClickListener {
+
+            val cliId = obtenerCliId()
+            val hogar = hogarActual
+
+            if (cliId == null) {
+                Toast.makeText(
+                    this,
+                    "No se pudo identificar al usuario.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            if (hogar == null) {
+                Toast.makeText(
+                    this,
+                    "Primero debes tener un hogar.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            val intent = Intent(
+                this,
+                PlaneadorSemanalActivity::class.java
+            ).apply {
+                putExtra("CLI_ID", cliId)
+                putExtra("HOG_ID", hogar.HOG_ID)
+            }
+
+            startActivity(intent)
+        }
+
         binding.masUsuarios.setOnClickListener {
             mostrarDialogNuevosUsuarios()
         }
@@ -4838,50 +4874,27 @@ class MiHogarActivity : AppCompatActivity() {
 
                     return@launch
                 }
-
                 // ==========================================
                 // GUARDAR INGREDIENTES TEMPORALES
                 // ==========================================
-
                 for (ingrediente in ingredientesTemporales) {
-
                     val requestIngrediente =
                         GuardarIngredienteAlacenaRequest(
-
-                            ALC_ID =
-                                alcId,
-
-                            ING_ID =
-                                ingrediente.ING_ID,
-
-                            AI_CANTIDAD =
-                                ingrediente.AI_CANTIDAD,
-
-                            AI_UNIDAD =
-                                ingrediente.AI_UNIDAD,
-
-                            AI_FECHA_COMPRA =
-                                ingrediente.AI_FECHA_COMPRA,
-
-                            AI_FECHA_VENCIMIENTO =
-                                ingrediente.AI_FECHA_VENCIMIENTO,
-
-                            AI_ESTADO =
-                                ingrediente.AI_ESTADO,
-
-                            AI_PRECIO_COMPRA =
-                                ingrediente.AI_PRECIO_COMPRA,
-
-                            AI_ALMACENAMIENTO =
-                                ingrediente.AI_ALMACENAMIENTO,
-
-                            AI_FRECUENCIA_CONSUMO =
-                                ingrediente.AI_FRECUENCIA_CONSUMO,
-
-                            AI_TIPO_ABASTECIMIENTO =
-                                ingrediente.AI_TIPO_ABASTECIMIENTO
+                            ALC_ID = alcId,
+                            ING_ID = ingrediente.ING_ID,
+                            AI_CANTIDAD = ingrediente.AI_CANTIDAD,
+                            AI_UNIDAD = ingrediente.AI_UNIDAD,
+                            AI_FECHA_COMPRA = ingrediente.AI_FECHA_COMPRA,
+                            AI_FECHA_VENCIMIENTO = ingrediente.AI_FECHA_VENCIMIENTO,
+                            AI_ESTADO = ingrediente.AI_ESTADO,
+                            AI_PRECIO_COMPRA = ingrediente.AI_PRECIO_COMPRA,
+                            AI_ALMACENAMIENTO = ingrediente.AI_ALMACENAMIENTO,
+                            AI_FRECUENCIA_CONSUMO = ingrediente.AI_FRECUENCIA_CONSUMO,
+                            AI_TIPO_ABASTECIMIENTO = ingrediente.AI_TIPO_ABASTECIMIENTO,
+                            // CORRECCIÓN
+                            HOG_ID = hogId,
+                            ALC_CLI_ID = null
                         )
-
                     val responseIngrediente =
                         ApiClient.apiService
                             .guardarIngredienteAlacena(

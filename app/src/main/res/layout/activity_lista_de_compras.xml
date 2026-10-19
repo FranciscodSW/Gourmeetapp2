@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:background="@drawable/bg_rectangulo_azul_borde_negro_3"
+        android:gravity="center"
+        android:orientation="horizontal"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Lista de compras"
+            android:textColor="@color/white"
+            android:fontFamily="@font/caviardreams"
+            android:textSize="25dp"
+            android:gravity="center_vertical"
+            />
+
+    </LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/ingredientesfaltante"
+        />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="5dp">
+
+            <TextView
+                android:layout_width="195dp"
+                android:layout_height="55dp"
+                android:layout_margin="5dp"
+                android:gravity="center"
+                android:textColor="@color/azulgourmeet"
+                android:background="@drawable/bg_ovalo_sin_fondo"
+                android:text="Agregar  mis compras \n a la alacena"
+                />
+            <TextView
+                android:layout_marginTop="5dp"
+                android:layout_width="195dp"
+                android:layout_height="55dp"
+                android:text="Descargar lista \n de compras"
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:background="@drawable/bg_ovalo_azul"
+                />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

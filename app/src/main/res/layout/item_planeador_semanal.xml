@@ -1,61 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/transparent">
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/headerPlaneador"
-        android:layout_width="0dp"
-        android:layout_height="65dp"
-        android:layout_marginTop="30dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:background="@drawable/bg_rectangulo_azul_borde_negro_3"
-        app:layout_constraintTop_toTopOf="parent"
+xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:background="@drawable/bg_bottom_sheet_alacena">
+
+<!-- ========================= -->
+<!-- ENCABEZADO FIJO -->
+<!-- ========================= -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:id="@+id/headerPlaneador"
+    android:layout_width="0dp"
+    android:layout_height="65dp"
+    android:layout_marginTop="30dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:background="@drawable/bg_rectangulo_azul_borde_negro_3"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent">
+
+    <ImageView
+        android:id="@+id/imgCalendario"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:src="@drawable/ic_calendario"
+        android:contentDescription="Calendario"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- ICONO CALENDARIO -->
-        <ImageView
-            android:id="@+id/imgCalendario"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:src="@drawable/ic_calendario"
-            android:contentDescription="Calendario"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
-
-        <!-- TÍTULO -->
-        <TextView
-            android:id="@+id/txtTituloAlacena"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Planeador semanal"
-            android:textColor="@android:color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:fontFamily="@font/caviardreams"
-            android:gravity="center"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-
-            app:layout_constraintStart_toEndOf="@id/imgCalendario"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-    <LinearLayout
+    <TextView
+        android:id="@+id/txtTituloAlacena"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="15dp"
-        app:layout_constraintTop_toBottomOf="@id/headerPlaneador"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:text="Planeador semanal"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/caviardreams"
+        android:gravity="center"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        app:layout_constraintStart_toEndOf="@id/imgCalendario"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+<!-- ========================= -->
+<!-- CONTENIDO DESPLAZABLE -->
+<!-- ========================= -->
+<androidx.core.widget.NestedScrollView
+    android:id="@+id/scrollContenidoPlaneador"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_marginTop="15dp"
+    android:fillViewport="true"
+    android:clipToPadding="false"
+    android:paddingBottom="12dp"
+    app:layout_constraintTop_toBottomOf="@id/headerPlaneador"
+    app:layout_constraintBottom_toTopOf="@id/resumenInferior"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
         <TextView
             android:id="@+id/txtSinAlacenasTitulo"
             android:layout_width="match_parent"
@@ -65,45 +80,116 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:fontFamily="@font/caviardreams"
-            android:gravity="center"/>
+            android:gravity="center" />
+
+        <!-- Ingredientes -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:orientation="horizontal"
-            >
+            android:background="@drawable/bg_rectangulo_blanco">
+
             <LinearLayout
-                android:layout_width="match_parent"
+                android:id="@+id/btnAgregarIngredientePlaneador"
+                android:layout_width="65dp"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:gravity="center"
+
+                android:clickable="true"
+                android:focusable="true">
+
                 <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/ic_mas_azul"
-                />
-                <TextView
-                    android:layout_width="40dp"
+                    android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:src="@drawable/ic_mas_azul"
+                    android:contentDescription="Agregar ingrediente" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="Agregar"
                     android:textStyle="bold"
-                    android:textSize="9dp"
-                    android:fontFamily="@font/caviardreams"
-                    />
+                    android:textSize="9sp"
+                    android:fontFamily="@font/caviardreams" />
 
             </LinearLayout>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvmisingredientesplaneador"
                 android:layout_width="0dp"
-                android:layout_height="185dp"
-                android:layout_marginTop="8dp"
-                android:paddingStart="18dp"
-                android:paddingEnd="18dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:clipToPadding="false"
-                android:overScrollMode="never"
-                />
+                android:overScrollMode="never" />
 
         </LinearLayout>
 
+        <!-- Días del planeador -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/dias_de_cocina"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never" />
 
     </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>
+
+<!-- ========================= -->
+<!-- RESUMEN INFERIOR FIJO -->
+<!-- ========================= -->
+<LinearLayout
+    android:id="@+id/resumenInferior"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="10dp"
+    android:background="@drawable/bg_rectangulo_blanco"
+    android:elevation="8dp"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginEnd="8dp">
+
+        <TextView
+            android:id="@+id/txtTotalRecetas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Vas a cocinar: 0 recetas"
+            android:textColor="@color/azulgourmeet"
+            android:fontFamily="@font/caviardreams"
+            android:textStyle="bold"
+            android:textSize="16sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvdiasquevamosacocinar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:overScrollMode="never" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnVerListaCompras"
+        android:layout_width="105dp"
+        android:layout_height="60dp"
+        android:text="Ver lista de compras"
+        android:textSize="12sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/azulgourmeet"
+        android:fontFamily="@font/caviardreams" />
+
+</LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

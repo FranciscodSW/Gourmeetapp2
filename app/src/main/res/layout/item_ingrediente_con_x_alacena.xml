@@ -37,7 +37,7 @@
             android:layout_height="22dp"
             android:layout_gravity="top|start"
 
-            android:background="@drawable/bg_circulo_blanco"
+            android:background="@drawable/bg_circulo_azul_margen_blanco"
             android:src="@drawable/ic_cerrar_blanco"
             android:contentDescription="Eliminar"
             android:clickable="true"

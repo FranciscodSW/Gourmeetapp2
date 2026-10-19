@@ -9,8 +9,6 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 interface ApiService {
-    @GET("usuario/obtener_restricciones.php")
-    suspend fun obtenerRestricciones(): RestriccionesResponse
     @POST("usuario/RegistroUsuario.php")
     suspend fun registrarUsuario(
         @Body request: UsuarioRegistro
@@ -30,14 +28,6 @@ interface ApiService {
     @POST("usuario/login_google.php")
     suspend fun loginUsuarioGoogle(
         @Body request: LoginGoogle
-    ): AuthResponse
-    @POST("usuario/RegistroUsuarioFacebook.php")
-    suspend fun registroFacebook(
-        @Body request: FacebookRegistro
-    ): AuthResponse
-    @POST("usuario/Login_Facebook.php")
-    suspend fun loginFacebook(
-        @Body request: LoginFacebook
     ): AuthResponse
     @GET("ingredientes/api_autocomplete_ingredientes.php")
     suspend fun autocompleteIngredientes(
@@ -297,4 +287,26 @@ interface ApiService {
     suspend fun rechazarInvitacionHogar(
         @Body request: RechazarInvitacionHogarRequest
     ): RechazarInvitacionHogarResponse
+    @POST("planeador/obtener_o_crear_planeador.php")
+    suspend fun obtenerOCrearPlaneador(
+        @Body request: PlaneadorRequest
+    ): PlaneadorResponse
+    @POST("planeador/guardar_receta_planeador.php")
+    suspend fun guardarRecetaPlaneador(
+        @Body request: GuardarRecetaPlaneadorRequest
+    ): GuardarRecetaPlaneadorResponse
+
+    @POST("planeador/actualizar_hora_espacio.php")
+    suspend fun actualizarHoraEspacio(
+        @Body request: ActualizarHoraEspacioRequest
+    ): ActualizarHoraEspacioResponse
+
+    @POST("planeador/actualizar_estado_dia.php")
+    suspend fun actualizarEstadoDia(
+        @Body request: ActualizarEstadoDiaRequest
+    ): ActualizarEstadoDiaResponse
+    @POST("planeador/eliminar_receta_espacio.php")
+    suspend fun eliminarRecetaEspacio(
+        @Body request: EliminarRecetaEspacioRequest
+    ): EliminarRecetaEspacioResponse
 }

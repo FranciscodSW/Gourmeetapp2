@@ -87,5 +87,7 @@ dependencies {
     implementation("com.facebook.android:facebook-android-sdk:[4,5)")
     // animaciones
     implementation("com.airbnb.android:lottie:6.6.7")
+    // pagos de google play
+    implementation("com.android.billingclient:billing-ktx:8.2.1")
 
 }

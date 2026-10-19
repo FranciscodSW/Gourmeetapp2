@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:minHeight="150dp"
+    android:maxHeight="405dp"
+    android:layout_margin="1dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp"
+    app:cardUseCompatPadding="true"
+    app:cardBackgroundColor="@android:color/transparent"
+    android:background="@drawable/bg_bottom_sheet_alacena">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardTitulo"
+            android:layout_width="260dp"
+            android:layout_height="40dp"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="0dp"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#177AFF"
+            app:strokeWidth="0dp"
+
+            app:strokeColor="#111111">
+            <TextView
+                android:layout_marginTop="-5dp"
+                android:id="@+id/txtTitulo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:ellipsize="end"
+                android:fontFamily="@font/caviardreams"
+                android:gravity="center"
+                android:maxLines="1"
+                android:paddingHorizontal="12dp"
+                android:text="Desayuno"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardImagen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="35dp"
+            android:layout_marginBottom="60dp"
+            app:cardCornerRadius="1dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@android:color/transparent">
+
+            <LinearLayout
+                android:id="@+id/layoutContenidoComida"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="4dp"
+                android:background="@drawable/bg_bottom_sheet_alacena">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/listadecomidas"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="0dp"
+                    android:nestedScrollingEnabled="false"
+                    android:visibility="visible"
+                    android:paddingHorizontal="4dp"
+                    android:clipToPadding="false" />
+
+                <Button
+                    android:id="@+id/btnAgregarComida"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Agregar"
+                    android:fontFamily="@font/caviardreams"
+                    android:textColor="@color/azulgourmeet"
+                    app:background="@drawable/bg_rectangulo_blanco"
+                    app:backgroundTint="@android:color/white" />
+
+                <Button
+                    android:id="@+id/btnAsignarhora"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Asignar hora"
+                    android:fontFamily="@font/caviardreams"
+                    android:textColor="@color/azulgourmeet"
+                    app:background="@drawable/bg_rectangulo_blanco"
+                    app:backgroundTint="@android:color/white" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+</androidx.cardview.widget.CardView>
