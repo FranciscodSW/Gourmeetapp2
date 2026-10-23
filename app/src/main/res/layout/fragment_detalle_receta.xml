@@ -796,7 +796,8 @@
                             android:id="@+id/imagenguardar"
                             android:layout_width="54dp"
                             android:layout_height="54dp"
-                            android:src="@drawable/ic_guardar"/>
+                            android:src="@drawable/ic_guardar"
+                            android:tint="@color/azulgourmeet"/>
 
                         <TextView
                             android:id="@+id/texguardar"
@@ -888,7 +889,8 @@
                         <ImageView
                             android:layout_width="54dp"
                             android:layout_height="54dp"
-                            android:src="@drawable/ic_calendario"/>
+                            android:src="@drawable/ic_calendario"
+                            app:tint="@color/azulgourmeet"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"

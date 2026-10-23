@@ -1,4 +1,3 @@
-
 package mx.com.gourmeet.app
 
 import android.app.TimePickerDialog
@@ -7,10 +6,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
+import android.os.Build
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -20,45 +25,35 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mx.com.gourmeet.app.data.api.ApiClient
-import mx.com.gourmeet.app.data.models.ActualizarEstadoDiaRequest
-import mx.com.gourmeet.app.data.models.ActualizarHoraEspacioRequest
-import mx.com.gourmeet.app.data.models.DiaPlaneador
-import mx.com.gourmeet.app.data.models.DiaRepeticion
-import mx.com.gourmeet.app.data.models.EliminarRecetaEspacioRequest
-import mx.com.gourmeet.app.data.models.EspacioComida
-import mx.com.gourmeet.app.data.models.FiltrosRecetasNombreRequest
-import mx.com.gourmeet.app.data.models.GuardarRecetaPlaneadorRequest
-import mx.com.gourmeet.app.data.models.PlaneadorRequest
-import mx.com.gourmeet.app.data.models.RecetaEspacio
-import mx.com.gourmeet.app.data.models.RecetaconFiltro
+import mx.com.gourmeet.app.data.models.*
 import mx.com.gourmeet.app.databinding.ItemPlaneadorSemanalBinding
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-
+import mx.com.gourmeet.app.data.models.EliminarRecetaEspacioResponse
+import mx.com.gourmeet.app.data.models.EliminarIngredienteEspacioResponse
 class PlaneadorSemanalActivity : AppCompatActivity() {
-
+    private var preparacionColacion: String = "Sin especificar"
+    private val preparacionesColacion = listOf("Picado","Con", "Y", "Hervido", "Al vapor", "Molido", "Rallado", "Licuado con", "Untado con", "Horneado", "Frito")
     private var porcionesSeleccionadas: Int? = null
-
+    private val recetasSeleccionadasColacion = mutableListOf<RecetaconFiltro>()
+    private var unidadColacion1: String = "gramos"
+    private var unidadColacion2: String = "gramos"
     private var fechasComidaRepetida: Set<String> = emptySet()
-
-
     // Adaptador para seleccionar días en los que repetir una receta
+    private var ingredienteColacionEnEdicion = 0
     private var adapterDiasRepeticion: DiasRepeticionAdapter? = null
-
     // Adaptador para mostrar los días seleccionados en el resumen
     private var adapterResumenDias: AdapterDiasSeleccionados? = null
-
     private lateinit var binding: ItemPlaneadorSemanalBinding
     private lateinit var adapterDia: AdapterDiaPlaneador
-
     private var cliId: Int = -1
     private var hogId: Int = -1
     private var plaId: Int = -1
-
     private data class RecetaPendientePlaneador(
         val receta: RecetaconFiltro,
         val tipoComida: Int,
@@ -67,42 +62,33 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
         val porciones: Int,
         val numeroColacion: Int = 0
     )
-
-    private val recetasPendientesPlaneador =
-        mutableListOf<RecetaPendientePlaneador>()
-
-
+    private val recetasPendientesPlaneador = mutableListOf<RecetaPendientePlaneador>()
+    private var ingredienteColacion1: BuscarIngredientes? = null
+    private var ingredienteColacion2: BuscarIngredientes? = null
     private val recetasSeleccionadas = mutableListOf<RecetaconFiltro>()
     private var recetaSeleccionada: RecetaconFiltro? = null
-
     private var busquedaRecetasJob: Job? = null
-
-    private val formatoFecha =
-        SimpleDateFormat("yyyy-MM-dd", Locale.US)
-
-    private val formatoDia =
-        SimpleDateFormat("EEEE d", Locale("es", "MX"))
-
+    private var busquedaRecetasColacionJob: kotlinx.coroutines.Job? = null
+    private var busquedaIngredientesJob: Job? = null
+    private var numeroColacionSeleccionada: Int = 1
+    private var recetaSeleccionadaColacion: RecetaconFiltro? = null
+    private val formatoFecha = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    private val formatoDia = SimpleDateFormat("EEEE d", Locale("es", "MX"))
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ItemPlaneadorSemanalBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         cliId = intent.getIntExtra("CLI_ID", -1)
         hogId = intent.getIntExtra("HOG_ID", -1)
-
         if (cliId <= 0 || hogId <= 0) {
             Toast.makeText(
                 this,
                 "No se recibieron los datos del hogar.",
                 Toast.LENGTH_LONG
             ).show()
-
             finish()
             return
         }
-
         configurarRecyclerView()
         configurarDiasQueVamosACocinar()
         obtenerPlaneadorSemanal()
@@ -111,6 +97,7 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
     // =========================================================
     // CONFIGURAR RECYCLERVIEW PRINCIPAL
     // =========================================================
+
 
     private fun configurarRecyclerView() {
         binding.diasDeCocina.layoutManager =
@@ -132,17 +119,30 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
                 }
             },
 
-            onAgregarColacion = { dia ->
-                if (dia.seleccionado) {
-                    mostrarVentanaAgregarComidas(
+            onAgregarColacion = { dia, numeroColacion ->
+                if (dia.seleccionado && numeroColacion in 1..2) {
+                    numeroColacionSeleccionada = numeroColacion
+
+                    mostrarVentanaAgregarColacion(
                         dia = dia,
-                        tipoComida = 4
+                        numeroColacion = numeroColacion
                     )
                 }
             },
 
             onAsignarHora = { espacio ->
                 mostrarSelectorHora(espacio)
+            },
+
+            onEliminarElemento = { espacio, elemento ->
+                if (espacio.TPC_ID == 4 ||
+                    espacio.TPC_ID in 1..3
+                ) {
+                    eliminarElementoDelEspacio(
+                        espacio = espacio,
+                        elemento = elemento
+                    )
+                }
             }
         )
 
@@ -152,7 +152,6 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
     // =========================================================
     // OBTENER PLANEADOR SEMANAL
     // =========================================================
-
     private fun obtenerPlaneadorSemanal() {
         lifecycleScope.launch {
             try {
@@ -187,8 +186,64 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                // 2. Obtener los espacios y las fechas
+                // =====================================================
+// DIAGNÓSTICO: IDENTIFICADORES RECIBIDOS DESDE LA API
+// =====================================================
+
                 val espacios = response.espacios.orEmpty()
+
+                espacios.forEach { espacio ->
+
+                    android.util.Log.d(
+                        "DEBUG_IDS_PLANEADOR",
+                        """
+        ESPACIO:
+        ECM_ID = ${espacio.ECM_ID}
+        TPC_ID = ${espacio.TPC_ID}
+        FECHA = ${espacio.ECM_FECHA}
+        """.trimIndent()
+                    )
+
+                    espacio.recetas.forEach { receta ->
+                        android.util.Log.d(
+                            "DEBUG_IDS_PLANEADOR",
+                            """
+            RECETA:
+            NOMBRE = ${receta.REC_NOMBRE}
+            ECR_ID = ${receta.ECR_ID}
+            REC_ID = ${receta.REC_ID}
+            """.trimIndent()
+                        )
+
+                        if (receta.ECR_ID <= 0) {
+                            android.util.Log.e(
+                                "DEBUG_IDS_PLANEADOR",
+                                "ERROR: La receta ${receta.REC_NOMBRE} " +
+                                        "llegó con ECR_ID=${receta.ECR_ID}"
+                            )
+                        }
+                    }
+
+                    espacio.ingredientes.forEach { ingrediente ->
+                        android.util.Log.d(
+                            "DEBUG_IDS_PLANEADOR",
+                            """
+            INGREDIENTE:
+            NOMBRE = ${ingrediente.ING_DESCRIPCION}
+            ECI_ID = ${ingrediente.ECI_ID}
+            ING_ID = ${ingrediente.ING_ID}
+            """.trimIndent()
+                        )
+
+                        if (ingrediente.ECI_ID <= 0) {
+                            android.util.Log.e(
+                                "DEBUG_IDS_PLANEADOR",
+                                "ERROR: El ingrediente ${ingrediente.ING_DESCRIPCION} " +
+                                        "llegó con ECI_ID=${ingrediente.ECI_ID}"
+                            )
+                        }
+                    }
+                }
                 val fechaInicio = response.PLA_FECHA_INICIO
                 val fechaFin = response.PLA_FECHA_FIN
 
@@ -229,7 +284,6 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
             }
         }
     }
-
     private fun generarDias(
         fechaInicio: String,
         fechaFin: String,
@@ -304,6 +358,13 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
         tipoComida: Int
     ) {
         val dialog = BottomSheetDialog(this)
+        if (tipoComida == 4) {
+            mostrarVentanaAgregarColacion(
+                dia = dia,
+                numeroColacion = numeroColacionSeleccionada
+            )
+            return
+        }
 
         val vista = LayoutInflater.from(this).inflate(
             R.layout.activity_agregar_comidas_a_dia,
@@ -509,12 +570,9 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
 
         dialog.show()
     }
-
-
     // =========================================================
     // REPETIR COMIDA EN OTROS DÍAS
     // =========================================================
-
     private fun configurarRepeticionComida(
         vista: View,
         diaOriginal: DiaPlaneador
@@ -568,34 +626,26 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
     // BUSCAR RECETAS
     // =========================================================
 
-    private fun configurarBusquedaRecetas(
-        vista: View,
-        categoriaId: Int
-    ) {
+    private fun configurarBusquedaRecetas(vista: View, categoriaId: Int) {
         val buscador = vista.findViewById<EditText>(
             R.id.etBuscarReceta2
         )
-
         val resultados = vista.findViewById<RecyclerView>(
             R.id.resultados_derecetas
         )
-
         resultados.layoutManager = LinearLayoutManager(
             this,
             LinearLayoutManager.HORIZONTAL,
             false
         )
-
         var adapter: RecetasCardAdapterSelec? = null
 
         adapter = RecetasCardAdapterSelec(
             recetas = mutableListOf(),
             recetasSeleccionadas = recetasSeleccionadas,
-
             onRecetaClick = { receta ->
                 recetaSeleccionada = receta
             },
-
             onSeleccionarReceta = { receta, seleccionar ->
                 if (seleccionar) {
                     if (
@@ -876,7 +926,6 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
     // GUARDAR RECETA EN EL PLANEADOR
     // =========================================================
 
-
     private fun guardarRecetaEnPlaneador(
         receta: RecetaconFiltro,
         diaOriginal: DiaPlaneador,
@@ -992,7 +1041,6 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
             }
         }
     }
-
     private fun guardarRecetasPendientes() {
         if (recetasPendientesPlaneador.isEmpty()) {
             Toast.makeText(
@@ -1167,4 +1215,1357 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
         }
     }
 
+    private fun mostrarVentanaAgregarColacion(
+        dia: DiaPlaneador,
+        numeroColacion: Int
+    ) {
+        // =========================================
+        // VALIDAR NÚMERO DE COLACIÓN
+        // =========================================
+
+        if (numeroColacion !in 1..2) {
+            Toast.makeText(
+                this,
+                "Número de colación no válido.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        numeroColacionSeleccionada = numeroColacion
+
+        // =========================================
+        // CREAR VENTANA
+        // =========================================
+
+        val dialog = BottomSheetDialog(this)
+
+        val vista = LayoutInflater.from(this).inflate(
+            R.layout.activity_agregar_recetas_a_mi_colacion,
+            null,
+            false
+        )
+
+        dialog.setContentView(vista)
+
+        // =========================================
+        // REINICIAR EL ESTADO DE LA COLACIÓN
+        // =========================================
+
+        recetasSeleccionadasColacion.clear()
+        recetaSeleccionadaColacion = null
+
+        ingredienteColacion1 = null
+        ingredienteColacion2 = null
+
+        unidadColacion1 = "gramos"
+        unidadColacion2 = "gramos"
+
+        preparacionColacion = "Sin especificar"
+
+        fechasComidaRepetida = setOf(dia.fecha)
+
+        // =========================================
+        // CANCELAR BÚSQUEDAS ANTERIORES
+        // =========================================
+
+        busquedaRecetasColacionJob?.cancel()
+        busquedaRecetasColacionJob = null
+
+        // =========================================
+        // BOTÓN PARA CERRAR LA VENTANA
+        // =========================================
+
+        vista.findViewById<ImageButton>(
+            R.id.btnCerrarIngrediente
+        ).setOnClickListener {
+            busquedaRecetasColacionJob?.cancel()
+            busquedaRecetasColacionJob = null
+
+            dialog.dismiss()
+        }
+
+        // =========================================
+        // BUSCADOR DE RECETAS E INGREDIENTES
+        // =========================================
+
+        configurarBusquedaColacion(vista)
+
+        // =========================================
+        // SELECTOR DE UNIDAD DEL INGREDIENTE 1
+        // =========================================
+
+        configurarSelectorUnidad(
+            vista,
+            R.id.seleccionar_unidad_de_media1
+        ) { unidad ->
+            unidadColacion1 = unidad
+
+            vista.findViewById<TextView>(
+                R.id.txtUnidad1
+            ).text = abreviarUnidadColacion(unidad)
+
+            actualizarEstadoBotonColacion(vista)
+        }
+
+        // =========================================
+        // SELECTOR DE UNIDAD DEL INGREDIENTE 2
+        // =========================================
+
+        configurarSelectorUnidad(
+            vista,
+            R.id.seleccionar_unidad_de_media2
+        ) { unidad ->
+            unidadColacion2 = unidad
+
+            vista.findViewById<TextView>(
+                R.id.txtUnidad2
+            ).text = abreviarUnidadColacion(unidad)
+
+            actualizarEstadoBotonColacion(vista)
+        }
+
+        // =========================================
+        // SELECTOR DE PREPARACIÓN
+        // =========================================
+
+        configurarSelectorPreparacion(vista)
+
+        // =========================================
+        // CONFIGURAR REPETICIÓN POR DÍAS
+        // =========================================
+
+        configurarRepeticionComida(
+            vista = vista,
+            diaOriginal = dia
+        )
+
+        // =========================================
+        // VALIDAR CANTIDADES EN TIEMPO REAL
+        // =========================================
+
+        val cantidad1 = vista.findViewById<EditText>(
+            R.id.cantidad1
+        )
+
+        val cantidad2 = vista.findViewById<EditText>(
+            R.id.cantidad2
+        )
+
+        val actualizarBoton = object : TextWatcher {
+
+            override fun beforeTextChanged(
+                s: CharSequence?,
+                start: Int,
+                count: Int,
+                after: Int
+            ) = Unit
+
+            override fun onTextChanged(
+                s: CharSequence?,
+                start: Int,
+                before: Int,
+                count: Int
+            ) {
+                actualizarEstadoBotonColacion(vista)
+            }
+
+            override fun afterTextChanged(
+                s: Editable?
+            ) = Unit
+        }
+
+        cantidad1.addTextChangedListener(actualizarBoton)
+        cantidad2.addTextChangedListener(actualizarBoton)
+
+        // =========================================
+        // ESTADO INICIAL DEL BOTÓN
+        // =========================================
+
+        actualizarEstadoBotonColacion(vista)
+
+        // =========================================
+        // BOTÓN AGREGAR AL PLANEADOR
+        // =========================================
+
+        val btnAgregar = vista.findViewById<View>(
+            R.id.btnAgregarAlPlaneador
+        )
+
+        btnAgregar.setOnClickListener {
+
+            // Validar la selección antes de guardar.
+            actualizarEstadoBotonColacion(vista)
+
+            if (!btnAgregar.isEnabled) {
+                Toast.makeText(
+                    this,
+                    "Selecciona una receta o completa los ingredientes y la preparación.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                return@setOnClickListener
+            }
+
+            // Evitar pulsaciones repetidas.
+            btnAgregar.isEnabled = false
+
+            // Guardar usando el número de colación de esta ventana.
+            guardarColacionSeleccionada(
+                vista = vista,
+                dialog = dialog,
+                numeroColacion = numeroColacion
+            )
+        }
+
+        // =========================================
+        // LIMPIAR AL CERRAR LA VENTANA
+        // =========================================
+
+        dialog.setOnDismissListener {
+            obtenerPlaneadorSemanal()
+            busquedaRecetasColacionJob?.cancel()
+            busquedaRecetasColacionJob = null
+            cantidad1.removeTextChangedListener(actualizarBoton)
+            cantidad2.removeTextChangedListener(actualizarBoton)
+        }
+
+        // =========================================
+        // MOSTRAR VENTANA
+        // =========================================
+
+        dialog.show()
+    }
+
+    private fun guardarColacionSeleccionada(
+        vista: View,
+        dialog: BottomSheetDialog,
+        numeroColacion: Int
+    ) {
+        // Evitar guardar si falta el plan.
+        if (plaId <= 0) {
+            Toast.makeText(
+                this,
+                "No se encontró el planificador.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        // Obtener las fechas seleccionadas.
+        val fechas = fechasComidaRepetida.toList().sorted()
+
+        if (fechas.isEmpty()) {
+            Toast.makeText(
+                this,
+                "Selecciona al menos un día.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        // Validar que se haya seleccionado una receta
+        // o al menos un ingrediente.
+        val receta = recetaSeleccionadaColacion
+        val ing1 = ingredienteColacion1
+        val ing2 = ingredienteColacion2
+
+        if (receta == null && ing1 == null && ing2 == null) {
+            Toast.makeText(
+                this,
+                "Selecciona una receta o un ingrediente.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        // La receta y los ingredientes son modalidades excluyentes.
+        if (receta != null && (ing1 != null || ing2 != null)) {
+            Toast.makeText(
+                this,
+                "Selecciona una receta o ingredientes, no ambos.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        // Obtener cantidades y validar los ingredientes.
+        val cantidad1Texto = vista.findViewById<EditText>(
+            R.id.cantidad1
+        ).text.toString().trim()
+
+        val cantidad2Texto = vista.findViewById<EditText>(
+            R.id.cantidad2
+        ).text.toString().trim()
+
+        val cantidad1 = cantidad1Texto.replace(",", ".").toDoubleOrNull()
+        val cantidad2 = cantidad2Texto.replace(",", ".").toDoubleOrNull()
+
+        if (ing1 != null && (cantidad1 == null || cantidad1 <= 0)) {
+            Toast.makeText(
+                this,
+                "Ingresa una cantidad válida para el primer ingrediente.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        if (ing2 != null && (cantidad2 == null || cantidad2 <= 0)) {
+            Toast.makeText(
+                this,
+                "Ingresa una cantidad válida para el segundo ingrediente.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        if (receta == null && preparacionColacion == "Sin especificar") {
+            Toast.makeText(
+                this,
+                "Selecciona la preparación de la colación.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        // Preparar la lista de ingredientes.
+        val ingredientes = mutableListOf<IngredienteColacionRequest>()
+
+        if (ing1 != null) {
+            ingredientes.add(
+                IngredienteColacionRequest(
+                    ING_ID = ing1.id,
+                    ECI_CANTIDAD = cantidad1,
+                    ECI_UNIDAD = unidadColacion1
+                )
+            )
+        }
+
+        if (ing2 != null) {
+            ingredientes.add(
+                IngredienteColacionRequest(
+                    ING_ID = ing2.id,
+                    ECI_CANTIDAD = cantidad2,
+                    ECI_UNIDAD = unidadColacion2
+                )
+            )
+        }
+
+        // Evitar doble pulsación mientras se guardan los registros.
+        val boton = vista.findViewById<View>(
+            R.id.btnAgregarAlPlaneador
+        )
+        boton.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                var guardadas = 0
+
+                for (fecha in fechas) {
+                    val request = GuardarColacionRequest(
+                        PLA_ID = plaId,
+                        ECM_FECHA = fecha,
+                        ECM_HORA = null,
+                        ECM_NUMERO_COLACION = numeroColacion,
+                        ECM_NOTAS = null,
+                        REC_ID = receta?.REC_ID,
+                        ECR_PORCIONES = 1.0,
+                        ingredientes = ingredientes.toList()
+                    )
+
+                    val respuesta = ApiClient.apiService.guardarColacion(request)
+
+                    if (!respuesta.success) {
+                        throw Exception(
+                            respuesta.message.ifBlank {
+                                "No se pudo guardar la colación del $fecha."
+                            }
+                        )
+                    }
+
+                    guardadas++
+                }
+
+                Toast.makeText(
+                    this@PlaneadorSemanalActivity,
+                    "Colación guardada en $guardadas día(s).",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                dialog.dismiss()
+
+                // Aquí recarga el planeador si ya tienes una función
+                // para actualizar las comidas de la semana.
+
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@PlaneadorSemanalActivity,
+                    "Error al guardar la colación: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+
+            } finally {
+                if (dialog.isShowing) {
+                    boton.isEnabled = true
+                    actualizarEstadoBotonColacion(vista)
+                }
+            }
+        }
+    }
+    private fun seleccionarIngredienteColacion(
+        ingrediente: BuscarIngredientes, vista: View, adapter: IngredienteColacionAdapter
+    ) {
+
+        // =====================================================
+        // VALIDAR QUE NO HAYA UNA RECETA SELECCIONADA
+        // =====================================================
+
+        if (recetasSeleccionadasColacion.isNotEmpty()) {
+            Toast.makeText(
+                this,
+                "Quita la receta antes de seleccionar ingredientes.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        // =====================================================
+        // OBTENER VISTAS
+        // =====================================================
+
+        val txtIngrediente1 = vista.findViewById<TextView>(
+            R.id.ingrediente1
+        )
+
+        val txtIngrediente2 = vista.findViewById<TextView>(
+            R.id.ingrediente2
+        )
+
+        val cantidad1 = vista.findViewById<EditText>(
+            R.id.cantidad1
+        )
+
+        val cantidad2 = vista.findViewById<EditText>(
+            R.id.cantidad2
+        )
+
+        val txtUnidad1 = vista.findViewById<TextView>(
+            R.id.txtUnidad1
+        )
+
+        val txtUnidad2 = vista.findViewById<TextView>(
+            R.id.txtUnidad2
+        )
+
+        val contenedor = vista.findViewById<View>(
+            R.id.contenedorparacomplementos
+        )
+
+        // =====================================================
+        // VALIDAR SI EL INGREDIENTE YA ESTÁ EN EL OTRO ESPACIO
+        // =====================================================
+
+        if (
+            ingredienteColacionEnEdicion == 1 &&
+            ingredienteColacion2?.id == ingrediente.id
+        ) {
+            Toast.makeText(
+                this,
+                "Este ingrediente ya está en el espacio 2.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        if (
+            ingredienteColacionEnEdicion == 2 &&
+            ingredienteColacion1?.id == ingrediente.id
+        ) {
+            Toast.makeText(
+                this,
+                "Este ingrediente ya está en el espacio 1.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        // =====================================================
+        // AGREGAR, QUITAR O REEMPLAZAR
+        // =====================================================
+
+        when (ingredienteColacionEnEdicion) {
+
+            // -------------------------------------------------
+            // REEMPLAZAR INGREDIENTE 1
+            // -------------------------------------------------
+
+            1 -> {
+
+                ingredienteColacion1 = ingrediente
+                txtIngrediente1.text = ingrediente.nombre
+
+                // Conservar la cantidad y unidad existentes
+                // si ya había un ingrediente en este espacio.
+                if (cantidad1.text.isNullOrBlank()) {
+                    unidadColacion1 = "gramos"
+                    txtUnidad1.text =
+                        abreviarUnidadColacion(unidadColacion1)
+                }
+
+                ingredienteColacionEnEdicion = 0
+            }
+
+            // -------------------------------------------------
+            // REEMPLAZAR INGREDIENTE 2
+            // -------------------------------------------------
+
+            2 -> {
+
+                ingredienteColacion2 = ingrediente
+                txtIngrediente2.text = ingrediente.nombre
+
+                if (cantidad2.text.isNullOrBlank()) {
+                    unidadColacion2 = "gramos"
+                    txtUnidad2.text =
+                        abreviarUnidadColacion(unidadColacion2)
+                }
+
+                ingredienteColacionEnEdicion = 0
+            }
+
+            // -------------------------------------------------
+            // AGREGAR NORMALMENTE
+            // -------------------------------------------------
+
+            else -> {
+
+                when {
+
+                    // Si ya existe en el espacio 1, quitarlo.
+                    ingredienteColacion1?.id == ingrediente.id -> {
+
+                        ingredienteColacion1 = null
+
+                        txtIngrediente1.text = "Ingrediente"
+                        cantidad1.setText("")
+
+                        unidadColacion1 = "gramos"
+                        txtUnidad1.text =
+                            abreviarUnidadColacion(unidadColacion1)
+                    }
+
+                    // Si ya existe en el espacio 2, quitarlo.
+                    ingredienteColacion2?.id == ingrediente.id -> {
+
+                        ingredienteColacion2 = null
+
+                        txtIngrediente2.text = "Ingrediente"
+                        cantidad2.setText("")
+
+                        unidadColacion2 = "gramos"
+                        txtUnidad2.text =
+                            abreviarUnidadColacion(unidadColacion2)
+                    }
+
+                    // Agregar al primer espacio libre.
+                    ingredienteColacion1 == null -> {
+
+                        ingredienteColacion1 = ingrediente
+                        txtIngrediente1.text = ingrediente.nombre
+
+                        if (cantidad1.text.isNullOrBlank()) {
+                            unidadColacion1 = "gramos"
+                            txtUnidad1.text =
+                                abreviarUnidadColacion(unidadColacion1)
+                        }
+                    }
+
+                    // Agregar al segundo espacio libre.
+                    ingredienteColacion2 == null -> {
+
+                        ingredienteColacion2 = ingrediente
+                        txtIngrediente2.text = ingrediente.nombre
+
+                        if (cantidad2.text.isNullOrBlank()) {
+                            unidadColacion2 = "gramos"
+                            txtUnidad2.text =
+                                abreviarUnidadColacion(unidadColacion2)
+                        }
+                    }
+
+                    // No permitir un tercer ingrediente.
+                    else -> {
+
+                        Toast.makeText(
+                            this,
+                            "Solo puedes seleccionar dos ingredientes.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }
+
+        // =====================================================
+        // ACTUALIZAR CONTENEDOR
+        // =====================================================
+
+        val hayIngredientes =
+            ingredienteColacion1 != null ||
+                    ingredienteColacion2 != null
+
+        contenedor.visibility = if (hayIngredientes) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+
+        // =====================================================
+        // ACTUALIZAR SELECCIÓN VISUAL
+        // =====================================================
+
+        adapter.actualizarSeleccion(
+            setOfNotNull(
+                ingredienteColacion1?.id,
+                ingredienteColacion2?.id
+            )
+        )
+    }
+    @RequiresApi(Build.VERSION_CODES.HONEYCOMB)
+    private fun configurarSelectorUnidad(vista: View, idSelector: Int, alSeleccionar: (String) -> Unit
+    ) {
+        val selector = vista.findViewById<ImageView>(idSelector)
+
+        val unidades = listOf(
+            "gramos",
+            "kilogramos",
+            "mililitros",
+            "litros",
+            "pieza(s)",
+            "taza(s)",
+            "cucharada(s)",
+            "cucharadita(s)"
+        )
+
+        selector.setOnClickListener {
+            PopupMenu(this, selector).apply {
+                unidades.forEach { unidad ->
+                    menu.add(unidad)
+                }
+
+                setOnMenuItemClickListener { item ->
+                    alSeleccionar(item.title.toString())
+                    true
+                }
+
+                show()
+            }
+        }
+    }
+    private fun configurarBusquedaColacion(vista: View) {
+
+        val buscador = vista.findViewById<EditText>(
+            R.id.etBuscarReceta2
+        ) ?: return
+
+        val resultadosRecetas = vista.findViewById<RecyclerView>(
+            R.id.resultados_derecetas
+        ) ?: return
+
+        val resultadosIngredientes = vista.findViewById<RecyclerView>(
+            R.id.resultados_ingredientes
+        ) ?: return
+
+        val contenedorIngredientes = vista.findViewById<View>(
+            R.id.contenedorparacomplementos
+        ) ?: return
+
+        val contenedorIngrediente1 = vista.findViewById<View>(
+            R.id.ingrediente1
+        ) ?: return
+
+        val contenedorIngrediente2 = vista.findViewById<View>(
+            R.id.ingrediente2
+        ) ?: return
+
+        // =====================================================
+        // CONFIGURAR RECYCLERVIEWS
+        // =====================================================
+
+        resultadosRecetas.layoutManager = LinearLayoutManager(
+            this,
+            LinearLayoutManager.HORIZONTAL,
+            false
+        )
+
+        resultadosIngredientes.layoutManager = LinearLayoutManager(
+            this,
+            LinearLayoutManager.HORIZONTAL,
+            false
+        )
+
+        // =====================================================
+        // CLIC EN LOS CONTENEDORES DE INGREDIENTES
+        // =====================================================
+
+        contenedorIngrediente1.setOnClickListener {
+
+            if (recetasSeleccionadasColacion.isNotEmpty()) {
+                Toast.makeText(
+                    this,
+                    "Quita la receta antes de agregar ingredientes.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            ingredienteColacionEnEdicion = 1
+
+            // Limpiar la búsqueda anterior para comenzar una nueva.
+            buscador.setText("")
+            buscador.requestFocus()
+
+            resultadosRecetas.visibility = View.GONE
+            resultadosIngredientes.visibility = View.GONE
+            contenedorIngredientes.visibility = View.VISIBLE
+
+            Toast.makeText(
+                this,
+                "Busca el ingrediente que ocupará el espacio 1.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        contenedorIngrediente2.setOnClickListener {
+
+            if (recetasSeleccionadasColacion.isNotEmpty()) {
+                Toast.makeText(
+                    this,
+                    "Quita la receta antes de agregar ingredientes.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            ingredienteColacionEnEdicion = 2
+
+            buscador.setText("")
+            buscador.requestFocus()
+
+            resultadosRecetas.visibility = View.GONE
+            resultadosIngredientes.visibility = View.GONE
+            contenedorIngredientes.visibility = View.VISIBLE
+
+            Toast.makeText(
+                this,
+                "Busca el ingrediente que ocupará el espacio 2.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        // =====================================================
+        // ADAPTADOR DE RECETAS
+        // =====================================================
+        var adapterRecetas: RecetasCardAdapterSelec? = null
+
+        adapterRecetas = RecetasCardAdapterSelec(
+            recetas = mutableListOf(),
+            recetasSeleccionadas = recetasSeleccionadasColacion,
+
+            onRecetaClick = { receta ->
+
+                recetaSeleccionadaColacion = receta
+
+                // Actualizar el botón cuando se pulsa la tarjeta.
+                actualizarEstadoBotonColacion(vista)
+            },
+
+            onSeleccionarReceta = { receta, seleccionar ->
+
+                if (seleccionar) {
+
+                    if (
+                        ingredienteColacion1 != null ||
+                        ingredienteColacion2 != null
+                    ) {
+                        Toast.makeText(
+                            this,
+                            "Quita los ingredientes antes de seleccionar una receta.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        adapterRecetas?.actualizarSeleccionadas()
+
+                    } else {
+
+                        recetasSeleccionadasColacion.clear()
+                        recetasSeleccionadasColacion.add(receta)
+                        recetaSeleccionadaColacion = receta
+
+                        ingredienteColacionEnEdicion = 0
+
+                        contenedorIngredientes.visibility = View.GONE
+                        resultadosIngredientes.visibility = View.GONE
+                        resultadosRecetas.visibility = View.VISIBLE
+
+                        Toast.makeText(
+                            this,
+                            "Receta seleccionada: ${receta.REC_NOMBRE}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                } else {
+
+                    recetasSeleccionadasColacion.removeAll {
+                        it.REC_ID == receta.REC_ID
+                    }
+
+                    recetaSeleccionadaColacion =
+                        recetasSeleccionadasColacion.lastOrNull()
+
+                    if (recetasSeleccionadasColacion.isEmpty()) {
+                        contenedorIngredientes.visibility = View.VISIBLE
+                    }
+                }
+
+                adapterRecetas?.actualizarSeleccionadas()
+
+                // IMPORTANTE: reevaluar el botón después de seleccionar
+                // o quitar la receta.
+                actualizarEstadoBotonColacion(vista)
+            }
+        )
+
+        resultadosRecetas.adapter = adapterRecetas
+
+
+        // =====================================================
+        // ADAPTADOR DE INGREDIENTES
+        // =====================================================
+
+        var adapterIngredientes: IngredienteColacionAdapter? = null
+
+        adapterIngredientes = IngredienteColacionAdapter { ingrediente ->
+
+            if (recetasSeleccionadasColacion.isNotEmpty()) {
+
+                Toast.makeText(
+                    this,
+                    "Quita la receta antes de seleccionar ingredientes.",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                adapterIngredientes?.actualizarSeleccion(
+                    setOfNotNull(
+                        ingredienteColacion1?.id,
+                        ingredienteColacion2?.id
+                    )
+                )
+
+            } else {
+
+                adapterIngredientes?.let { adapter ->
+
+                    seleccionarIngredienteColacion(
+                        ingrediente = ingrediente,
+                        vista = vista,
+                        adapter = adapter
+                    )
+
+                    // Al seleccionar un ingrediente, ocultar recetas.
+                    if (
+                        ingredienteColacion1 != null ||
+                        ingredienteColacion2 != null
+                    ) {
+                        resultadosRecetas.visibility = View.GONE
+                        contenedorIngredientes.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
+
+        resultadosIngredientes.adapter = adapterIngredientes
+
+        // =====================================================
+        // BUSCADOR UNIFICADO: RECETAS E INGREDIENTES
+        // =====================================================
+
+        buscador.addTextChangedListener(
+            object : android.text.TextWatcher {
+
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) = Unit
+
+                override fun onTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    before: Int,
+                    count: Int
+                ) = Unit
+
+                override fun afterTextChanged(
+                    s: android.text.Editable?
+                ) {
+
+                    val texto = s?.toString()?.trim().orEmpty()
+
+                    busquedaRecetasColacionJob?.cancel()
+
+                    if (texto.length < 2) {
+
+                        adapterRecetas?.limpiar()
+                        adapterIngredientes?.limpiar()
+
+                        resultadosRecetas.visibility = View.GONE
+                        resultadosIngredientes.visibility = View.GONE
+
+                        return
+                    }
+
+                    busquedaRecetasColacionJob = lifecycleScope.launch {
+
+                        kotlinx.coroutines.delay(400)
+
+                        try {
+
+                            val resultadoRecetas = async {
+                                ApiClient.apiService.getFiltrosRecetasNombre(
+                                    FiltrosRecetasNombreRequest(
+                                        busqueda = texto,
+                                        categoriaId = 0
+                                    )
+                                )
+                            }
+
+                            val resultadoIngredientes = async {
+                                ApiClient.apiService.autocompleteIngredientes(
+                                    texto
+                                )
+                            }
+
+                            val respuestaRecetas = resultadoRecetas.await()
+                            val respuestaIngredientes =
+                                resultadoIngredientes.await()
+
+                            // Ignorar respuestas de búsquedas anteriores.
+                            if (buscador.text.toString().trim() != texto) {
+                                return@launch
+                            }
+
+                            // =============================================
+                            // RESULTADOS DE RECETAS
+                            // =============================================
+
+                            if (respuestaRecetas.success) {
+
+                                adapterRecetas?.actualizar(
+                                    respuestaRecetas.coincidencia
+                                )
+
+                                resultadosRecetas.visibility =
+                                    if (
+                                        ingredienteColacion1 == null &&
+                                        ingredienteColacion2 == null &&
+                                        respuestaRecetas.coincidencia.isNotEmpty()
+                                    ) {
+                                        View.VISIBLE
+                                    } else {
+                                        View.GONE
+                                    }
+
+                            } else {
+
+                                adapterRecetas?.limpiar()
+                                resultadosRecetas.visibility = View.GONE
+                            }
+
+                            // =============================================
+                            // RESULTADOS DE INGREDIENTES
+                            // =============================================
+
+                            if (
+                                respuestaIngredientes.success &&
+                                respuestaIngredientes.ingredientes.isNotEmpty()
+                            ) {
+
+                                adapterIngredientes?.actualizarLista(
+                                    respuestaIngredientes.ingredientes
+                                )
+
+                                adapterIngredientes?.actualizarSeleccion(
+                                    setOfNotNull(
+                                        ingredienteColacion1?.id,
+                                        ingredienteColacion2?.id
+                                    )
+                                )
+
+                                resultadosIngredientes.visibility =
+                                    if (
+                                        recetasSeleccionadasColacion.isEmpty()
+                                    ) {
+                                        View.VISIBLE
+                                    } else {
+                                        View.GONE
+                                    }
+
+                            } else {
+
+                                adapterIngredientes?.limpiar()
+                                resultadosIngredientes.visibility = View.GONE
+                            }
+
+                            // =============================================
+                            // RESPETAR LA MODALIDAD SELECCIONADA
+                            // =============================================
+
+                            if (recetasSeleccionadasColacion.isNotEmpty()) {
+
+                                contenedorIngredientes.visibility = View.GONE
+                                resultadosIngredientes.visibility = View.GONE
+
+                                if (
+                                    respuestaRecetas.success &&
+                                    respuestaRecetas.coincidencia.isNotEmpty()
+                                ) {
+                                    resultadosRecetas.visibility = View.VISIBLE
+                                }
+                            }
+
+                            if (
+                                ingredienteColacion1 != null ||
+                                ingredienteColacion2 != null
+                            ) {
+                                resultadosRecetas.visibility = View.GONE
+                            }
+
+                        } catch (e: kotlinx.coroutines.CancellationException) {
+
+                            throw e
+
+                        } catch (e: Exception) {
+
+                            if (buscador.text.toString().trim() == texto) {
+
+                                adapterRecetas?.limpiar()
+                                adapterIngredientes?.limpiar()
+
+                                resultadosRecetas.visibility = View.GONE
+                                resultadosIngredientes.visibility = View.GONE
+
+                                android.util.Log.e(
+                                    "COLACION",
+                                    "Error buscando recetas o ingredientes",
+                                    e
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        )
+    }
+    private fun configurarSelectorPreparacion(vista: View) {
+        val selector = vista.findViewById<View>(
+            R.id.selectorPreparacionColacion
+        )
+
+        val texto = vista.findViewById<TextView>(
+            R.id.txtPreparacionColacion
+        )
+
+        selector.setOnClickListener {
+            PopupMenu(this, selector).apply {
+                preparacionesColacion.forEach { preparacion ->
+                    menu.add(preparacion)
+                }
+
+                setOnMenuItemClickListener { item ->
+                    preparacionColacion = item.title.toString()
+                    texto.text = preparacionColacion
+                    true
+                }
+
+                show()
+            }
+        }
+    }
+    private fun abreviarUnidadColacion(unidad: String): String {
+        return when (unidad) {
+            "gramos" -> "g"
+            "kilogramos" -> "kg"
+            "mililitros" -> "ml"
+            "litros" -> "l"
+            "pieza(s)" -> "pza"
+            "taza(s)" -> "tza"
+            "cucharada(s)" -> "cda"
+            "cucharadita(s)" -> "cdta"
+            else -> unidad
+        }
+    }
+    private fun mostrarModoColacion(vista: View, mostrarIngredientes: Boolean) {
+        val resultadosIngredientes = vista.findViewById<RecyclerView>(
+            R.id.resultados_ingredientes
+        )
+        val resultadosRecetas = vista.findViewById<RecyclerView>(
+            R.id.resultados_derecetas
+        )
+        if (mostrarIngredientes) {
+            resultadosIngredientes.visibility = View.VISIBLE
+            resultadosRecetas.visibility = View.GONE
+        } else {
+            resultadosIngredientes.visibility = View.GONE
+            resultadosRecetas.visibility = View.VISIBLE
+        }
+    }
+    private fun actualizarEstadoBotonColacion(vista: View) {
+
+        val btnAgregar = vista.findViewById<View>(
+            R.id.btnAgregarAlPlaneador
+        )
+
+        // Detectar si hay una receta seleccionada.
+        val hayReceta =
+            recetaSeleccionadaColacion != null ||
+                    recetasSeleccionadasColacion.isNotEmpty()
+
+        // Detectar ingredientes seleccionados.
+        val hayIngrediente1 = ingredienteColacion1 != null
+        val hayIngrediente2 = ingredienteColacion2 != null
+
+        val hayIngredientes = hayIngrediente1 || hayIngrediente2
+
+        // MODALIDAD 1: receta seleccionada.
+        // No necesita cantidades ni preparación de ingredientes.
+        if (hayReceta) {
+
+            val seleccionValida = !hayIngredientes
+
+            btnAgregar.isEnabled = seleccionValida
+            btnAgregar.alpha = if (seleccionValida) 1f else 0.5f
+
+            return
+        }
+
+        // MODALIDAD 2: ingredientes sueltos.
+        val cantidad1 = vista.findViewById<EditText>(
+            R.id.cantidad1
+        ).text.toString().trim()
+            .replace(",", ".")
+            .toDoubleOrNull()
+
+        val cantidad2 = vista.findViewById<EditText>(
+            R.id.cantidad2
+        ).text.toString().trim()
+            .replace(",", ".")
+            .toDoubleOrNull()
+
+        val cantidad1Valida =
+            !hayIngrediente1 || (cantidad1 != null && cantidad1 > 0)
+
+        val cantidad2Valida =
+            !hayIngrediente2 || (cantidad2 != null && cantidad2 > 0)
+
+        val preparacionValida =
+            preparacionColacion != "Sin especificar"
+
+        val seleccionValida =
+            hayIngredientes &&
+                    cantidad1Valida &&
+                    cantidad2Valida &&
+                    preparacionValida
+
+        btnAgregar.isEnabled = seleccionValida
+        btnAgregar.alpha = if (seleccionValida) 1f else 0.5f
+    }
+    private fun eliminarElementoDelEspacio(
+        espacio: EspacioComida,
+        elemento: ElementoComida
+    ) {
+        if (plaId <= 0 || cliId <= 0 || hogId <= 0) {
+            Toast.makeText(
+                this,
+                "No se encontraron los datos del planeador.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        if (espacio.ECM_ID <= 0) {
+            Toast.makeText(
+                this,
+                "El espacio de comida no tiene un identificador válido.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        // El elemento debe ser exclusivamente receta o ingrediente.
+        val esReceta = elemento.ecrId != null
+        val esIngrediente = elemento.eciId != null
+
+        if (esReceta == esIngrediente) {
+            android.util.Log.e(
+                "ELIMINAR_ELEMENTO",
+                "Tipo inválido: nombre=${elemento.nombre}, " +
+                        "ECR_ID=${elemento.ecrId}, ECI_ID=${elemento.eciId}"
+            )
+
+            Toast.makeText(
+                this,
+                "No se pudo identificar el tipo de elemento.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        // Obtener el ID correspondiente.
+        val idElemento: Int = (
+                if (esReceta) elemento.ecrId else elemento.eciId
+                ) ?: run {
+            Toast.makeText(
+                this,
+                "El elemento no tiene un ID válido.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        if (idElemento <= 0) {
+            android.util.Log.e(
+                "ELIMINAR_ELEMENTO",
+                "ID inválido: nombre=${elemento.nombre}, " +
+                        "ECR_ID=${elemento.ecrId}, " +
+                        "ECI_ID=${elemento.eciId}, " +
+                        "ECM_ID=${espacio.ECM_ID}"
+            )
+
+            Toast.makeText(
+                this,
+                "El identificador de este elemento es 0. " +
+                        "Hay que revisar cómo se cargó desde la API.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(
+                if (esReceta) "Eliminar platillo"
+                else "Eliminar ingrediente"
+            )
+            .setMessage(
+                "¿Deseas quitar \"${elemento.nombre}\" de esta planeación?"
+            )
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Eliminar") { _, _ ->
+                lifecycleScope.launch {
+                    try {
+                        android.util.Log.d(
+                            "ELIMINAR_ELEMENTO",
+                            "Tipo=${if (esReceta) "RECETA" else "INGREDIENTE"}, " +
+                                    "ID=$idElemento, ECM_ID=${espacio.ECM_ID}, " +
+                                    "PLA_ID=$plaId, CLI_ID=$cliId, HOG_ID=$hogId"
+                        )
+
+                        val mensaje: String
+
+                        if (esReceta) {
+                            val respuesta =
+                                ApiClient.apiService.eliminarRecetaEspacio(
+                                    EliminarRecetaEspacioRequest(
+                                        ECR_ID = idElemento,
+                                        ECM_ID = espacio.ECM_ID,
+                                        PLA_ID = plaId,
+                                        CLI_ID = cliId,
+                                        HOG_ID = hogId
+                                    )
+                                )
+
+                            if (!respuesta.success) {
+                                Toast.makeText(
+                                    this@PlaneadorSemanalActivity,
+                                    respuesta.message,
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                return@launch
+                            }
+
+                            mensaje = respuesta.message
+                        } else {
+                            val respuesta =
+                                ApiClient.apiService.eliminarIngredienteEspacio(
+                                    EliminarIngredienteEspacioRequest(
+                                        ECI_ID = idElemento,
+                                        ECM_ID = espacio.ECM_ID,
+                                        PLA_ID = plaId,
+                                        CLI_ID = cliId,
+                                        HOG_ID = hogId
+                                    )
+                                )
+
+                            if (!respuesta.success) {
+                                Toast.makeText(
+                                    this@PlaneadorSemanalActivity,
+                                    respuesta.message,
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                return@launch
+                            }
+
+                            mensaje = respuesta.message
+                        }
+
+                        Toast.makeText(
+                            this@PlaneadorSemanalActivity,
+                            mensaje,
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        obtenerPlaneadorSemanal()
+
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+
+                    } catch (e: retrofit2.HttpException) {
+                        val cuerpoError = try {
+                            e.response()?.errorBody()?.string()
+                        } catch (_: Exception) {
+                            null
+                        }
+
+                        android.util.Log.e(
+                            "ELIMINAR_ELEMENTO",
+                            "HTTP ${e.code()}: $cuerpoError",
+                            e
+                        )
+
+                        Toast.makeText(
+                            this@PlaneadorSemanalActivity,
+                            "Error HTTP ${e.code()}: " +
+                                    (cuerpoError ?: "Error del servidor"),
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                    } catch (e: Exception) {
+                        android.util.Log.e(
+                            "ELIMINAR_ELEMENTO",
+                            "Error al eliminar ${elemento.nombre}",
+                            e
+                        )
+
+                        Toast.makeText(
+                            this@PlaneadorSemanalActivity,
+                            "No se pudo eliminar el elemento.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
+            .show()
+    }
 }

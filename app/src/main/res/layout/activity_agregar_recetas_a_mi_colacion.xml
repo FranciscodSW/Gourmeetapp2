@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="false"
+    android:background="@color/white"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/white"
+        android:paddingBottom="12dp">
+
+        <!-- ENCABEZADO -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_rectangulo_azul_borde_negro_3">
+
+            <TextView
+                android:id="@+id/txtTituloIngrediente"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Agregar recetas a mi colación"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/caviardreams"
+                android:gravity="center"
+                android:padding="12dp"
+                android:paddingStart="42dp"
+                android:paddingEnd="42dp" />
+
+            <ImageButton
+                android:id="@+id/btnCerrarIngrediente"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/bg_circulo_blanco_sin_fondo"
+                android:src="@drawable/ic_cerrar_blanco"
+                android:scaleType="centerInside"
+                app:tint="@color/azulgourmeet"
+                android:contentDescription="Cerrar" />
+
+        </FrameLayout>
+
+        <!-- BUSCADOR -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="12dp"
+            android:layout_marginTop="8dp">
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/ic_lupa"
+                app:tint="@color/azulgourmeet"
+                android:contentDescription="Buscar" />
+            <EditText
+                android:id="@+id/etBuscarReceta2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_ovalo_sin_fondo"
+                android:hint="Buscar comida o colación"
+                android:singleLine="true"
+                android:imeOptions="actionSearch"
+                android:inputType="textCapSentences"
+                android:gravity="center"
+                android:paddingHorizontal="8dp"
+                android:fontFamily="@font/caviardreams"
+                android:textColor="@color/azulgourmeet"
+                android:textColorHint="@color/azulgourmeet" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/txtAyudaBusqueda"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Busca una receta por su nombre o combina ingredientes"
+            android:gravity="center"
+            android:padding="6dp"
+            android:fontFamily="@font/caviardreams"
+            android:textColor="@color/azulgourmeet" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/resultados_ingredientes"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginHorizontal="8dp"
+            android:visibility="gone"
+            android:clipToPadding="false"
+            android:padding="4dp"
+            android:backgroundTint="@color/white" />
+
+        <!-- RESULTADOS -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/resultados_derecetas"
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
+            android:layout_marginHorizontal="8dp"
+            android:visibility="gone"
+            android:clipToPadding="false"
+            android:padding="4dp"
+            android:backgroundTint="@color/white" />
+
+        <LinearLayout
+            android:id="@+id/contenedorparacomplementos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:weightSum="3"
+            android:padding="4dp"
+            android:visibility="gone">
+
+            <!-- CONTENEDOR INGREDIENTE 1 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginEnd="2dp">
+
+                <TextView
+                    android:id="@+id/ingrediente1"
+                    android:layout_width="match_parent"
+                    android:layout_height="25dp"
+                    android:layout_marginTop="3dp"
+                    android:background="@drawable/bg_ovalo_sin_fondo"
+                    android:text="Ingrediente"
+                    android:textColor="@color/azulgourmeet"
+                    android:fontFamily="@font/caviardreams"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="25dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_ovalo_sin_fondo">
+
+                    <EditText
+                        android:id="@+id/cantidad1"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:hint="Cant."
+                        android:inputType="numberDecimal"
+                        android:singleLine="true"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="0dp"
+                        android:textSize="10sp"
+                        android:textColor="@color/azulgourmeet"
+                        android:background="@android:color/transparent"
+                        android:fontFamily="@font/caviardreams" />
+
+                    <TextView
+                        android:id="@+id/txtUnidad1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="g"
+                        android:textSize="10sp"
+                        android:textColor="@color/azulgourmeet"
+                        android:fontFamily="@font/caviardreams" />
+
+                    <ImageView
+                        android:id="@+id/seleccionar_unidad_de_media1"
+                        android:layout_width="22dp"
+                        android:layout_height="25dp"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_flecha_abajo"
+                        android:contentDescription="Seleccionar unidad" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- CONTENEDOR PREPARACIÓN -->
+            <LinearLayout
+                android:id="@+id/selectorPreparacionColacion"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="@drawable/bg_ovalo_sin_fondo"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp">
+
+                <TextView
+                    android:id="@+id/txtPreparacionColacion"
+                    android:layout_width="0dp"
+                    android:layout_height="25dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Preparación"
+                    android:textColor="@color/azulgourmeet"
+                    android:fontFamily="@font/caviardreams"
+                    android:textSize="10sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="25dp"
+                    android:padding="4dp"
+                    android:src="@drawable/ic_flecha_abajo"
+                    android:contentDescription="Seleccionar preparación" />
+
+            </LinearLayout>
+
+            <!-- CONTENEDOR INGREDIENTE 2 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="2dp">
+
+                <TextView
+                    android:id="@+id/ingrediente2"
+                    android:layout_width="match_parent"
+                    android:layout_height="25dp"
+                    android:layout_marginTop="3dp"
+                    android:background="@drawable/bg_ovalo_sin_fondo"
+                    android:text="Ingrediente"
+                    android:textColor="@color/azulgourmeet"
+                    android:fontFamily="@font/caviardreams"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="25dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_ovalo_sin_fondo">
+
+                    <EditText
+                        android:id="@+id/cantidad2"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:hint="Cant."
+                        android:inputType="numberDecimal"
+                        android:singleLine="true"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="0dp"
+                        android:textSize="10sp"
+                        android:textColor="@color/azulgourmeet"
+                        android:background="@android:color/transparent"
+                        android:fontFamily="@font/caviardreams" />
+
+                    <TextView
+                        android:id="@+id/txtUnidad2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="g"
+                        android:textSize="10sp"
+                        android:textColor="@color/azulgourmeet"
+                        android:fontFamily="@font/caviardreams" />
+
+                    <ImageView
+                        android:id="@+id/seleccionar_unidad_de_media2"
+                        android:layout_width="22dp"
+                        android:layout_height="25dp"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_flecha_abajo"
+                        android:contentDescription="Seleccionar unidad" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+        <!-- REPETIR Y PORCIONES -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="1"
+            android:padding="4dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:padding="3dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:text="Quiero repetir esta colacion"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:id="@+id/repetir_comida"
+                    android:fontFamily="@font/caviardreams"
+                    android:textColor="@color/azulgourmeet"
+                    android:background="@drawable/bg_ovalo_sin_fondo"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/seleccionardiaarepetir"
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:visibility="gone"
+                    android:background="@drawable/bg_ovalo_sin_fondo" />
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+        <!-- LIMPIAR, HORARIO Y GUARDAR -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:gravity="center"
+            android:padding="4dp">
+
+            <TextView
+                android:id="@+id/btnLimpiarReceta"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_margin="3dp"
+                android:text="Limpiar"
+                android:gravity="center"
+                android:fontFamily="@font/caviardreams"
+                android:textColor="@color/azulgourmeet"
+                android:background="@drawable/bg_ovalo_sin_fondo"
+                android:clickable="true"
+                android:focusable="true" />
+            <TextView
+                android:id="@+id/btnAgregarAlPlaneador"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_margin="3dp"
+                android:text="Agregar al planeador"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textSize="11sp"
+                android:fontFamily="@font/caviardreams"
+                android:textColor="@color/azulgourmeet"
+                android:background="@drawable/bg_ovalo_sin_fondo"
+                android:clickable="true"
+                android:focusable="true"
+                android:enabled="false" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

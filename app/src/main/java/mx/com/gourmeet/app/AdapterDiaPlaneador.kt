@@ -22,8 +22,9 @@ class AdapterDiaPlaneador(
     private val dias: MutableList<DiaPlaneador>,
     private val onSeleccionarDia: (DiaPlaneador, Boolean) -> Unit,
     private val onAgregarComida: (DiaPlaneador, Int) -> Unit,
-    private val onAgregarColacion: (DiaPlaneador) -> Unit,
-    private val onAsignarHora: (EspacioComida) -> Unit = {}
+    private val onAgregarColacion: (DiaPlaneador, Int) -> Unit,
+    private val onAsignarHora: (EspacioComida) -> Unit = {},
+    private val onEliminarElemento: (EspacioComida, ElementoComida) -> Unit
 ) : RecyclerView.Adapter<AdapterDiaPlaneador.DiaViewHolder>() {
 
 
@@ -154,12 +155,21 @@ class AdapterDiaPlaneador(
                 if (dia.seleccionado) {
                     onAsignarHora(espacio)
                 }
+            },
+            onEliminarElemento = { espacio, elemento ->
+                if (dia.seleccionado) {
+                    onEliminarElemento(espacio, elemento)
+                }
             }
         )
 
-        // RecyclerView de colaciones.
+        // RecyclerView de colaciones en formato horizontal.
         binding.contenedoresColaciones.layoutManager =
-            LinearLayoutManager(context)
+            LinearLayoutManager(
+                context,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
 
         val colaciones = dia.espacios
             .filter { it.TPC_ID == 4 }
@@ -168,38 +178,27 @@ class AdapterDiaPlaneador(
         binding.contenedoresColaciones.adapter =
             AdapterSeleccionarComida(
                 espacios = colaciones,
-
                 onAgregarComida = { espacio ->
                     if (dia.seleccionado) {
                         onAgregarComida(dia, espacio.TPC_ID)
                     }
                 },
-
                 onAsignarHora = { espacio ->
                     if (dia.seleccionado) {
                         onAsignarHora(espacio)
                     }
+                },
+                onEliminarElemento = { espacio, elemento ->
+                    if (dia.seleccionado) {
+                        onEliminarElemento(espacio, elemento)
+                    }
                 }
             )
 
-        // Botón para agregar comida.
-        binding.agregarComida.setOnClickListener {
-            if (dia.seleccionado) {
-                onAgregarComida(dia, 2)
-            }
-        }
-
-        // Botón para agregar colación.
-        binding.agregarColacion.setOnClickListener {
-            if (dia.seleccionado) {
-                onAgregarColacion(dia)
-            }
-        }
         // Habilitar o deshabilitar las listas y botones.
         binding.contenedores.isEnabled = dia.seleccionado
         binding.contenedoresColaciones.isEnabled = dia.seleccionado
-        binding.agregarComida.isEnabled = dia.seleccionado
-        binding.agregarColacion.isEnabled = dia.seleccionado
+
     }
 
 
@@ -214,7 +213,6 @@ class AdapterDiaPlaneador(
     fun obtenerDias(): List<DiaPlaneador> {
         return dias.toList()
     }
-
 
 
 }

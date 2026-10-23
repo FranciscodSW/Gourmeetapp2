@@ -11,6 +11,7 @@ data class EspacioComida(
     val ECM_ESTADO: String,
     var ECM_HORA: String? = null,
     var recetas: List<RecetaEspacio> = emptyList(),
+    var ingredientes: List<IngredienteEspacio> = emptyList(),
     val PLD_COCINAR: Int = 1
 )
 
@@ -19,5 +20,13 @@ data class RecetaEspacio(
     val REC_ID: Int,
     val REC_NOMBRE: String,
     val ECR_PORCIONES: Double
+)
+
+data class IngredienteEspacio(
+    val ECI_ID: Int,
+    val ING_ID: Int,
+    val ING_DESCRIPCION: String,
+    val ECI_CANTIDAD: Double?,
+    val ECI_UNIDAD: String
 )
 

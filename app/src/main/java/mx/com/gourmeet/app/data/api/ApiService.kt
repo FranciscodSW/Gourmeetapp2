@@ -300,13 +300,22 @@ interface ApiService {
     suspend fun actualizarHoraEspacio(
         @Body request: ActualizarHoraEspacioRequest
     ): ActualizarHoraEspacioResponse
+    @POST("planeador/guardar_colacion.php")
+    suspend fun guardarColacion(
+        @Body request: GuardarColacionRequest
+    ): GuardarColacionResponse
+    @POST("planeador/eliminar_receta_espacio.php")
+    suspend fun eliminarRecetaEspacio(
+        @Body request: EliminarRecetaEspacioRequest
+    ): EliminarRecetaEspacioResponse
+
+    @POST("planeador/eliminar_ingrediente_espacio.php")
+    suspend fun eliminarIngredienteEspacio(
+        @Body request: EliminarIngredienteEspacioRequest
+    ): EliminarIngredienteEspacioResponse
 
     @POST("planeador/actualizar_estado_dia.php")
     suspend fun actualizarEstadoDia(
         @Body request: ActualizarEstadoDiaRequest
     ): ActualizarEstadoDiaResponse
-    @POST("planeador/eliminar_receta_espacio.php")
-    suspend fun eliminarRecetaEspacio(
-        @Body request: EliminarRecetaEspacioRequest
-    ): EliminarRecetaEspacioResponse
 }

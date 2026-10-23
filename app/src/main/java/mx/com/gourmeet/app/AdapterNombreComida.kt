@@ -1,14 +1,21 @@
 package mx.com.gourmeet.app
 
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import mx.com.gourmeet.app.databinding.ItemNombreDeComidaAPrepararBinding
 
+data class ElementoComida(
+    val nombre: String,
+    val ecrId: Int? = null,
+    val eciId: Int? = null
+)
 
 class AdapterNombreComida(
-    private val recetas: MutableList<String>,
-    private val onEliminar: ((Int) -> Unit)? = null
+    private val elementos: MutableList<ElementoComida>,
+    private val onEliminar: ((ElementoComida) -> Unit)? = null
 ) : RecyclerView.Adapter<AdapterNombreComida.RecetaViewHolder>() {
 
     inner class RecetaViewHolder(
@@ -31,36 +38,38 @@ class AdapterNombreComida(
         holder: RecetaViewHolder,
         position: Int
     ) {
-        holder.binding.nombreComida.text = recetas[position]
+        val elemento = elementos[position]
+        val binding = holder.binding
 
-        holder.binding.root.setOnLongClickListener {
+        binding.nombreComida.text = elemento.nombre
+
+        binding.btnEliminarComida.visibility =
+            if (onEliminar != null) View.VISIBLE else View.GONE
+
+        binding.btnEliminarComida.setOnClickListener {
             val posicion = holder.bindingAdapterPosition
 
             if (posicion != RecyclerView.NO_POSITION) {
-                onEliminar?.invoke(posicion)
-            }
+                val elemento = elementos[posicion]
 
-            onEliminar != null
+                Log.d(
+                    "ELIMINAR_ELEMENTO",
+                    "Nombre=${elemento.nombre}, " +
+                            "ECR_ID=${elemento.ecrId}, " +
+                            "ECI_ID=${elemento.eciId}"
+                )
+
+                onEliminar?.invoke(elemento)
+            }
         }
     }
 
-    override fun getItemCount(): Int = recetas.size
+    override fun getItemCount(): Int = elementos.size
 
-    fun actualizarRecetas(nuevasRecetas: List<String>) {
-        recetas.clear()
-        recetas.addAll(nuevasRecetas)
+    fun actualizarElementos(nuevos: List<ElementoComida>) {
+        elementos.clear()
+        elementos.addAll(nuevos)
         notifyDataSetChanged()
     }
-
-    fun agregarReceta(nombre: String) {
-        recetas.add(nombre)
-        notifyItemInserted(recetas.lastIndex)
-    }
-
-    fun eliminarReceta(posicion: Int) {
-        if (posicion in recetas.indices) {
-            recetas.removeAt(posicion)
-            notifyItemRemoved(posicion)
-        }
-    }
 }
+

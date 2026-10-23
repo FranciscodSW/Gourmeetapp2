@@ -56,7 +56,5 @@
             android:textColor="@android:color/black"
             android:maxLines="2"
             android:ellipsize="end"/>
-
     </LinearLayout>
-
 </FrameLayout>

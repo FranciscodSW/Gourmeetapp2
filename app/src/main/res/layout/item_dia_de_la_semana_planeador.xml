@@ -68,35 +68,12 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        >
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/contenedores"/>
-        <LinearLayout
-            android:layout_width="65dp"
-            android:layout_height="65dp"
-            android:orientation="vertical"
-            android:layout_gravity="center_vertical"
-            android:id="@+id/agregar_comida"
-            android:background="@drawable/bg_circulo_azul">
-            <ImageView
-                android:layout_marginTop="1dp"
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-
-                android:src="@drawable/ic_mas_blanco"
-                android:layout_gravity="center"
-                />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Agregar"
-                android:textColor="@color/white"
-                android:fontFamily="@font/caviardreams"
-                android:textSize="15dp"/>
-        </LinearLayout>
-
 
 
     </LinearLayout>
@@ -108,30 +85,8 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/contenedores_colaciones"/>
-            <LinearLayout
-                android:layout_width="65dp"
-                android:layout_height="65dp"
-                android:orientation="vertical"
-                android:layout_gravity="center_vertical"
-                android:id="@+id/agregar_colacion"
-                android:background="@drawable/bg_circulo_azul">
-                <ImageView
-                    android:layout_marginTop="1dp"
-                    android:layout_width="35dp"
-                    android:layout_height="35dp"
 
-                    android:src="@drawable/ic_mas_blanco"
-                    android:layout_gravity="center"
-                    />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Agregar"
-                    android:textColor="@color/white"
-                    android:fontFamily="@font/caviardreams"
-                    android:textSize="15dp"/>
-            </LinearLayout>
+                android:id="@+id/contenedores_colaciones"/>
         </LinearLayout>
         <LinearLayout
             android:id="@+id/sin_cocinero"
