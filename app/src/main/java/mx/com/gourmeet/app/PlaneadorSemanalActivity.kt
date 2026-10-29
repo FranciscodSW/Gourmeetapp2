@@ -1,5 +1,6 @@
 package mx.com.gourmeet.app
 
+import android.R.attr.singleLine
 import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -36,7 +37,9 @@ import java.util.Calendar
 import java.util.Locale
 import mx.com.gourmeet.app.data.models.EliminarRecetaEspacioResponse
 import mx.com.gourmeet.app.data.models.EliminarIngredienteEspacioResponse
+@Suppress("DEPRECATION")
 class PlaneadorSemanalActivity : AppCompatActivity() {
+    private var hogUsuIdSolicitante: Int = -1
     private var preparacionColacion: String = "Sin especificar"
     private val preparacionesColacion = listOf("Picado","Con", "Y", "Hervido", "Al vapor", "Molido", "Rallado", "Licuado con", "Untado con", "Horneado", "Frito")
     private var porcionesSeleccionadas: Int? = null
@@ -80,6 +83,7 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
         setContentView(binding.root)
         cliId = intent.getIntExtra("CLI_ID", -1)
         hogId = intent.getIntExtra("HOG_ID", -1)
+        hogUsuIdSolicitante = intent.getIntExtra("HOG_USU_ID", -1)
         if (cliId <= 0 || hogId <= 0) {
             Toast.makeText(
                 this,
@@ -97,7 +101,6 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
     // =========================================================
     // CONFIGURAR RECYCLERVIEW PRINCIPAL
     // =========================================================
-
 
     private fun configurarRecyclerView() {
         binding.diasDeCocina.layoutManager =
@@ -135,7 +138,8 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
             },
 
             onEliminarElemento = { espacio, elemento ->
-                if (espacio.TPC_ID == 4 ||
+                if (
+                    espacio.TPC_ID == 4 ||
                     espacio.TPC_ID in 1..3
                 ) {
                     eliminarElementoDelEspacio(
@@ -143,11 +147,17 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
                         elemento = elemento
                     )
                 }
+            },
+
+            // NUEVO: asignar cocinero al día seleccionado.
+            onAsignarCocinero = { dia ->
+                mostrarDialogoBuscarCocinero(dia)
             }
         )
 
         binding.diasDeCocina.adapter = adapterDia
     }
+
 
     // =========================================================
     // OBTENER PLANEADOR SEMANAL
@@ -186,33 +196,51 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                // =====================================================
-// DIAGNÓSTICO: IDENTIFICADORES RECIBIDOS DESDE LA API
-// =====================================================
-
+                // 2. Obtener los espacios y los días de cocina
                 val espacios = response.espacios.orEmpty()
+                val diasCocina = response.dias_cocina.orEmpty()
 
-                espacios.forEach { espacio ->
-
+                // 3. Diagnóstico: verificar los identificadores recibidos
+                diasCocina.forEach { dia ->
                     android.util.Log.d(
                         "DEBUG_IDS_PLANEADOR",
                         """
-        ESPACIO:
-        ECM_ID = ${espacio.ECM_ID}
-        TPC_ID = ${espacio.TPC_ID}
-        FECHA = ${espacio.ECM_FECHA}
-        """.trimIndent()
+                    DÍA:
+                    PLD_ID = ${dia.pldId}
+                    PLA_ID = ${dia.plaId}
+                    FECHA = ${dia.pldFecha}
+                    PLD_COCINAR = ${dia.pldCocinar}
+                    """.trimIndent()
+                    )
+
+                    if (dia.pldId <= 0) {
+                        android.util.Log.e(
+                            "DEBUG_IDS_PLANEADOR",
+                            "ERROR: El día ${dia.pldFecha} llegó con PLD_ID=${dia.pldId}"
+                        )
+                    }
+                }
+
+                espacios.forEach { espacio ->
+                    android.util.Log.d(
+                        "DEBUG_IDS_PLANEADOR",
+                        """
+                    ESPACIO:
+                    ECM_ID = ${espacio.ECM_ID}
+                    TPC_ID = ${espacio.TPC_ID}
+                    FECHA = ${espacio.ECM_FECHA}
+                    """.trimIndent()
                     )
 
                     espacio.recetas.forEach { receta ->
                         android.util.Log.d(
                             "DEBUG_IDS_PLANEADOR",
                             """
-            RECETA:
-            NOMBRE = ${receta.REC_NOMBRE}
-            ECR_ID = ${receta.ECR_ID}
-            REC_ID = ${receta.REC_ID}
-            """.trimIndent()
+                        RECETA:
+                        NOMBRE = ${receta.REC_NOMBRE}
+                        ECR_ID = ${receta.ECR_ID}
+                        REC_ID = ${receta.REC_ID}
+                        """.trimIndent()
                         )
 
                         if (receta.ECR_ID <= 0) {
@@ -228,11 +256,11 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
                         android.util.Log.d(
                             "DEBUG_IDS_PLANEADOR",
                             """
-            INGREDIENTE:
-            NOMBRE = ${ingrediente.ING_DESCRIPCION}
-            ECI_ID = ${ingrediente.ECI_ID}
-            ING_ID = ${ingrediente.ING_ID}
-            """.trimIndent()
+                        INGREDIENTE:
+                        NOMBRE = ${ingrediente.ING_DESCRIPCION}
+                        ECI_ID = ${ingrediente.ECI_ID}
+                        ING_ID = ${ingrediente.ING_ID}
+                        """.trimIndent()
                         )
 
                         if (ingrediente.ECI_ID <= 0) {
@@ -244,6 +272,8 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
                         }
                     }
                 }
+
+                // 4. Validar las fechas del planeador
                 val fechaInicio = response.PLA_FECHA_INICIO
                 val fechaFin = response.PLA_FECHA_FIN
 
@@ -260,17 +290,18 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                // 3. Generar los días de la semana
+                // 5. Generar los días incluyendo su PLD_ID
                 val dias = generarDias(
                     fechaInicio = fechaInicio,
                     fechaFin = fechaFin,
-                    espacios = espacios
+                    espacios = espacios,
+                    diasCocina = diasCocina
                 )
 
-                // 4. Actualizar el RecyclerView
+                // 6. Actualizar el RecyclerView
                 adapterDia.actualizarDias(dias)
 
-                // 5. Actualizar el resumen de recetas y días seleccionados
+                // 7. Actualizar el resumen
                 actualizarResumenDiasSeleccionados()
 
             } catch (e: CancellationException) {
@@ -281,13 +312,21 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
                     "Error al cargar el planeador: ${e.message}",
                     Toast.LENGTH_LONG
                 ).show()
+
+                android.util.Log.e(
+                    "DEBUG_IDS_PLANEADOR",
+                    "Error al cargar el planeador semanal",
+                    e
+                )
             }
         }
     }
+
     private fun generarDias(
         fechaInicio: String,
         fechaFin: String,
-        espacios: List<EspacioComida>
+        espacios: List<EspacioComida>,
+        diasCocina: List<DiaCocinaResponse>
     ): List<DiaPlaneador> {
 
         val inicio = formatoFecha.parse(fechaInicio)
@@ -298,6 +337,11 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
 
         val espaciosPorFecha = espacios.groupBy {
             it.ECM_FECHA.take(10)
+        }
+
+        // Asociar cada fecha con su información del planeador.
+        val diasCocinaPorFecha = diasCocina.associateBy {
+            it.pldFecha.take(10)
         }
 
         val resultado = mutableListOf<DiaPlaneador>()
@@ -326,8 +370,12 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
             val espaciosDelDia =
                 espaciosPorFecha[fechaActual].orEmpty()
 
-            val estadoCocinar =
-                espaciosDelDia.firstOrNull()?.PLD_COCINAR ?: 1
+            // Obtener el registro real del día.
+            val diaCocina = diasCocinaPorFecha[fechaActual]
+
+            val estadoCocinar = diaCocina?.pldCocinar
+                ?: espaciosDelDia.firstOrNull()?.PLD_COCINAR
+                ?: 1
 
             resultado.add(
                 DiaPlaneador(
@@ -339,7 +387,10 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
                             { it.ECM_NUMERO_COLACION }
                         )
                     ),
-                    seleccionado = estadoCocinar == 1
+                    seleccionado = estadoCocinar == 1,
+                    pldId = diaCocina?.pldId ?: 0,
+                    hogUsuIdCocinero = diaCocina?.hogUsuIdCocinero,
+                    nombreCocinero = diaCocina?.hogUsuNombre
                 )
             )
 
@@ -2156,13 +2207,10 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
                             if (buscador.text.toString().trim() != texto) {
                                 return@launch
                             }
-
                             // =============================================
                             // RESULTADOS DE RECETAS
                             // =============================================
-
                             if (respuestaRecetas.success) {
-
                                 adapterRecetas?.actualizar(
                                     respuestaRecetas.coincidencia
                                 )
@@ -2568,4 +2616,465 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
             }
             .show()
     }
+
+    private fun mostrarDialogoBuscarCocinero(dia: DiaPlaneador) {
+
+        // 1. Validar que el día esté seleccionado.
+        if (!dia.seleccionado) {
+            Toast.makeText(
+                this,
+                "Primero selecciona el día para cocinar.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        // 2. Validar los identificadores necesarios.
+        if (hogId <= 0 || hogUsuIdSolicitante <= 0) {
+            Toast.makeText(
+                this,
+                "No se pudo identificar el hogar o el usuario.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        // 3. Crear el contenido del diálogo.
+        val contenedor = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 8)
+        }
+
+        val textoDia = android.widget.TextView(this).apply {
+            text = "Selecciona quién cocinará el ${dia.nombreDia}"
+            textSize = 16f
+        }
+
+        val campoBusqueda = android.widget.EditText(this).apply {
+            hint = "Buscar integrante por nombre o correo"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+        }
+
+        val progreso = android.widget.ProgressBar(this).apply {
+            visibility = android.view.View.GONE
+            isIndeterminate = true
+        }
+
+        val textoEstado = android.widget.TextView(this).apply {
+            text = "Escribe al menos dos caracteres para buscar."
+            textSize = 14f
+            setPadding(0, 16, 0, 16)
+        }
+
+        val listaIntegrantes = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+        }
+
+        contenedor.addView(textoDia)
+        contenedor.addView(campoBusqueda)
+        contenedor.addView(progreso)
+        contenedor.addView(textoEstado)
+        contenedor.addView(listaIntegrantes)
+
+        val scroll = android.widget.ScrollView(this).apply {
+            addView(contenedor)
+        }
+
+        val dialogo = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Asignar cocinero")
+            .setView(scroll)
+            .setNegativeButton("Cerrar", null)
+            .create()
+
+        dialogo.show()
+
+        // 4. Preparar la búsqueda con una pausa de 400 ms.
+        val handler = android.os.Handler(
+            android.os.Looper.getMainLooper()
+        )
+
+        val tareaBusqueda = object : Runnable {
+
+            override fun run() {
+
+                val termino = campoBusqueda.text
+                    .toString()
+                    .trim()
+
+                if (termino.length < 2) {
+                    progreso.visibility = android.view.View.GONE
+                    listaIntegrantes.removeAllViews()
+
+                    textoEstado.text =
+                        "Escribe al menos dos caracteres para buscar."
+
+                    textoEstado.visibility = android.view.View.VISIBLE
+                    return
+                }
+
+                progreso.visibility = android.view.View.VISIBLE
+                textoEstado.visibility = android.view.View.GONE
+                listaIntegrantes.removeAllViews()
+
+                lifecycleScope.launch {
+
+                    try {
+
+                        val respuesta = ApiClient.apiService
+                            .buscarIntegrantesHogar(
+                                BuscarIntegrantesHogarRequest(
+                                    HOG_ID = hogId,
+                                    HOG_USU_ID_SOLICITANTE =
+                                        hogUsuIdSolicitante,
+                                    busqueda = termino
+                                )
+                            )
+
+                        // Ignorar resultados de búsquedas anteriores.
+                        if (
+                            campoBusqueda.text.toString().trim() != termino ||
+                            !dialogo.isShowing
+                        ) {
+                            return@launch
+                        }
+
+                        listaIntegrantes.removeAllViews()
+
+                        if (respuesta.success) {
+
+                            val integrantes = respuesta.integrantes
+
+                            if (integrantes.isEmpty()) {
+
+                                textoEstado.text =
+                                    "No se encontraron integrantes."
+
+                                textoEstado.visibility =
+                                    android.view.View.VISIBLE
+
+                            } else {
+
+                                textoEstado.visibility =
+                                    android.view.View.GONE
+
+                                integrantes.forEach { integrante ->
+
+                                    val tarjeta =
+                                        android.widget.LinearLayout(
+                                            this@PlaneadorSemanalActivity
+                                        ).apply {
+
+                                            orientation =
+                                                android.widget.LinearLayout.VERTICAL
+
+                                            setPadding(16, 16, 16, 16)
+
+                                            isClickable = true
+                                            isFocusable = true
+
+                                            val parametros =
+                                                android.widget.LinearLayout.LayoutParams(
+                                                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                                                )
+
+                                            parametros.setMargins(0, 4, 0, 4)
+                                            layoutParams = parametros
+
+                                            setBackgroundResource(
+                                                android.R.drawable.list_selector_background
+                                            )
+                                        }
+
+                                    val nombre =
+                                        android.widget.TextView(
+                                            this@PlaneadorSemanalActivity
+                                        ).apply {
+                                            text = integrante.HOG_USU_NOMBRE
+                                            textSize = 16f
+                                        }
+
+                                    val correo =
+                                        android.widget.TextView(
+                                            this@PlaneadorSemanalActivity
+                                        ).apply {
+                                            text = integrante.HOG_USU_CORREO
+                                                ?.takeIf { it.isNotBlank() }
+                                                ?: "Sin correo registrado"
+
+                                            textSize = 13f
+                                        }
+
+                                    val rol =
+                                        android.widget.TextView(
+                                            this@PlaneadorSemanalActivity
+                                        ).apply {
+                                            text = "Rol: ${integrante.HOG_USU_ROL}"
+                                            textSize = 12f
+                                        }
+
+                                    tarjeta.addView(nombre)
+                                    tarjeta.addView(correo)
+                                    tarjeta.addView(rol)
+
+                                    tarjeta.setOnClickListener {
+
+                                        // Validar que pertenezca al hogar actual.
+                                        if (integrante.HOG_ID != hogId) {
+                                            Toast.makeText(
+                                                this@PlaneadorSemanalActivity,
+                                                "El integrante no pertenece a este hogar.",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+
+                                            return@setOnClickListener
+                                        }
+
+                                        // Confirmar antes de guardar.
+                                        androidx.appcompat.app.AlertDialog.Builder(
+                                            this@PlaneadorSemanalActivity
+                                        )
+                                            .setTitle("Confirmar cocinero")
+                                            .setMessage(
+                                                "¿Deseas asignar a " +
+                                                        integrante.HOG_USU_NOMBRE +
+                                                        " para cocinar el día " +
+                                                        dia.nombreDia +
+                                                        "?"
+                                            )
+                                            .setNegativeButton(
+                                                "Cancelar",
+                                                null
+                                            )
+                                            .setPositiveButton(
+                                                "Asignar cocinero"
+                                            ) { _, _ ->
+
+                                                dialogo.dismiss()
+
+                                                asignarCocineroAlDia(
+                                                    dia = dia,
+                                                    integrante = integrante
+                                                )
+                                            }
+                                            .show()
+                                    }
+
+                                    listaIntegrantes.addView(tarjeta)
+                                }
+                            }
+
+                        } else {
+
+                            textoEstado.text =
+                                respuesta.message.ifBlank {
+                                    "No se pudo realizar la búsqueda."
+                                }
+
+                            textoEstado.visibility =
+                                android.view.View.VISIBLE
+                        }
+
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+
+                        throw e
+
+                    } catch (e: Exception) {
+
+                        if (dialogo.isShowing) {
+                            textoEstado.text =
+                                "Error al buscar integrantes. Verifica tu conexión e inténtalo nuevamente."
+
+                            textoEstado.visibility =
+                                android.view.View.VISIBLE
+                        }
+
+                        android.util.Log.e(
+                            "PlaneadorSemanal",
+                            "Error al buscar integrantes del hogar",
+                            e
+                        )
+
+                    } finally {
+
+                        if (
+                            dialogo.isShowing &&
+                            campoBusqueda.text.toString().trim() == termino
+                        ) {
+                            progreso.visibility =
+                                android.view.View.GONE
+                        }
+                    }
+                }
+            }
+        }
+
+        // 5. Detectar cambios en el campo de búsqueda.
+        campoBusqueda.addTextChangedListener(
+            object : android.text.TextWatcher {
+
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) = Unit
+
+                override fun onTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    before: Int,
+                    count: Int
+                ) {
+
+                    handler.removeCallbacks(tareaBusqueda)
+                    listaIntegrantes.removeAllViews()
+
+                    val termino = s?.toString()?.trim().orEmpty()
+
+                    if (termino.length < 2) {
+
+                        progreso.visibility = android.view.View.GONE
+
+                        textoEstado.text =
+                            "Escribe al menos dos caracteres para buscar."
+
+                        textoEstado.visibility = android.view.View.VISIBLE
+                        return
+                    }
+
+                    textoEstado.text = "Preparando búsqueda..."
+                    textoEstado.visibility = android.view.View.VISIBLE
+
+                    handler.postDelayed(tareaBusqueda, 400)
+                }
+
+                override fun afterTextChanged(
+                    s: android.text.Editable?
+                ) = Unit
+            }
+        )
+
+        // 6. Limpiar la búsqueda al cerrar el diálogo.
+        dialogo.setOnDismissListener {
+            handler.removeCallbacks(tareaBusqueda)
+        }
+    }
+
+     private fun asignarCocineroAlDia(
+        dia: DiaPlaneador,
+        integrante: IntegranteHogarBusqueda
+    ) {
+        // 1. Validar el identificador del día del planeador.
+        if (dia.pldId <= 0) {
+            Toast.makeText(
+                this,
+                "No se identificó el día del planeador. Verifica que tenga un PLD_ID válido.",
+                Toast.LENGTH_LONG
+            ).show()
+
+            android.util.Log.e(
+                "PlaneadorSemanal",
+                "PLD_ID inválido: ${dia.pldId}"
+            )
+            return
+        }
+
+        // 2. Validar el hogar.
+        if (hogId <= 0 || integrante.HOG_ID != hogId) {
+            Toast.makeText(
+                this,
+                "El integrante no pertenece al hogar seleccionado.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        // 3. Validar quién realiza la asignación.
+        if (hogUsuIdSolicitante <= 0) {
+            Toast.makeText(
+                this,
+                "No se pudo identificar al usuario que realiza la asignación.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        // 4. Ejecutar la petición al servidor.
+        lifecycleScope.launch {
+            try {
+                val request = AsignarCocineroRequest(
+                    pldId = dia.pldId,
+                    hogUsuIdCocinero = integrante.HOG_USU_ID,
+                    hogUsuIdAsigno = hogUsuIdSolicitante
+                )
+
+                android.util.Log.d(
+                    "PlaneadorSemanal",
+                    "Asignando cocinero: " +
+                            "PLD_ID=${request.pldId}, " +
+                            "COCINERO=${request.hogUsuIdCocinero}, " +
+                            "ASIGNO=${request.hogUsuIdAsigno}"
+                )
+
+                val respuesta = ApiClient.apiService.asignarCocinero(request)
+
+                if (respuesta.success) {
+                    // Actualizar el día con el cocinero asignado.
+                    dia.hogUsuIdCocinero = integrante.HOG_USU_ID
+                    dia.nombreCocinero = integrante.HOG_USU_NOMBRE
+                    Toast.makeText(
+                        this@PlaneadorSemanalActivity,
+                        "${integrante.HOG_USU_NOMBRE} fue asignado para cocinar el ${dia.nombreDia}.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    android.util.Log.d(
+                        "PlaneadorSemanal",
+                        "Asignación guardada. PCC_ID=${respuesta.pccId}"
+                    )
+
+                    // Actualizar los botones del adaptador.
+                    adapterDia.actualizarDias(adapterDia.obtenerDias())
+
+                    // Recargar los datos desde el servidor.
+                    obtenerPlaneadorSemanal()
+
+                } else {
+
+                    Toast.makeText(
+                        this@PlaneadorSemanalActivity,
+                        respuesta.message.ifBlank {
+                            "No se pudo guardar la asignación del cocinero."
+                        },
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    android.util.Log.e(
+                        "PlaneadorSemanal",
+                        "La API rechazó la asignación: ${respuesta.message}"
+                    )
+                }
+
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+
+            } catch (e: Exception) {
+
+                android.util.Log.e(
+                    "PlaneadorSemanal",
+                    "Error al asignar cocinero",
+                    e
+                )
+
+                Toast.makeText(
+                    this@PlaneadorSemanalActivity,
+                    "Ocurrió un error al guardar la asignación. Verifica tu conexión.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+
+
 }

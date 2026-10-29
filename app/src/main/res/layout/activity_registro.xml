@@ -220,17 +220,12 @@
             app:cornerRadius="12dp"/>
         <!-- Separador -->
 
-        <!-- Fila de iconos -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:gravity="center"
-            android:orientation="horizontal">
+
 
             <ImageButton
                 android:id="@+id/btnGoogle"
-                android:layout_width="50dp"
+                android:layout_gravity="center"
+                android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_margin="8dp"
                 android:background="@drawable/ic_gmail"
@@ -238,16 +233,8 @@
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_gmail" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/caviardreams"
-                android:text="Continuar con Google"
-                android:textColor="@color/azulgourmeet"
-                android:textStyle="bold"></TextView>
 
 
-        </LinearLayout>
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView

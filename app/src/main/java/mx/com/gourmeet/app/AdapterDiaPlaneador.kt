@@ -24,7 +24,8 @@ class AdapterDiaPlaneador(
     private val onAgregarComida: (DiaPlaneador, Int) -> Unit,
     private val onAgregarColacion: (DiaPlaneador, Int) -> Unit,
     private val onAsignarHora: (EspacioComida) -> Unit = {},
-    private val onEliminarElemento: (EspacioComida, ElementoComida) -> Unit
+    private val onEliminarElemento: (EspacioComida, ElementoComida) -> Unit,
+    private val onAsignarCocinero: (DiaPlaneador) -> Unit = {}
 ) : RecyclerView.Adapter<AdapterDiaPlaneador.DiaViewHolder>() {
 
 
@@ -57,7 +58,30 @@ class AdapterDiaPlaneador(
 
         // Nombre del día.
         binding.diaDeLaSemana.text = dia.nombreDia
+// Mostrar el nombre del cocinero asignado o el texto predeterminado.
+        binding.btnAsignarCocinero.text = dia.nombreCocinero
+            ?.takeIf { it.isNotBlank() }
+            ?.let { "$it" }
+            ?: "Asignar cocinero"
 
+// Asignar o consultar el cocinero del día seleccionado.
+        binding.btnAsignarCocinero.setOnClickListener {
+            val posicionActual = holder.bindingAdapterPosition
+
+            if (posicionActual != RecyclerView.NO_POSITION) {
+                val diaActual = dias[posicionActual]
+
+                if (diaActual.seleccionado) {
+                    onAsignarCocinero(diaActual)
+                } else {
+                    Toast.makeText(
+                        context,
+                        "Selecciona primero el día.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
         // Mantener siempre el icono del check blanco.
         binding.seleccionarDia.setImageResource(R.drawable.ic_check_white)
 

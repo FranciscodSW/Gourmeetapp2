@@ -83,12 +83,7 @@ class Registro : AppCompatActivity() {
     private val MAP_REQUEST = 100
     private val ALTURA_BARRA = 80
     private var ubicacionSeleccionada: String = ""
-    private var restricciones = RestriccionesData(
-        alergia = emptyList(),
-        alimento = emptyList(),
-        cultural = emptyList(),
-        intolerancia = emptyList()
-    )
+
     lateinit var googleSignInClient: GoogleSignInClient
     val RC_SIGN_IN = 1001
     private val TAG = "RegistroDebug"
@@ -247,14 +242,10 @@ class Registro : AppCompatActivity() {
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
         binding.btnGoogle.setOnClickListener {
-            val googleSignInClient = GoogleSignIn.getClient(this, gso)
-            // 🔥 FORZAR SELECCIÓN DE CUENTA
-            googleSignInClient.revokeAccess().addOnCompleteListener {
+            googleSignInClient.signOut().addOnCompleteListener {
                 val signInIntent = googleSignInClient.signInIntent
                 startActivityForResult(signInIntent, RC_SIGN_IN)
             }
-            Log.d("DEBUG", "Entró a obtenerDatosGoogle()")
-            obtenerDatosGoogle()
         }
 
         setupValidaciones()
@@ -811,25 +802,14 @@ class Registro : AppCompatActivity() {
             try {
 
                 val request = RegistroGoogle(
-
                     correo = correoSeleccionado,
-
                     nombre = nombreSeleccionado,
-
                     google_id = googleIdSeleccionado,
-
-                    avatar = avatar,
-
+                    avatar = avatarSeleccionado,
                     edad = edadSeleccionada,
-
                     nivel = nivelSeleccionado,
-
                     latitud = latitudSeleccionada,
-
-                    longitud = longitudSeleccionada,
-
-                    restricciones = restriccionesSeleccionadas.map { it.id }
-
+                    longitud = longitudSeleccionada
                 )
 
                 val response =

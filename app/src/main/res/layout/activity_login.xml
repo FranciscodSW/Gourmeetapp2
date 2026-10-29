@@ -113,6 +113,13 @@
                 android:textSize="30sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="5dp" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:id="@+id/iniciodecontenedorsecion">
             <!-- Usuario -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="202dp"
@@ -156,10 +163,18 @@
                     android:layout_height="wrap_content"
                     android:inputType="textPassword"/>
             </com.google.android.material.textfield.TextInputLayout>
+
+                <ImageView
+                    android:id="@+id/iconGmail"
+                    android:layout_width="200dp"
+                    android:layout_height="80dp"
+                    android:layout_margin="12dp"
+                    android:src="@drawable/ic_gmail" />
+            </LinearLayout>
             <!-- Botón login -->
             <Button
                 android:id="@+id/btnLogin"
-                android:text="Acceder"
+                android:text="Iniciar seción"
                 android:fontFamily="@font/caviardreams"
                 android:textColor="#FFFFFF"
                 android:layout_gravity="center_horizontal"
@@ -168,21 +183,7 @@
                 android:layout_width="200dp"
                 android:layout_height="50dp" />
             <!-- Redes -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal"
-                android:gravity="center">
 
-                <ImageView
-                    android:id="@+id/iconGmail"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_margin="12dp"
-                    android:src="@drawable/ic_gmail" />
-
-            </LinearLayout>
             <!-- Botones -->
             <Button
                 android:id="@+id/btnRegistrar"

@@ -35,7 +35,7 @@ class Trancicion_de_carga_para_menu_free : AppCompatActivity() {
         // Iniciar animación después de un delay
         Handler(Looper.getMainLooper()).postDelayed({
             iniciarAnimacionSubida()
-        }, 500)
+        }, 100)
         // Configurar botón Continuar
         // Configurar botón Continuar
         binding.btnContinuar.setOnClickListener {

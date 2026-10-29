@@ -218,16 +218,27 @@ class MiHogarActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            if (hogar.HOG_USU_ID <= 0) {
+                Toast.makeText(
+                    this,
+                    "No se pudo identificar tu membresía del hogar.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+
             val intent = Intent(
                 this,
                 PlaneadorSemanalActivity::class.java
             ).apply {
                 putExtra("CLI_ID", cliId)
                 putExtra("HOG_ID", hogar.HOG_ID)
+                putExtra("HOG_USU_ID", hogar.HOG_USU_ID)
             }
 
             startActivity(intent)
         }
+
 
         binding.masUsuarios.setOnClickListener {
             mostrarDialogNuevosUsuarios()
@@ -250,11 +261,8 @@ class MiHogarActivity : AppCompatActivity() {
             mostrarSinHogar()
             return
         }
-
         lifecycleScope.launch {
-
             try {
-
                 val respuesta =
                     ApiClient.apiService.obtenerHogarUsuario(cliId)
 
@@ -275,11 +283,9 @@ class MiHogarActivity : AppCompatActivity() {
                     hogarActual = respuesta.hogar
 
                     mostrarConHogar()
-
-                    cargarMiembrosHogar(
-                        respuesta.hogar.HOG_ID
-                    )
-
+                    cargarMiembrosHogar(respuesta.hogar.HOG_ID)
+                    mostrarConHogar()
+                    cargarMiembrosHogar(respuesta.hogar.HOG_ID)
                 } else {
 
                     mostrarSinHogar()
@@ -303,6 +309,7 @@ class MiHogarActivity : AppCompatActivity() {
 
         binding.sincuenta.visibility = View.VISIBLE
         binding.vista2.visibility = View.GONE
+
     }
     private fun mostrarConHogar() {
 
@@ -1364,10 +1371,12 @@ class MiHogarActivity : AppCompatActivity() {
             // MODO AGREGAR
             // ==========================================
 
+
             val edtIngrediente =
-                view.findViewById<TextInputEditText>(
+                view.findViewById<EditText>(
                     R.id.edtIngrediente
                 )
+
 
             val txtCantidad =
                 view.findViewById<EditText>(

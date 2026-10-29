@@ -1,6 +1,4 @@
 package mx.com.gourmeet.app.data.api
-
-
 import  mx.com.gourmeet.app.data.models.*
 import retrofit2.http.Body
 import retrofit2.http.Field
@@ -308,14 +306,21 @@ interface ApiService {
     suspend fun eliminarRecetaEspacio(
         @Body request: EliminarRecetaEspacioRequest
     ): EliminarRecetaEspacioResponse
-
     @POST("planeador/eliminar_ingrediente_espacio.php")
     suspend fun eliminarIngredienteEspacio(
         @Body request: EliminarIngredienteEspacioRequest
     ): EliminarIngredienteEspacioResponse
-
     @POST("planeador/actualizar_estado_dia.php")
     suspend fun actualizarEstadoDia(
         @Body request: ActualizarEstadoDiaRequest
     ): ActualizarEstadoDiaResponse
+    @POST("hogar/buscar_integrantes_hogar.php")
+    suspend fun buscarIntegrantesHogar(
+        @Body request: BuscarIntegrantesHogarRequest
+    ): BuscarIntegrantesHogarResponse
+    @POST("planeador/asignar_cocinero.php")
+    suspend fun asignarCocinero(
+        @Body request: AsignarCocineroRequest
+    ): AsignarCocineroResponse
+
 }

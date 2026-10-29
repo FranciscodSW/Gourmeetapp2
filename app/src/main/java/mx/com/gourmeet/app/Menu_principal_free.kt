@@ -1734,7 +1734,8 @@ class Menu_principal_free : AppCompatActivity() {
         }
 
     }
-    private fun inicializarMenuLateral() {
+
+    fun inicializarMenuLateral() {
 
         binding.navigationView.setNavigationItemSelectedListener { item ->
 
@@ -1743,60 +1744,94 @@ class Menu_principal_free : AppCompatActivity() {
                 "ITEM SELECCIONADO: ${item.itemId} - ${item.title}"
             )
 
-            when (item.itemId) {
-                R.id.menu_notificaciones ->{
-                    Log.d("notificaciones","abriendo notificaciones")
+            // Ejecutamos la acción correspondiente.
+            val seleccionado = when (item.itemId) {
+
+                R.id.menu_notificaciones -> {
+                    Log.d(
+                        "MENU_LATERAL",
+                        "Abriendo notificaciones"
+                    )
+
                     abrir_notificaciones_usuarios()
-                    return@setNavigationItemSelectedListener true
+                    true
                 }
 
                 R.id.menu_preferencias -> {
                     Log.d(
-                        "PREFERENCIAS",
-                        "ABRIENDO PREFERENCIAS"
+                        "MENU_LATERAL",
+                        "Abriendo preferencias de cuenta"
                     )
+
                     abrirPreferenciasCuenta()
-                    // IMPORTANTE:
-                    // no cerramos el drawer
-                    return@setNavigationItemSelectedListener true
+                    true
                 }
 
                 R.id.menu_administrar_hogar -> {
-                    val intent = Intent(this, MiHogarActivity::class.java)
-                    startActivity(intent)
+                    Log.d(
+                        "MENU_LATERAL",
+                        "Abriendo administrar hogar"
+                    )
+
+                    startActivity(
+                        Intent(
+                            this,
+                            MiHogarActivity::class.java
+                        )
+                    )
+                    true
                 }
 
                 R.id.menu_mis_colecciones -> {
+                    Log.d(
+                        "MENU_LATERAL",
+                        "Abriendo mis colecciones"
+                    )
+
                     startActivity(
                         Intent(
                             this,
                             MisColeccionesActivity::class.java
                         )
                     )
+                    true
                 }
 
                 R.id.menu_planeador_semanal -> {
+                    Log.d(
+                        "MENU_LATERAL",
+                        "Abriendo planeador semanal"
+                    )
 
-                    makeText(
+                    Toast.makeText(
                         this,
                         "Planeador semanal",
                         Toast.LENGTH_SHORT
                     ).show()
-                }
-
-                R.id.menu_mi_alacena -> {
-
-                    val intent = Intent(
-                        this,
-                        MiAlacenaActivity::class.java
-                    )
-
-                    startActivity(intent)
 
                     true
                 }
 
+                R.id.menu_mi_alacena -> {
+                    Log.d(
+                        "MENU_LATERAL",
+                        "Abriendo mi alacena"
+                    )
+
+                    startActivity(
+                        Intent(
+                            this,
+                            MiAlacenaActivity::class.java
+                        )
+                    )
+                    true
+                }
+
                 R.id.menu_premium -> {
+                    Log.d(
+                        "MENU_LATERAL",
+                        "Abriendo GourMeet Premium"
+                    )
 
                     startActivity(
                         Intent(
@@ -1804,14 +1839,30 @@ class Menu_principal_free : AppCompatActivity() {
                             PremiumActivity::class.java
                         )
                     )
+                    true
+                }
+
+                else -> {
+                    Log.w(
+                        "MENU_LATERAL",
+                        "Opción sin acción: ${item.itemId}"
+                    )
+
+                    false
                 }
             }
 
-            binding.drawerLayout.closeDrawer(GravityCompat.END)
+            // Cerramos el menú después de procesar la selección.
+            if (seleccionado) {
+                binding.drawerLayout.closeDrawer(
+                    GravityCompat.END
+                )
+            }
 
-            true
+            seleccionado
         }
     }
+
     private fun abrirBusquedaProveedor() {
 
         // ==========================================
@@ -3870,13 +3921,14 @@ class Menu_principal_free : AppCompatActivity() {
             (resources.displayMetrics.heightPixels * 0.85).toInt()
         )
     }
+    //////////////////////////////////////////////////////////////alacenas Individual/////////////////
+
     private fun cargarAlacenas() {
 
         val clienteId = SesionUsuario.obtenerId(this)
 
         if (clienteId <= 0) {
-
-            makeText(
+            Toast.makeText(
                 this,
                 "No se pudo obtener el usuario.",
                 Toast.LENGTH_SHORT
@@ -3886,7 +3938,6 @@ class Menu_principal_free : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-
             try {
 
                 val request = ListarAlacenasRequest(
@@ -3898,8 +3949,7 @@ class Menu_principal_free : AppCompatActivity() {
                     "Consultando alacenas del cliente: $clienteId"
                 )
 
-                val respuesta = ApiClient.apiService
-                    .listarAlacenas(request)
+                val respuesta = ApiClient.apiService.listarAlacenas(request)
 
                 Log.d(
                     "ALACENA",
@@ -3930,11 +3980,23 @@ class Menu_principal_free : AppCompatActivity() {
                         mostrarAlacenas()
 
                         // =================================
-                        // PRIMERA ALACENA SELECCIONADA
+                        // SELECCIONAR LA PRIMERA ALACENA
                         // =================================
 
-                        val alacenaSeleccionada =
-                            listaAlacenas.first()
+                        val alacenaInicial = listaAlacenas.first()
+
+                        alacenaSeleccionada = alacenaInicial
+
+                        Log.d(
+                            "ALACENA",
+                            """
+                        Primera alacena seleccionada:
+                        ALC_ID: ${alacenaInicial.ALC_ID}
+                        ALC_NOMBRE: ${alacenaInicial.ALC_NOMBRE}
+                        ALC_CLI_ID: ${alacenaInicial.ALC_CLI_ID}
+                        HOG_ID: ${alacenaInicial.HOG_ID}
+                        """.trimIndent()
+                        )
 
                         // =================================
                         // ACTUALIZAR ESTADOS Y CARGAR
@@ -3942,14 +4004,16 @@ class Menu_principal_free : AppCompatActivity() {
                         // =================================
 
                         actualizarEstadosYCargarAlacena(
-                            alacenaSeleccionada.ALC_ID,
-                            clienteId
+                            alcId = alacenaInicial.ALC_ID,
+                            clienteId = clienteId,
+                            hogId = alacenaInicial.HOG_ID,
+                            alcCliId = alacenaInicial.ALC_CLI_ID
                         )
                     }
 
                 } else {
 
-                    makeText(
+                    Toast.makeText(
                         this@Menu_principal_free,
                         "No fue posible cargar las alacenas.",
                         Toast.LENGTH_SHORT
@@ -3964,7 +4028,7 @@ class Menu_principal_free : AppCompatActivity() {
                     e
                 )
 
-                makeText(
+                Toast.makeText(
                     this@Menu_principal_free,
                     "Error al cargar las alacenas.",
                     Toast.LENGTH_SHORT
@@ -4364,6 +4428,7 @@ class Menu_principal_free : AppCompatActivity() {
             mostrarMenuMisAlacenas()
         }
     }
+
     private fun mostrarMenuMisAlacenas() {
 
         val bottomSheet = BottomSheetDialog(this)
@@ -4388,38 +4453,60 @@ class Menu_principal_free : AppCompatActivity() {
             lista = listaAlacenas,
 
             // ======================================
-            // SELECCIONAR
+            // SELECCIONAR ALACENA
             // ======================================
 
-            onSeleccionar = { alacena ->
+        onSeleccionar = { alacena ->
 
+            val alacenaAnterior = alacenaSeleccionada
+
+            // Evitar recargar si selecciona la misma alacena
+            if (alacenaAnterior?.ALC_ID == alacena.ALC_ID) {
+                bottomSheet.dismiss()
+            } else {
+
+                // 1. Actualizar la alacena seleccionada
                 alacenaSeleccionada = alacena
 
+                // 2. Actualizar el nombre del botón
                 val btnAlacena =
-                    binding.panelAlacena
-                        .findViewById<MaterialButton>(
-                            R.id.actAlacena
-                        )
+                    binding.panelAlacena.findViewById<MaterialButton>(
+                        R.id.actAlacena
+                    )
 
+                btnAlacena.text = alacena.ALC_NOMBRE
 
-                btnAlacena.text =
-                    alacena.ALC_NOMBRE
-
+                // 3. Registrar el cambio
                 Log.d(
                     "ALACENA",
-                    "Nueva alacena seleccionada: ${alacena.ALC_ID}"
+                    """
+            Cambio de alacena:
+            Anterior: ${alacenaAnterior?.ALC_ID}
+            Nueva: ${alacena.ALC_ID}
+            Nombre: ${alacena.ALC_NOMBRE}
+            Hogar: ${alacena.HOG_ID}
+            """.trimIndent()
                 )
 
+                // 4. Cerrar el menú
                 bottomSheet.dismiss()
 
-                // Más adelante:
-                // cargarIngredientesAlacena(alacena.ALC_ID)
-            },
+                // 5. Cargar los ingredientes de la nueva alacena
+                // Sustituir clienteIdActual por la variable real
+                // donde guardas el CLI_ID del usuario que inició sesión.
+                actualizarEstadosYCargarAlacena(
+                    alcId = alacena.ALC_ID,
+                    clienteId = alacena.ALC_CLI_ID ?: 0,
+                    hogId = alacena.HOG_ID,
+                    alcCliId = alacena.ALC_CLI_ID
+                )
+            }
+        },
+
 
             // ======================================
             // EDITAR
             // ======================================
-
             onEditar = { alacena ->
 
                 bottomSheet.dismiss()
@@ -4430,7 +4517,6 @@ class Menu_principal_free : AppCompatActivity() {
             // ======================================
             // ELIMINAR
             // ======================================
-
             onEliminar = { alacena ->
 
                 bottomSheet.dismiss()
@@ -4441,11 +4527,9 @@ class Menu_principal_free : AppCompatActivity() {
 
         rvMisAlacenas.adapter = adapter
 
-
         // ==========================================
         // CONFIGURAR BOTTOM SHEET
         // ==========================================
-
         bottomSheet.setOnShowListener {
 
             val dialog = it as BottomSheetDialog
@@ -4458,9 +4542,7 @@ class Menu_principal_free : AppCompatActivity() {
             sheet?.let { bottomSheetView ->
 
                 val behavior =
-                    BottomSheetBehavior.from(
-                        bottomSheetView
-                    )
+                    BottomSheetBehavior.from(bottomSheetView)
 
                 behavior.state =
                     BottomSheetBehavior.STATE_EXPANDED
@@ -4477,6 +4559,7 @@ class Menu_principal_free : AppCompatActivity() {
 
         bottomSheet.show()
     }
+
     private fun mostrarDialogEditarAlacena(
         alacena: Alacena
     ) {
@@ -4879,8 +4962,8 @@ class Menu_principal_free : AppCompatActivity() {
                 R.drawable.bg_icono_alacena_seleccionado
             )
     }
-    private fun mostrarDialogAgregarIngrediente(
-        ingredienteEditar: IngredienteAlacena? = null) {
+
+    private fun mostrarDialogAgregarIngrediente(ingredienteEditar: IngredienteAlacena? = null) {
         val bottomSheet = BottomSheetDialog(this)
         val modoIngrediente =
             when {
@@ -4974,13 +5057,6 @@ class Menu_principal_free : AppCompatActivity() {
 
         }
         bottomSheet.setContentView(view)
-        val txtFechaCompra =
-            view.findViewById<TextView>(R.id.txtFechadecompra)
-
-        val txtFechaConsumo =
-            view.findViewById<TextView>(
-                R.id.txtFechadecon
-            )
 
         val txtTipoEstado =
             view.findViewById<TextView>(
@@ -5026,8 +5102,23 @@ class Menu_principal_free : AppCompatActivity() {
                 nombreIngrediente
             )
         }
+// Referencias a las fechas del XML
+        val txtFechaCompra =
+            view.findViewById<TextView>(R.id.txtFechadecompra)
 
+        val txtFechaConsumo =
+            view.findViewById<TextView>(R.id.txtFechadecon)
 
+// Inicializar las fechas al abrir la ventana
+        val calendario = Calendar.getInstance()
+        val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+// Fecha de compra: fecha actual
+        txtFechaCompra.text = formatoFecha.format(calendario.time)
+
+// Fecha de consumo: 10 días después de hoy
+        calendario.add(Calendar.DAY_OF_YEAR, 10)
+        txtFechaConsumo.text = formatoFecha.format(calendario.time)
 
         bottomSheet.setOnShowListener {
 
@@ -5375,10 +5466,12 @@ class Menu_principal_free : AppCompatActivity() {
             // MODO AGREGAR
             // ==========================================
 
+
             val edtIngrediente =
-                view.findViewById<TextInputEditText>(
+                view.findViewById<EditText>(
                     R.id.edtIngrediente
                 )
+
 
             val txtCantidad =
                 view.findViewById<EditText>(
@@ -5396,15 +5489,24 @@ class Menu_principal_free : AppCompatActivity() {
             txtCantidad.setText("500")
 
             actUnidadCantidad.setText(
-                "gr",
+                "g",
                 false
             )
 
             txtPrecioCompra.text?.clear()
+            val calendario = Calendar.getInstance()
 
-            txtFechaCompra.text = "09/10/2026"
+// Formato de fecha: dd/MM/yyyy
+            val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
-            txtFechaConsumo.text = "09/10/2026"
+// Fecha de compra: hoy
+            txtFechaCompra.text = formatoFecha.format(calendario.time)
+
+// Fecha de consumo: 10 días después de hoy
+            calendario.add(Calendar.DAY_OF_YEAR, 10)
+            txtFechaConsumo.text = formatoFecha.format(calendario.time)
+
+
         }
 
 
@@ -5609,59 +5711,65 @@ class Menu_principal_free : AppCompatActivity() {
             // ==========================================
             // CREAR REQUEST
             // ==========================================
+            val request = GuardarIngredienteAlacenaRequest(
 
-            val request =
-                GuardarIngredienteAlacenaRequest(
+                ALC_ID =
+                    alacenaSeleccionada!!.ALC_ID,
 
-                    ALC_ID =
-                        alacenaSeleccionada!!.ALC_ID,
+                ING_ID =
+                    ingredienteSeleccionadoId!!,
 
-                    ING_ID =
-                        ingredienteSeleccionadoId!!,
+                AI_CANTIDAD =
+                    cantidadDouble,
 
-                    AI_CANTIDAD =
-                        cantidadDouble,
+                AI_UNIDAD =
+                    unidad,
 
-                    AI_UNIDAD =
-                        unidad,
+                AI_FECHA_COMPRA =
+                    convertirFechaMySQL(
+                        txtFechaCompra.text.toString()
+                    ),
 
-                    AI_FECHA_COMPRA =
-                        convertirFechaMySQL(
-                            txtFechaCompra.text.toString()
-                        ),
+                AI_FECHA_VENCIMIENTO =
+                    convertirFechaMySQL(
+                        txtFechaConsumo.text.toString()
+                    ),
 
-                    AI_FECHA_VENCIMIENTO =
-                        convertirFechaMySQL(
-                            txtFechaConsumo.text.toString()
-                        ),
+                AI_ESTADO =
+                    txtTipoEstado.text
+                        .toString()
+                        .trim()
+                        .ifEmpty { null },
 
-                    AI_ESTADO =
-                        txtTipoEstado.text
-                            .toString()
-                            .trim()
-                            .ifEmpty { null },
+                AI_PRECIO_COMPRA =
+                    precioDouble,
 
-                    AI_PRECIO_COMPRA =
-                        precioDouble,
+                AI_ALMACENAMIENTO =
+                    txtTipoAlmacenamiento.text
+                        .toString()
+                        .trim()
+                        .ifEmpty { null },
 
-                    AI_ALMACENAMIENTO =
-                        txtTipoAlmacenamiento.text
-                            .toString()
-                            .trim()
-                            .ifEmpty { null },
+                AI_FRECUENCIA_CONSUMO =
+                    txtTipoFrecuencia.text
+                        .toString()
+                        .trim()
+                        .ifEmpty { null },
 
-                    AI_FRECUENCIA_CONSUMO =
-                        txtTipoFrecuencia.text
-                            .toString()
-                            .trim()
-                            .ifEmpty { null },
+                AI_TIPO_ABASTECIMIENTO =
+                    txtTipoAbastecimiento.text
+                        .toString()
+                        .trim()
+                        .ifEmpty { null },
 
-                    AI_TIPO_ABASTECIMIENTO =
-                        txtTipoAbastecimiento.text
-                            .toString()
-                            .trim()
-                            .ifEmpty { null }
-                )
+                // IDENTIFICADORES DE LA ALACENA
+                HOG_ID =
+                    alacenaSeleccionada!!.HOG_ID,
+
+                ALC_CLI_ID =
+                    alacenaSeleccionada!!.ALC_CLI_ID
+            )
+
 
 
             // ==========================================
@@ -5767,12 +5875,39 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                         // RECARGAR ALACENA
                         // ======================================
 
-                        alacenaSeleccionada?.let {
+
+                        alacenaSeleccionada?.let { alacena ->
+
+                            val clienteId = SesionUsuario.obtenerId(
+                                this@Menu_principal_free
+                            )
+
+                            Log.d(
+                                "ALACENA_API",
+                                """
+        Recargando alacena después de guardar:
+        ALC_ID: ${alacena.ALC_ID}
+        ALC_CLI_ID: ${alacena.ALC_CLI_ID}
+        HOG_ID: ${alacena.HOG_ID}
+        CLI_ID: $clienteId
+        """.trimIndent()
+                            )
+
                             actualizarEstadosYCargarAlacena(
-                                alacenaSeleccionada!!.ALC_ID,
-                                alacenaSeleccionada!!.ALC_CLI_ID
+                                alcId = alacena.ALC_ID,
+                                clienteId = clienteId,
+                                hogId = alacena.HOG_ID,
+                                alcCliId = alacena.ALC_CLI_ID
+                            )
+
+                        } ?: run {
+
+                            Log.e(
+                                "ALACENA_API",
+                                "No se encontró una alacena seleccionada para recargar."
                             )
                         }
+
 
 
                     } else {
@@ -7428,24 +7563,45 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             // ======================================
             // SELECCIONAR ALACENA
             // ======================================
-
             onSeleccionar = { alacena ->
 
-                // Guardar alacena seleccionada
+                val alacenaAnterior = alacenaSeleccionada
+
+                // Evitar recargar si selecciona la misma alacena.
+                if (alacenaAnterior?.ALC_ID == alacena.ALC_ID) {
+                    bottomSheet.dismiss()
+                    return@AlacenaMenuAdapter
+                }
+
+                // Guardar la nueva alacena seleccionada.
                 alacenaSeleccionada = alacena
 
-                // Cambiar nombre visualmente
-                txtAlacena.text =
-                    alacena.ALC_NOMBRE
+                // Actualizar el nombre visible.
+                txtAlacena.text = alacena.ALC_NOMBRE
 
-                // Mostrar ID seleccionado en Log
                 Log.d(
                     "ALACENA",
-                    "Nueva alacena seleccionada: ${alacena.ALC_ID}"
+                    """
+        ===== CAMBIO DE ALACENA =====
+        ALC_ID: ${alacena.ALC_ID}
+        ALC_CLI_ID: ${alacena.ALC_CLI_ID}
+        HOG_ID: ${alacena.HOG_ID}
+        NOMBRE: ${alacena.ALC_NOMBRE}
+        =============================
+        """.trimIndent()
                 )
 
-                // Cerrar menú
                 bottomSheet.dismiss()
+
+                // Recargar estados e ingredientes de la nueva alacena.
+                // La función debe adaptarse para aceptar alacenas personales
+                // y colaborativas.
+                actualizarEstadosYCargarAlacena(
+                    alcId = alacena.ALC_ID,
+                    clienteId = alacena.ALC_CLI_ID ?: 0,
+                    hogId = alacena.HOG_ID,
+                    alcCliId = alacena.ALC_CLI_ID
+                )
             },
 
             // ======================================
@@ -7544,21 +7700,40 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             null
         }
     }
+
     private fun cargarIngredientesAlacena(
         alcId: Int,
-        clienteId: Int
+        clienteId: Int,
+        hogId: Int? = null,
+        alcCliId: Int? = null
     ) {
         lifecycleScope.launch {
             try {
+                Log.d(
+                    "ALACENA_ING",
+                    """
+                Consultando ingredientes:
+                ALC_ID=$alcId
+                CLI_ID=$clienteId
+                HOG_ID=$hogId
+                ALC_CLI_ID=$alcCliId
+                """.trimIndent()
+                )
+
+                // Solicitud compatible con alacena personal y de hogar
+                val request = ListarIngredientesAlacenaRequest(
+                    ALC_ID = alcId,
+                    ALC_CLI_ID = if (hogId != null) {
+                        null
+                    } else {
+                        alcCliId ?: clienteId
+                    },
+                    HOG_ID = hogId
+                )
 
                 Log.d(
                     "ALACENA_ING",
-                    "Consultando ingredientes. ALC_ID=$alcId, CLI_ID=$clienteId"
-                )
-
-                val request = ListarIngredientesAlacenaRequest(
-                    ALC_ID = alcId,
-                    ALC_CLI_ID = clienteId
+                    "JSON lógico de solicitud: $request"
                 )
 
                 val respuesta =
@@ -7579,12 +7754,8 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                     )
 
                     // ==========================================
-                    // MIS INGREDIENTES
+                    // MIS INGREDIENTES POR CATEGORÍA
                     // ==========================================
-
-                    // ==========================================
-// MIS INGREDIENTES POR CATEGORÍA
-// ==========================================
 
                     val ingredientesPorCategoria =
                         todosLosIngredientes
@@ -7595,14 +7766,13 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                                     ?: "Sin categoría"
                             }
                             .map { (categoria, ingredientes) ->
-
                                 CategoriaIngredientesAdapter.CategoriaIngredientes(
                                     nombreCategoria = categoria,
                                     ingredientes = ingredientes
                                 )
                             }
 
-// Actualizar adapter de categorías
+                    // Actualizar adapter de categorías
                     adapterCategoriasIngredientes.actualizarLista(
                         ingredientesPorCategoria
                     )
@@ -7617,7 +7787,8 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                                 ?.trim()
                                 ?.lowercase()
 
-                            estado == "pasado" || estado == "descompuesto"
+                            estado == "pasado" ||
+                                    estado == "descompuesto"
                         }
                         .sortedWith(
                             compareBy<IngredienteAlacena> {
@@ -7653,8 +7824,6 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                         "Categorías: ${ingredientesPorCategoria.size}"
                     )
 
-
-
                     Log.d(
                         "ALACENA_ING",
                         "Consume primero: ${consumePrimero.size}"
@@ -7678,6 +7847,7 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             }
         }
     }
+
     private fun calcularFechaCaducidadCarne(
         fechaCompra: String,
         estado: String,
@@ -8072,7 +8242,6 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             return null
         }
     }
-
     private fun calcularFechaCaducidadVino(
         fechaCompra: String,
         estado: String,
@@ -8404,15 +8573,23 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                 fechaCaducidad
         }
     }
+
     private fun actualizarEstadosYCargarAlacena(
-        alcId: Int,clienteId: Int
+        alcId: Int,
+        clienteId: Int,
+        hogId: Int? = null,
+        alcCliId: Int? = null
     ) {
-
         actualizarEstadosAlacena(alcId) {
-
-            cargarIngredientesAlacena(alcId,clienteId)
+            cargarIngredientesAlacena(
+                alcId = alcId,
+                clienteId = clienteId,
+                hogId = hogId,
+                alcCliId = alcCliId
+            )
         }
     }
+
     private fun actualizarEstadosAlacena(
         alcId: Int,
         onComplete: (() -> Unit)? = null
@@ -8529,6 +8706,7 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             ""
         }
     }
+
     private fun eliminarIngredienteDeAlacena(
         alcId: Int,
         ingId: Int,
@@ -8536,8 +8714,11 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
     ) {
 
         lifecycleScope.launch {
-
             try {
+
+                // ======================================
+                // REGISTRAR SOLICITUD
+                // ======================================
 
                 Log.d(
                     "ALACENA_ELIMINAR",
@@ -8549,20 +8730,25 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                 """.trimIndent()
                 )
 
+                // ======================================
+                // CREAR REQUEST
+                // ======================================
 
-                val request =
-                    EliminarIngredienteAlacenaRequest(
-                        ALC_ID = alcId,
-                        ING_ID = ingId
-                    )
+                val request = EliminarIngredienteAlacenaRequest(
+                    ALC_ID = alcId,
+                    ING_ID = ingId
+                )
 
+                // ======================================
+                // LLAMAR API
+                // ======================================
 
-                val response =
-                    ApiClient.apiService
-                        .eliminarIngredienteAlacena(
-                            request
-                        )
+                val response = ApiClient.apiService
+                    .eliminarIngredienteAlacena(request)
 
+                // ======================================
+                // PROCESAR RESPUESTA
+                // ======================================
 
                 if (response.success) {
 
@@ -8571,32 +8757,57 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                         "ÉXITO: ${response.message}"
                     )
 
-
-                    makeText(
+                    Toast.makeText(
                         this@Menu_principal_free,
                         response.message,
                         Toast.LENGTH_SHORT
                     ).show()
 
-
                     bottomSheet.dismiss()
 
-
                     // ======================================
-                    // RECARGAR ALACENA
+                    // RECARGAR ALACENA PERSONAL O DEL HOGAR
                     // ======================================
 
-                    val clienteId =
-                        alacenaSeleccionada?.ALC_CLI_ID
+                    val alacena = alacenaSeleccionada
 
-                    if (clienteId != null) {
+                    if (alacena != null && alacena.ALC_ID == alcId) {
+
+                        val clienteId = SesionUsuario.obtenerId(
+                            this@Menu_principal_free
+                        )
+
+                        Log.d(
+                            "ALACENA_ELIMINAR",
+                            """
+                        Recargando alacena:
+                        ALC_ID: ${alacena.ALC_ID}
+                        CLI_ID: $clienteId
+                        ALC_CLI_ID: ${alacena.ALC_CLI_ID}
+                        HOG_ID: ${alacena.HOG_ID}
+                        """.trimIndent()
+                        )
 
                         actualizarEstadosYCargarAlacena(
-                            alcId,
-                            clienteId
+                            alcId = alacena.ALC_ID,
+                            clienteId = clienteId,
+                            hogId = alacena.HOG_ID,
+                            alcCliId = alacena.ALC_CLI_ID
                         )
-                    }
 
+                    } else {
+
+                        Log.e(
+                            "ALACENA_ELIMINAR",
+                            "No coincide la alacena seleccionada con ALC_ID=$alcId"
+                        )
+
+                        Toast.makeText(
+                            this@Menu_principal_free,
+                            "Ingrediente eliminado, pero no se pudo recargar la alacena.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
 
                 } else {
 
@@ -8605,13 +8816,12 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                         "ERROR: ${response.message}"
                     )
 
-                    makeText(
+                    Toast.makeText(
                         this@Menu_principal_free,
                         response.message,
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-
 
             } catch (e: Exception) {
 
@@ -8621,7 +8831,7 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                     e
                 )
 
-                makeText(
+                Toast.makeText(
                     this@Menu_principal_free,
                     "Error de conexión con el servidor.",
                     Toast.LENGTH_SHORT
@@ -8629,6 +8839,7 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             }
         }
     }
+
     private fun buscarRecetasDelIngrediente(
         ingredienteId: Int,
         nombreIngrediente: String
@@ -8769,54 +8980,47 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
 
         startActivity(intent)
     }
+
     private fun eliminarIngredienteUsadoEnReceta(
         ingrediente: IngredienteAlacena,
         bottomSheet: BottomSheetDialog
     ) {
 
         lifecycleScope.launch {
-
             try {
 
                 // ==========================================
                 // CREAR REQUEST
                 // ==========================================
 
-                val request =
-                    EliminarIngredienteAlacenaRequest(
-                        ALC_ID = ingrediente.ALC_ID,
-                        ING_ID = ingrediente.ING_ID
-                    )
-
+                val request = EliminarIngredienteAlacenaRequest(
+                    ALC_ID = ingrediente.ALC_ID,
+                    ING_ID = ingrediente.ING_ID
+                )
 
                 // ==========================================
-                // LOG
+                // LOG DE LA SOLICITUD
                 // ==========================================
 
                 Log.d(
                     "ALACENA_API",
                     """
-                ===== ELIMINAR USADO EN RECETA =====
+                ===== ELIMINAR INGREDIENTE USADO EN RECETA =====
                 ALC_ID: ${request.ALC_ID}
                 ING_ID: ${request.ING_ID}
-                ====================================
+                ===============================================
                 """.trimIndent()
                 )
-
 
                 // ==========================================
                 // LLAMAR API
                 // ==========================================
 
-                val response =
-                    ApiClient.apiService
-                        .eliminarIngredienteAlacena(
-                            request
-                        )
-
+                val response = ApiClient.apiService
+                    .eliminarIngredienteAlacena(request)
 
                 // ==========================================
-                // RESPUESTA
+                // PROCESAR RESPUESTA
                 // ==========================================
 
                 if (response.success) {
@@ -8826,17 +9030,11 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                         "Ingrediente eliminado: ${response.message}"
                     )
 
-
-                    // ======================================
-                    // MOSTRAR MENSAJE
-                    // ======================================
-
                     Toast.makeText(
                         this@Menu_principal_free,
                         response.message,
                         Toast.LENGTH_SHORT
                     ).show()
-
 
                     // ======================================
                     // CERRAR BOTTOM SHEET
@@ -8844,16 +9042,37 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
 
                     bottomSheet.dismiss()
 
-
                     // ======================================
-                    // RECARGAR ALACENA
+                    // RECARGAR LA ALACENA SELECCIONADA
+                    // PERSONAL O DEL HOGAR
                     // ======================================
 
-                    alacenaSeleccionada?.let {
+                    alacenaSeleccionada?.let { alacena ->
+
+                        Log.d(
+                            "ALACENA_API",
+                            """
+                        Recargando alacena:
+                        ALC_ID: ${alacena.ALC_ID}
+                        ALC_CLI_ID: ${alacena.ALC_CLI_ID}
+                        HOG_ID: ${alacena.HOG_ID}
+                        """.trimIndent()
+                        )
 
                         actualizarEstadosYCargarAlacena(
-                            it.ALC_ID,
-                            it.ALC_CLI_ID
+                            alcId = alacena.ALC_ID,
+                            clienteId = SesionUsuario.obtenerId(
+                                this@Menu_principal_free
+                            ),
+                            hogId = alacena.HOG_ID,
+                            alcCliId = alacena.ALC_CLI_ID
+                        )
+
+                    } ?: run {
+
+                        Log.e(
+                            "ALACENA_API",
+                            "No hay una alacena seleccionada para recargar."
                         )
                     }
 
@@ -8870,13 +9089,16 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                         Toast.LENGTH_SHORT
                     ).show()
                 }
+
             } catch (e: Exception) {
+
                 Log.e(
                     "ALACENA_API",
                     "Error al eliminar ingrediente usado en receta",
                     e
                 )
-                makeText(
+
+                Toast.makeText(
                     this@Menu_principal_free,
                     "Error de conexión con el servidor.",
                     Toast.LENGTH_SHORT
@@ -8884,6 +9106,7 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             }
         }
     }
+
     fun cerrarDetalleReceta() {
         binding.containerDetalleReceta.visibility =
             View.GONE

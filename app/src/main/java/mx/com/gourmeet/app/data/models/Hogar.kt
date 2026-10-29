@@ -8,5 +8,7 @@ data class Hogar(
     val HOG_LONGITUD: Double?,
     val HOG_DIRECCION: String?,
     val HOG_FECHA_CREACION: String?,
-    val HOG_ESTATUS: Int
+    val HOG_ESTATUS: Int,
+    val HOG_USU_ID: Int,
+    val HOG_USU_ROL: String
 )

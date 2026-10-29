@@ -47,6 +47,7 @@ import mx.com.gourmeet.app.utils.SesionUsuario
 class Login : AppCompatActivity() {
     lateinit var editUsuario: TextInputEditText
     lateinit var editPassword: TextInputEditText
+    private var formularioLoginVisible = false
     lateinit var btnLogin: Button
     private lateinit var callbackManager: CallbackManager
     private val RC_SIGN_IN = 100
@@ -71,23 +72,50 @@ class Login : AppCompatActivity() {
         // ===============================
         // 🔴 Animaciones dinámicas
         // ===============================
-        val containerAnimator = ObjectAnimator.ofFloat(
-            binding.bottomSheet,
-            View.TRANSLATION_Y,
-            0f,
-            -150f   // Ajusta la altura del brinco aquí
-        ).apply {
-            duration = 900
-            repeatMode = ObjectAnimator.REVERSE
-            repeatCount = ObjectAnimator.INFINITE
-            interpolator = AccelerateDecelerateInterpolator()
-        }
-        containerAnimator.start()
+
         val titleNormal = 30f
         val subtitleNormal = 30f
         val titleMin = 20f
         val subtitleMin = 22f
-        behavior.peekHeight = 100
+        behavior.peekHeight = (100 * resources.displayMetrics.density).toInt()
+        behavior.isHideable = false
+        behavior.isDraggable = false
+
+// El formulario comienza oculto
+        binding.iniciodecontenedorsecion.visibility = View.GONE
+
+        formularioLoginVisible = false
+        // Evitar que el rectángulo aparezca de golpe
+        binding.bottomSheet.alpha = 0f
+
+// Preparar el contenedor en su posición final
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+
+        binding.bottomSheet.post {
+
+            val contenedor = binding.bottomSheet
+
+            // Comenzar desde abajo
+            contenedor.translationY = contenedor.height.toFloat()
+
+            // Hacer visible el contenedor
+            contenedor.alpha = 1f
+
+            // Animación suave de subida
+            contenedor.animate()
+                .translationY(0f)
+                .setDuration(750L)
+                .setInterpolator(
+                    android.view.animation.DecelerateInterpolator(1.8f)
+                )
+                .withEndAction {
+                    // Asegurar la posición final
+                    contenedor.translationY = 0f
+                }
+                .start()
+        }
+
+
         binding.btnRegistrar.setOnClickListener {
             val intent = Intent(this, Registro::class.java)
             startActivity(intent)
@@ -96,41 +124,82 @@ class Login : AppCompatActivity() {
                 android.R.anim.fade_out
             )
         }
-        behavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-              // altura visible cuando está cerrado
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                binding.txtBienvenido.textSize =
-                    titleNormal - (titleNormal - titleMin) * slideOffset
-                binding.txtSubtitulo.textSize =
-                    subtitleNormal - (subtitleNormal - subtitleMin) * slideOffset
-                binding.imgTopSheet.alpha = 1f - slideOffset
-                val textTranslation = -50f * slideOffset
-                binding.txtBienvenido.translationY = textTranslation
-                binding.txtSubtitulo.translationY = textTranslation
-                if (containerAnimator.isRunning) containerAnimator.cancel()
-                binding.sheetContent.translationY = 0f
-                binding.bottomSheet.scaleX = 1f
-                binding.bottomSheet.scaleY = 1f
-            }
-            override fun onStateChanged(bottomSheet: View, newState: Int) {
-                when (newState) {
-                    BottomSheetBehavior.STATE_COLLAPSED -> {
-                        binding.txtTituloSheet.text = "Bienvenido"
-                        if (!containerAnimator.isRunning) containerAnimator.start()
-                    }
-                    BottomSheetBehavior.STATE_EXPANDED -> {
-                        binding.txtTituloSheet.text = "Iniciar sesión"
-                        containerAnimator.cancel()
+        behavior.addBottomSheetCallback(
+            object : BottomSheetBehavior.BottomSheetCallback() {
+
+                override fun onSlide(
+                    bottomSheet: View,
+                    slideOffset: Float
+                ) {
+                    val progreso = slideOffset.coerceIn(0f, 1f)
+
+                    binding.txtBienvenido.textSize =
+                        titleNormal - (titleNormal - titleMin) * progreso
+
+                    binding.txtSubtitulo.textSize =
+                        subtitleNormal - (subtitleNormal - subtitleMin) * progreso
+
+                    binding.imgTopSheet.alpha = 1f - progreso
+
+                    val textTranslation = -50f * progreso
+
+                    binding.txtBienvenido.translationY = textTranslation
+                    binding.txtSubtitulo.translationY = textTranslation
+                }
+
+                override fun onStateChanged(
+                    bottomSheet: View,
+                    newState: Int
+                ) {
+                    when (newState) {
+
+                        BottomSheetBehavior.STATE_COLLAPSED -> {
+                            binding.txtTituloSheet.text = "Bienvenido"
+                        }
+
+                        BottomSheetBehavior.STATE_EXPANDED -> {
+                            binding.txtTituloSheet.text = "Iniciar sesión"
+                        }
                     }
                 }
             }
-        })
+        )
         btnLogin.setOnClickListener {
+
+            // PRIMER CLIC: mostrar el formulario y subir el menú
+            if (!formularioLoginVisible) {
+
+                formularioLoginVisible = true
+
+                // Mostrar usuario, contraseña y acceso con Google
+                binding.iniciodecontenedorsecion.visibility = View.VISIBLE
+
+                // Actualizar el título
+                binding.txtTituloSheet.text = "Iniciar sesión"
+
+                // Subir el menú hasta su límite expandido
+                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+
+                // Mantener el menú fijo en esa posición
+                behavior.isDraggable = false
+
+                return@setOnClickListener
+            }
+
+            // SEGUNDO CLIC Y SIGUIENTES: ejecutar el login anterior
             val usuario = editUsuario.text.toString().trim()
             val password = editPassword.text.toString().trim()
+
             if (usuario.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Completa los campos", Toast.LENGTH_SHORT).show()
+
+                Toast.makeText(
+                    this,
+                    "Completa los campos",
+                    Toast.LENGTH_SHORT
+                ).show()
+
             } else {
+
                 loginUsuario(usuario, password)
             }
         }

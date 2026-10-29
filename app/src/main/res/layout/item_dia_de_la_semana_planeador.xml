@@ -91,7 +91,7 @@
         <LinearLayout
             android:id="@+id/sin_cocinero"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="64dp"
             android:orientation="horizontal"
             android:visibility="visible"
             android:weightSum="2">
@@ -100,12 +100,12 @@
                 android:id="@+id/btnAsignarCocinero"
                 android:layout_width="0dp"
                 android:layout_height="64dp"
-                android:layout_weight="1"
                 android:layout_marginEnd="4dp"
-                android:text="Asignar\ncocinero"
-                android:textSize="15sp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/azulgourmeet"
                 android:fontFamily="@font/caviardreams"
-                android:backgroundTint="@color/azulgourmeet"/>
+                android:text="Asignar\ncocinero"
+                android:textSize="15sp" />
 
             <Button
                 android:id="@+id/btnSegundo"
@@ -126,7 +126,7 @@
         <LinearLayout
             android:id="@+id/yo_cocinero"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="64dp"
             android:orientation="horizontal"
             android:visibility="gone"
             android:weightSum="2">
@@ -162,7 +162,7 @@
         <LinearLayout
             android:id="@+id/cocina_algienmas"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="64dp"
             android:orientation="horizontal"
             android:visibility="gone"
             android:weightSum="2">

@@ -532,6 +532,8 @@
             app:itemTextColor="@android:color/black"
             app:itemHorizontalPadding="5dp"
             app:itemTextAppearance="@style/TextoMenuLateral"
+            app:itemBackground="@android:color/transparent"
+            app:itemRippleColor="@android:color/transparent"
             app:menu="@menu/menu_lateral"/>
 
 
