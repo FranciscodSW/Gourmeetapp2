@@ -941,10 +941,9 @@ class AlacenaActivity : AppCompatActivity() {
             // ==========================================
 
             val edtIngrediente =
-                view.findViewById<EditText>(
+                view.findViewById<TextInputEditText>(
                     R.id.edtIngrediente
                 )
-
 
             val txtCantidad =
                 view.findViewById<EditText>(
@@ -962,15 +961,15 @@ class AlacenaActivity : AppCompatActivity() {
             txtCantidad.setText("500")
 
             actUnidadCantidad.setText(
-                "g",
+                "gr",
                 false
             )
+
             txtPrecioCompra.text?.clear()
-            val calendario = Calendar.getInstance()
-            val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            txtFechaCompra.text = formatoFecha.format(calendario.time)
-            calendario.add(Calendar.DAY_OF_YEAR, 10)
-            txtFechaConsumo.text = formatoFecha.format(calendario.time)
+
+            txtFechaCompra.text = "09/10/2026"
+
+            txtFechaConsumo.text = "09/10/2026"
         }
 
 
