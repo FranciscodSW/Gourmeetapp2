@@ -1,5 +1,6 @@
 package mx.com.gourmeet.app.data.api
 
+import mx.com.gourmeet.app.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -7,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 object ApiClient {
     //val BASE_URL = "https://www.gourmeet.com.mx/api/"
-   val BASE_URL = "http://192.168.1.88:3001/api/"
+   val BASE_URL = BuildConfig.API_BASE_URL
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }

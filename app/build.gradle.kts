@@ -19,7 +19,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            val apiUrl = providers.gradleProperty("gourmeet.apiBaseUrl")
+                .getOrElse("http://192.168.1.88:3001/api/")
+            buildConfigField("String", "API_BASE_URL", "\"$apiUrl\"")
+        }
         release {
+            buildConfigField("String", "API_BASE_URL", "\"http://192.168.1.88:3001/api/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -33,6 +39,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 

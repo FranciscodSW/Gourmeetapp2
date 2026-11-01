@@ -181,7 +181,8 @@
                 android:backgroundTint="@color/azulgourmeet"
                 android:layout_marginTop="16dp"
                 android:layout_width="200dp"
-                android:layout_height="50dp" />
+                android:layout_height="wrap_content"
+                android:minHeight="50dp" />
             <!-- Redes -->
 
             <!-- Botones -->
@@ -194,7 +195,8 @@
                 android:backgroundTint="@color/azulgourmeet"
                 android:layout_marginTop="16dp"
                 android:layout_width="200dp"
-                android:layout_height="50dp" />
+                android:layout_height="wrap_content"
+                android:minHeight="50dp" />
             <Button
                 android:id="@+id/btnsin_cuenta"
                 android:text="Continuar sin cuenta"
@@ -204,7 +206,8 @@
                 android:backgroundTint="@color/azulgourmeet"
                 android:layout_marginTop="16dp"
                 android:layout_width="200dp"
-                android:layout_height="50dp" />
+                android:layout_height="wrap_content"
+                android:minHeight="50dp" />
             <!-- Imagen inferior -->
             <LinearLayout
                 android:layout_width="match_parent"

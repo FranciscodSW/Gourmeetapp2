@@ -1,4 +1,5 @@
 package mx.com.gourmeet.app
+import mx.com.gourmeet.app.ui.applySafeDrawingInsets
 
 import android.app.DatePickerDialog
 import android.app.Dialog
@@ -163,6 +164,7 @@ class MiHogarActivity : AppCompatActivity() {
 
         binding = ActivityMiHogarBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applySafeDrawingInsets()
         configurarListaMiembrosHogar()
         binding.btnAgregarHogar.setOnClickListener {
             mostrarVentanaAgregarHogar()

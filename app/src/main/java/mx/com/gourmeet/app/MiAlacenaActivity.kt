@@ -1,4 +1,5 @@
 package mx.com.gourmeet.app
+import mx.com.gourmeet.app.ui.applySafeDrawingInsets
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +15,7 @@ class MiAlacenaActivity : AppCompatActivity() {
         binding = ActivityMiAlacenaBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
+        applySafeDrawingInsets()
 
         // ==========================================
         // BOTÓN REGRESAR

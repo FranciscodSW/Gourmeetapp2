@@ -1,4 +1,5 @@
 package mx.com.gourmeet.app
+import mx.com.gourmeet.app.ui.applySafeDrawingInsets
 import android.animation.*
 import android.content.Intent
 import android.graphics.Color
@@ -59,6 +60,7 @@ class Login : AppCompatActivity() {
 
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applySafeDrawingInsets()
         val iconGmail = findViewById<ImageView>(R.id.iconGmail)
         val anim = AnimationUtils.loadAnimation(this, R.anim.mover)
         val animSubir = AnimationUtils.loadAnimation(this, R.anim.subir)

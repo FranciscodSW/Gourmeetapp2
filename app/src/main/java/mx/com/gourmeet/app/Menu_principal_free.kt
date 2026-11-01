@@ -1,4 +1,5 @@
 package mx.com.gourmeet.app
+import mx.com.gourmeet.app.ui.applySafeDrawingInsets
 
 import android.content.pm.PackageManager
 import android.location.Location
@@ -198,6 +199,7 @@ class Menu_principal_free : AppCompatActivity() {
             ActivityMenuPrincipalFreeBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
+        applySafeDrawingInsets()
 
         // =========================================================
         // BOTÓN ATRÁS

@@ -1,4 +1,5 @@
 package mx.com.gourmeet.app
+import mx.com.gourmeet.app.ui.applySafeDrawingInsets
 
 import android.R.attr.singleLine
 import android.app.TimePickerDialog
@@ -81,6 +82,7 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ItemPlaneadorSemanalBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applySafeDrawingInsets()
         cliId = intent.getIntExtra("CLI_ID", -1)
         hogId = intent.getIntExtra("HOG_ID", -1)
         hogUsuIdSolicitante = intent.getIntExtra("HOG_USU_ID", -1)

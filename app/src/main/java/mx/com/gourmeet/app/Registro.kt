@@ -1,4 +1,5 @@
 package mx.com.gourmeet.app
+import mx.com.gourmeet.app.ui.applySafeDrawingInsets
 import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
@@ -173,6 +174,7 @@ class Registro : AppCompatActivity() {
             })
         binding = ActivityRegistroBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applySafeDrawingInsets()
         btnEdad = binding.btneditSeleccionEdad
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
