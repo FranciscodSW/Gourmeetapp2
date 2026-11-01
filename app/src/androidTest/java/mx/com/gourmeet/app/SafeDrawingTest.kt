@@ -7,6 +7,7 @@ import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.content.Intent
@@ -40,7 +41,13 @@ class SafeDrawingTest {
     @Test fun plannerAvoidsSystemObstructions() = checkScreen(PlaneadorSemanalActivity::class.java, "planner")
     @Test fun registrationAvoidsSystemObstructions() = checkScreen(Registro::class.java, "registration")
 
-    private fun <A : Activity> checkScreen(type: Class<A>, label: String) {
+    @Test fun guestPantryExplainsMissingSession() {
+        InstrumentationRegistry.getInstrumentation().targetContext
+            .getSharedPreferences("user", Context.MODE_PRIVATE).edit().clear().commit()
+        checkScreen(Menu_principal_free::class.java, "guest-pantry", true)
+    }
+
+    private fun <A : Activity> checkScreen(type: Class<A>, label: String, guestPantry: Boolean = false) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         instrumentation.runOnMainSync {
             instrumentation.targetContext.startActivity(
@@ -51,6 +58,14 @@ class SafeDrawingTest {
         }
         try {
             Thread.sleep(1800) // Allow layout, the initial inset dispatch and entrance animations.
+            if (guestPantry) {
+                instrumentation.runOnMainSync {
+                    val activity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                        .first { type.isInstance(it) }
+                    activity.findViewById<View>(R.id.cardCentro).performClick()
+                }
+                Thread.sleep(400)
+            }
             val phase = InstrumentationRegistry.getArguments().getString("phase") ?: "current"
             val directory = File(instrumentation.targetContext.getExternalFilesDir(null), "ui-evidence")
             directory.mkdirs()
@@ -75,6 +90,13 @@ class SafeDrawingTest {
             instrumentation.runOnMainSync {
                 val activity = ActivityLifecycleMonitorRegistry.getInstance()
                     .getActivitiesInStage(Stage.RESUMED).first { type.isInstance(it) }
+                org.junit.Assert.assertNull("Unexpected action bar hides the app header",
+                    (activity as androidx.appcompat.app.AppCompatActivity).supportActionBar)
+                if (guestPantry) {
+                    assertTrue("Guest pantry must explain sign-in", activity.findViewById<View>(R.id.panelSinAlacenas).isShown)
+                    org.junit.Assert.assertEquals(activity.getString(R.string.pantry_sign_in_action),
+                        activity.findViewById<TextView>(R.id.btnCrearPrimeraAlacena).text.toString())
+                }
                 val container = activity.findViewById<ViewGroup>(android.R.id.content)
                 val root = container.getChildAt(0)
                 val insets = requireNotNull(ViewCompat.getRootWindowInsets(activity.window.decorView))
@@ -90,7 +112,48 @@ class SafeDrawingTest {
                 repeat(2) { ViewCompat.dispatchApplyWindowInsets(container, originalInsets) }
                 org.junit.Assert.assertEquals("Insets must not accumulate padding", padding,
                     listOf(container.paddingLeft, container.paddingTop, container.paddingRight, container.paddingBottom))
+                if (activity is Menu_principal_free && !guestPantry) {
+                    for (id in listOf(R.id.txtTitulo, R.id.txtSeccionActual)) {
+                        val labelView = root.findViewById<TextView>(id)
+                        val labelLayout = requireNotNull(labelView.layout)
+                        val availableWidth = labelView.width - labelView.compoundPaddingLeft - labelView.compoundPaddingRight
+                        val availableHeight = labelView.height - labelView.compoundPaddingTop - labelView.compoundPaddingBottom
+                        assertTrue("Navigation/header text is vertically clipped", labelLayout.getLineBottom(labelLayout.lineCount - 1) <= availableHeight)
+                        assertTrue("Navigation/header text exceeds available width", (0 until labelLayout.lineCount).all { labelLayout.getLineWidth(it) <= availableWidth + 1 })
+                    }
+                    val sectionTitle = root.findViewById<TextView>(R.id.txtCoincidencia)
+                    assertTrue("Recipe section title disappears on its light background",
+                        androidx.core.graphics.ColorUtils.calculateContrast(sectionTitle.currentTextColor, android.graphics.Color.rgb(245,245,245)) >= 4.5)
+                    val carousel = requireNotNull(root.findViewById<RecyclerView>(R.id.rvCoincidencia))
+                    assertTrue("Load the recipe-list stress fixtures", (carousel.adapter?.itemCount ?: 0) >= 3)
+                    val card = requireNotNull(carousel.getChildAt(0))
+                    assertTrue("Recipe card exceeds its list viewport", card.width <= carousel.width)
+                    val stats = card.findViewById<ViewGroup>(R.id.cardStats)
+                    for (id in listOf(R.id.txtTiempo, R.id.txtNivel, R.id.txtCosto, R.id.txtTipo)) {
+                        val textView = card.findViewById<TextView>(id)
+                        val textLayout = requireNotNull(textView.layout)
+                        assertTrue("Recipe statistic text is clipped",
+                            textLayout.getLineBottom(textLayout.lineCount - 1) <=
+                                textView.height - textView.compoundPaddingTop - textView.compoundPaddingBottom)
+                        val textBounds = Rect()
+                        textView.getDrawingRect(textBounds)
+                        stats.offsetDescendantRectToMyCoords(textView, textBounds)
+                        assertTrue("Recipe statistic is outside its panel", textBounds.top >= 0 && textBounds.bottom <= stats.height)
+                    }
+                    val title = card.findViewById<TextView>(R.id.txtTitulo)
+                    val titleLayout = requireNotNull(title.layout)
+                    assertTrue("Long recipe title is truncated", (0 until titleLayout.lineCount).all { titleLayout.getEllipsisCount(it) == 0 })
+                    android.util.Log.i("GOURMEET_UI_TEST", "recipe-card width=${card.width}, viewport=${carousel.width}, statsHeight=${stats.height}, titleLines=${titleLayout.lineCount}")
+                }
                 if (activity is Login) {
+                    val privacy = activity.layoutInflater.inflate(R.layout.aceptar_terminos, null) as ViewGroup
+                    for (index in 0 until privacy.childCount) {
+                        val labelView = privacy.getChildAt(index)
+                        if (labelView is TextView && labelView !is android.widget.Button && labelView.text.isNotBlank()) {
+                            assertTrue("Privacy text disappears in system dark mode",
+                                androidx.core.graphics.ColorUtils.calculateContrast(labelView.currentTextColor, android.graphics.Color.WHITE) >= 4.5)
+                        }
+                    }
                     for (id in listOf(R.id.btnLogin, R.id.btnRegistrar, R.id.btnsin_cuenta)) {
                         val button = activity.findViewById<TextView>(id)
                         val text = requireNotNull(button.layout)

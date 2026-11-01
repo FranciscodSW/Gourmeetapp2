@@ -1,4 +1,5 @@
 package mx.com.gourmeet.app
+import mx.com.gourmeet.app.ui.fitRecipeCardTo
 
 import android.view.LayoutInflater
 import android.view.View
@@ -51,6 +52,9 @@ class CoincidenciaAdapter(
                 receta.Categoria ?: "--"
 
             txtCosto.text = "--"
+            val total = receta.totalIngredientesBuscados ?: 0
+            itemView.findViewById<TextView>(R.id.txtCoincidencia).text =
+                if (total > 0) "${(receta.coincidencias ?: 0) * 100 / total}%" else "--"
 
             Glide.with(itemView.context)
                 .load(receta.FotoReceta)
@@ -95,6 +99,7 @@ class CoincidenciaAdapter(
             .inflate(R.layout.item_receta_new, parent, false)
 
 
+        view.fitRecipeCardTo(parent)
         return ViewHolder(view)
     }
 

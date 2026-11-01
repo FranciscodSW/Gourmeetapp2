@@ -1,0 +1,8 @@
+<resources>
+    <string name="pantry_sign_in_title">GUARDA TUS INGREDIENTES</string>
+    <string name="pantry_sign_in_description">Inicia sesión para crear tu alacena y organizar lo que tienes en casa.</string>
+    <string name="pantry_sign_in_action">Iniciar sesión</string>
+    <string name="pantry_empty_title">AÚN NO TIENES ALACENAS</string>
+    <string name="pantry_empty_description">Crea tu primera alacena para comenzar a organizar tus ingredientes.</string>
+    <string name="pantry_empty_action">CREAR ALACENA</string>
+</resources>

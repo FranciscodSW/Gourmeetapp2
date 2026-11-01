@@ -43,6 +43,11 @@
         <!--Título-->
         <TextView
             android:id="@+id/txtTitulo"
+                android:maxLines="1"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMinTextSize="18sp"
+            app:autoSizeMaxTextSize="34sp"
+            app:autoSizeStepGranularity="1sp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
@@ -398,6 +403,13 @@
             app:layout_constraintBottom_toBottomOf="parent">
             <TextView
                 android:id="@+id/txtSeccionActual"
+                android:maxLines="2"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp"
+                app:autoSizeTextType="uniform"
+                app:autoSizeMinTextSize="12sp"
+                app:autoSizeMaxTextSize="18sp"
+                app:autoSizeStepGranularity="1sp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"

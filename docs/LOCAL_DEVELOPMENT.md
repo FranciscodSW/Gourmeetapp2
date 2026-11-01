@@ -34,3 +34,15 @@ Capturas, medidas y resultados completos en `GourmeetLab/evidence`. Existe una r
 Esta primera entrega resuelve áreas seguras y un recorte de texto, no rediseña todas las tarjetas ni convierte todas las pantallas en layouts adaptables. En tableta persiste un uso pobre del espacio horizontal; hay textos de tarjetas con medidas rígidas. Falta probar el Pixel físico, otros Android, teclado en todos los formularios, acceso real de Google y compras.
 
 Lint detectó siete errores en archivos sin modificar: cinco MissingConstraints en layouts secundarios y dos UseAppTint en fragmentos. No se silenció lint ni se creó un baseline para ocultarlos. El detalle está en los logs del laboratorio. Compilar y pasar estas pruebas no equivale a una aprobación para producción.
+
+## Segunda corrección: capturas aportadas por el usuario
+
+Se reprodujo en modo oscuro del emulador la barra “Gourmeet2” encima del encabezado y texto blanco sobre el fondo claro de las secciones. La variante night heredaba DarkActionBar mientras el tema normal API23+ no lo hacía. Se unificó la paleta clara existente y NoActionBar para ambas configuraciones. Esto no implementa un diseño oscuro completo: evita mezclar superficies claras fijas con textos y barra oscuros automáticos.
+
+La tarjeta compartida item_receta_new ahora separa título, imagen16:9, cuatro estadísticas de igual ancho y franja de ingredientes. La altura se adapta al texto. Los cuatro adapters que usan esa tarjeta ajustan el ancho al viewport real de su RecyclerView (incluidos diálogos), con límite de320dp; se ajustaron los contenedores de resultados que imponían350/365dp. Se quitaron márgenes negativos de ingredientes y se sustituyó el porcentaje fijo35% por el dato disponible o “--”.
+
+La alacena de invitados muestra una explicación y acceso a iniciar sesión. No se inventa una sesión ni se permite guardar sin cuenta. El estado se valida en una nueva prueba de UI, además de contrastes, ausencia de ActionBar, títulos largos y estadísticas sin recortes.
+
+El catálogo de laboratorio incluye nombres largos y más recetas mediante projects/web/dev/seed_recipe_list.sql. Las imágenes locales son ejemplos del repositorio, no una correspondencia culinaria validada con los nombres de las fixtures. Su URL solo se redirige al host local cuando GOURMEET_LOCAL=1.
+
+Los textos del encabezado principal y botón central usan autosize con límites y padding para mantenerse dentro de su espacio en el perfil320dp con fuente130%. Verificación nueva en SafeDrawingTest.

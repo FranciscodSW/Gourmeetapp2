@@ -1,4 +1,5 @@
 package mx.com.gourmeet.app
+import mx.com.gourmeet.app.ui.fitRecipeCardTo
 
 import android.view.LayoutInflater
 import android.view.View
@@ -207,6 +208,7 @@ class RecetaCarrAdapterSelec(
                 false
             )
 
+        view.fitRecipeCardTo(parent)
         return ViewHolder(view)
     }
 

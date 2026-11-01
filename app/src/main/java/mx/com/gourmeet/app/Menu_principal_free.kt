@@ -3930,12 +3930,7 @@ class Menu_principal_free : AppCompatActivity() {
         val clienteId = SesionUsuario.obtenerId(this)
 
         if (clienteId <= 0) {
-            Toast.makeText(
-                this,
-                "No se pudo obtener el usuario.",
-                Toast.LENGTH_SHORT
-            ).show()
-
+            mostrarSinAlacenas()
             return
         }
 
@@ -4091,9 +4086,18 @@ class Menu_principal_free : AppCompatActivity() {
         // BOTÓN CREAR
         // ==========================================
 
+        val invitado = !SesionUsuario.haIniciadoSesion(this)
+        binding.panelAlacena.findViewById<TextView>(R.id.txtSinAlacenasTitulo)
+            .setText(if (invitado) R.string.pantry_sign_in_title else R.string.pantry_empty_title)
+        binding.panelAlacena.findViewById<TextView>(R.id.txtSinAlacenasDescripcion)
+            .setText(if (invitado) R.string.pantry_sign_in_description else R.string.pantry_empty_description)
+        (btnCrear as TextView).setText(if (invitado) R.string.pantry_sign_in_action else R.string.pantry_empty_action)
         btnCrear.setOnClickListener {
-
-            mostrarDialogCrearAlacena()
+            if (invitado) {
+                startActivity(Intent(this, Login::class.java))
+            } else {
+                mostrarDialogCrearAlacena()
+            }
         }
     }
     private fun mostrarDialogCrearAlacena() {
