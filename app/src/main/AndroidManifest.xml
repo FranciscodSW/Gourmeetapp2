@@ -115,6 +115,9 @@
         <activity
             android:name=".PlaneadorSemanalActivity"
             android:exported="false" />
+        <activity
+            android:name=".ListaDeComprasActivity"
+            android:exported="false" />
 
         <activity
             android:name=".MainActivity"

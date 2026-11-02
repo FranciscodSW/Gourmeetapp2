@@ -1,49 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="25dp"
-        android:orientation="horizontal">
-        <ImageView
-            android:id="@+id/iconodecategoria"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:src="@drawable/ic_plato_fuerte"
-            android:gravity="center_vertical"/>
-        <View
-            android:layout_width="35dp"
-            android:layout_height="25dp"/>
-        <TextView
-            android:id="@+id/nombredelacategoriadecompra"
-            android:layout_width="wrap_content"
-            android:layout_height="25dp"
-            android:text="Frutas y verduras"
-            android:fontFamily="@font/caviardreams"
-            android:layout_gravity="center_vertical"
-            android:gravity="center_vertical"
-            />
-        <View
-            android:layout_width="35dp"
-            android:layout_height="25dp"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="25dp"
-            android:text="ver provedores"
-            android:textColor="@color/white"
-            android:textSize="15dp"
-            android:background="@drawable/bg_ovalo_azul"/>
+    android:layout_height="wrap_content"
+    android:paddingBottom="10dp"
+    android:background="@color/white">
 
-    </LinearLayout>
+    <ImageView
+        android:id="@+id/iconodecategoria"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:src="@drawable/ic_plato_fuerte"
+        android:contentDescription="Categoría"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/nombredelacategoriadecompra"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:fontFamily="@font/caviardreams"
+        android:text="Frutas y verduras"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/iconodecategoria"
+        app:layout_constraintEnd_toStartOf="@id/btnVerProveedores"
+        app:layout_constraintTop_toTopOf="@id/iconodecategoria"
+        app:layout_constraintBottom_toBottomOf="@id/iconodecategoria"/>
+
+    <TextView
+        android:id="@+id/btnVerProveedores"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:gravity="center"
+        android:paddingHorizontal="10dp"
+        android:background="@drawable/bg_ovalo_azul"
+        android:text="Ver proveedores"
+        android:textColor="@color/white"
+        android:textSize="12sp"
+        android:fontFamily="@font/caviardreams"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/listadefaltante"
-        android:layout_width="409dp"
-        android:layout_height="165dp"
-        tools:layout_editor_absoluteX="2dp"
-        tools:layout_editor_absoluteY="29dp" />
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:nestedScrollingEnabled="false"
+        app:layout_constraintTop_toBottomOf="@id/iconodecategoria"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
