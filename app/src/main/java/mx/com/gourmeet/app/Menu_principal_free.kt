@@ -107,47 +107,36 @@ class Menu_principal_free : AppCompatActivity() {
         EDITAR,
         USAR_EN_RECETA
     }
-
     private val solicitarPermisosUbicacion =
         registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permisos ->
-
             val fineLocation =
                 permisos[
                     Manifest.permission.ACCESS_FINE_LOCATION
                 ] ?: false
-
             val coarseLocation =
                 permisos[
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ] ?: false
-
-
             Log.d(
                 "UBICACION",
                 "RESULTADO FINE = $fineLocation"
             )
-
             Log.d(
                 "UBICACION",
                 "RESULTADO COARSE = $coarseLocation"
             )
-
-
             // ==========================================
             // PERMISO CONCEDIDO
             // ==========================================
 
             if (fineLocation || coarseLocation) {
-
                 Log.d(
                     "UBICACION",
                     "PERMISO CONCEDIDO"
                 )
-
                 obtenerUbicacionUsuario()
-
                 return@registerForActivityResult
             }
 
@@ -315,58 +304,35 @@ class Menu_principal_free : AppCompatActivity() {
         // =========================================================
 
         cargarUsuario()
-
         cargarInformacionUsuario()
-
         inicializarMenuLateral()
-
         configurarPreferenciasCuenta()
         configurarNotificaciones()
-
-
         fusedLocationClient =
             LocationServices.getFusedLocationProviderClient(this)
-
-
         inicializarProveedores()
-
         configurarBusquedaProveedores()
-
-
         // =========================================================
         // UBICACIÓN
         // =========================================================
 
         fusedLocationClient =
             LocationServices.getFusedLocationProviderClient(this)
-
-
         inicializarProveedores()
-
         configurarBusquedaProveedores()
-
-
         if (tienePermisoUbicacion()) {
-
             obtenerUbicacionUsuario()
         }
-
 
         // =========================================================
         // BACK STACK
         // =========================================================
-
         supportFragmentManager.addOnBackStackChangedListener {
-
             if (
                 supportFragmentManager.backStackEntryCount == 0
             ) {
-
-                binding.containerDetalleReceta.visibility =
-                    View.GONE
-
-                binding.containerDetalleProveedor.visibility =
-                    View.GONE
+                binding.containerDetalleReceta.visibility = View.GONE
+                binding.containerDetalleProveedor.visibility = View.GONE
             }
         }
 
@@ -428,7 +394,6 @@ class Menu_principal_free : AppCompatActivity() {
         // =========================================================
         // BOTÓN PROVEEDORES
         // =========================================================
-
         binding.btnProveedores.setOnClickListener {
 
             // ==========================================
@@ -511,12 +476,9 @@ class Menu_principal_free : AppCompatActivity() {
 
             cargarProveedores()
         }
-
-
         // =========================================================
         // BLOQUEAR ENTER
         // =========================================================
-
         binding.editBusqueda.setOnKeyListener { _, keyCode, event ->
 
             if (
@@ -531,8 +493,6 @@ class Menu_principal_free : AppCompatActivity() {
                 false
             }
         }
-
-
         // =========================================================
         // ADAPTER DE INGREDIENTES
         // =========================================================
@@ -592,7 +552,6 @@ class Menu_principal_free : AppCompatActivity() {
             IngredienteAlacenaAdapter(
                 emptyList()
             ) { ingredienteSeleccionado ->
-
                 mostrarDialogAgregarIngrediente(
                     ingredienteSeleccionado
                 )
@@ -607,7 +566,6 @@ class Menu_principal_free : AppCompatActivity() {
             CategoriaIngredientesAdapter(
                 emptyList()
             ) { ingredienteSeleccionado ->
-
                 mostrarDialogAgregarIngrediente(
                     ingredienteSeleccionado
                 )
@@ -1736,7 +1694,6 @@ class Menu_principal_free : AppCompatActivity() {
         }
 
     }
-
     fun inicializarMenuLateral() {
 
         binding.navigationView.setNavigationItemSelectedListener { item ->
@@ -1864,7 +1821,6 @@ class Menu_principal_free : AppCompatActivity() {
             seleccionado
         }
     }
-
     private fun abrirBusquedaProveedor() {
 
         // ==========================================
@@ -3924,11 +3880,8 @@ class Menu_principal_free : AppCompatActivity() {
         )
     }
     //////////////////////////////////////////////////////////////alacenas Individual/////////////////
-
     private fun cargarAlacenas() {
-
         val clienteId = SesionUsuario.obtenerId(this)
-
         if (clienteId <= 0) {
             mostrarSinAlacenas()
             return

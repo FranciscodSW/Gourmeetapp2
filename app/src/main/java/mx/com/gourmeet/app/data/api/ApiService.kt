@@ -323,4 +323,33 @@ interface ApiService {
         @Body request: AsignarCocineroRequest
     ): AsignarCocineroResponse
 
+    // =============================================
+// LISTA DE COMPRAS
+// =============================================
+
+    @POST("listadecompras/obtener_o_crear_lista.php")
+    suspend fun obtenerOCrearLista(
+        @Body request: ListaCompraRequest
+    ): ListaCompraResponse
+
+    @POST("listadecompras/sincronizar_lista_compras.php")
+    suspend fun sincronizarListaCompras(
+        @Body request: ListaCompraRequest
+    ): SincronizarListaResponse
+
+    @POST("listadecompras/listar_ingredientes_lista.php")
+    suspend fun listarIngredientesLista(
+        @Body request: ListaCompraRequest
+    ): ListarIngredientesListaResponse
+
+    @POST("listadecompras/actualizar_estado_compra.php")
+    suspend fun actualizarEstadoCompra(
+        @Body request: ActualizarEstadoCompraRequest
+    ): ActualizarEstadoCompraResponse
+
+    @POST("listadecompras/eliminar_ingrediente_lista.php")
+    suspend fun eliminarIngredienteLista(
+        @Body request: EliminarIngredienteListaRequest
+    ): EliminarIngredienteListaResponse
+
 }

@@ -13,19 +13,19 @@ android {
         applicationId = "mx.com.gourmeet.app"
         minSdk = 33
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 5
+        versionName = "1.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         debug {
             val apiUrl = providers.gradleProperty("gourmeet.apiBaseUrl")
-                .getOrElse("http://192.168.1.88:3001/api/")
+                .getOrElse("http://192.168.1.71:3001/api/")
             buildConfigField("String", "API_BASE_URL", "\"$apiUrl\"")
         }
         release {
-            buildConfigField("String", "API_BASE_URL", "\"http://192.168.1.88:3001/api/\"")
+            buildConfigField("String", "API_BASE_URL", "\"http://192.168.1.71:3001/api/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

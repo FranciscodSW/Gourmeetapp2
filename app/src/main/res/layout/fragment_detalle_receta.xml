@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,25 +9,40 @@
     android:padding="1dp"
     android:background="@android:color/white"
     android:paddingBottom="200dp"
-    android:scrollbars="vertical">
+    android:scrollbars="vertical"
+    android:layout_marginTop="30dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
         <!-- CardView para información principal de la receta -->
+        <mx.com.gourmeet.app.views.StrokeTextView
+            android:id="@+id/txtTitulo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_rectangulo_azul_borde_negro_3"
+            android:ellipsize="end"
+            android:fontFamily="@font/caviardreams"
+            android:gravity="center"
+            android:maxLines="2"
+            android:text="Enchiladas Verdes"
+            android:textColor="@android:color/white"
+            android:textSize="24sp" />
+
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="260dp"
             android:layout_marginStart="1dp"
             android:layout_marginEnd="1dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="0dp"
             app:cardCornerRadius="18dp"
-            app:cardElevation="6dp">
+            app:cardElevation="0dp">
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
                 <!-- Imagen de fondo -->
+
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="120dp"
@@ -36,68 +52,92 @@
                     android:id="@+id/imgHeaderReceta"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="centerCrop"/>
+                    android:scaleType="centerCrop"
+                    />
                 <!-- contenido -->
+
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
+
                     <!-- ========================= -->
-                    <!-- PANEL SUPERIOR IZQUIERDO  -->
+                    <!-- TÍTULO -->
                     <!-- ========================= -->
+
+                    <!-- ========================= -->
+                    <!-- COINCIDENCIA -->
+                    <!-- ========================= -->
+
+
+                    <!-- ========================= -->
+                    <!-- DATOS: INFERIOR IZQUIERDA -->
+                    <!-- ========================= -->
+
                     <LinearLayout
                         android:id="@+id/layoutDatos"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:layout_marginTop="8dp"
-                        android:orientation="horizontal"
+                        android:layout_marginBottom="12dp"
                         android:gravity="center_vertical"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
-                        <!-- Tiempo -->
+                        android:orientation="horizontal"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent">
+
+                        <!-- TIEMPO -->
+
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="10dp"
                             android:gravity="center"
                             android:orientation="vertical">
+
                             <ImageView
                                 android:layout_width="26dp"
                                 android:layout_height="26dp"
-                                android:src="@drawable/ic_clock_bg"/>
+                                android:src="@drawable/ic_clock_bg" />
+
                             <TextView
                                 android:id="@+id/txtTiempo"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:fontFamily="@font/caviardreams"
                                 android:text="50 min"
                                 android:textColor="@android:color/black"
                                 android:textSize="10sp"
-                                android:textStyle="bold"
-                                android:fontFamily="@font/caviardreams"/>
+                                android:textStyle="bold" />
+
                         </LinearLayout>
-                        <!-- Nivel -->
+
+                        <!-- NIVEL -->
+
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="10dp"
                             android:gravity="center"
                             android:orientation="vertical">
+
                             <ImageView
                                 android:layout_width="26dp"
                                 android:layout_height="26dp"
-                                android:src="@drawable/ic_gorrito_nuevo_azul"/>
+                                android:src="@drawable/ic_gorrito_nuevo_azul" />
+
                             <TextView
                                 android:id="@+id/txtNivel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:fontFamily="@font/caviardreams"
                                 android:text="Fácil"
                                 android:textColor="@android:color/black"
                                 android:textSize="10sp"
-                                android:textStyle="bold"
-                                android:fontFamily="@font/caviardreams"/>
+                                android:textStyle="bold" />
+
                         </LinearLayout>
 
-                        <!-- Precio -->
+                        <!-- PRECIO -->
+
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -108,21 +148,22 @@
                             <ImageView
                                 android:layout_width="26dp"
                                 android:layout_height="26dp"
-                                android:src="@drawable/ic_dinero"/>
+                                android:src="@drawable/ic_dinero" />
 
                             <TextView
                                 android:id="@+id/txtCosto"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:fontFamily="@font/caviardreams"
                                 android:text="$49"
                                 android:textColor="@android:color/black"
                                 android:textSize="10sp"
-                                android:textStyle="bold"
-                                android:fontFamily="@font/caviardreams"/>
+                                android:textStyle="bold" />
 
                         </LinearLayout>
 
-                        <!-- Tipo -->
+                        <!-- TIPO DE RECETA -->
+
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -132,61 +173,32 @@
                             <ImageView
                                 android:layout_width="26dp"
                                 android:layout_height="26dp"
-                                android:src="@drawable/ic_comida"/>
+                                android:src="@drawable/ic_comida" />
 
                             <TextView
                                 android:id="@+id/txtTipo"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:fontFamily="@font/caviardreams"
                                 android:text="Plato fuerte"
                                 android:textColor="@android:color/black"
                                 android:textSize="10sp"
-                                android:textStyle="bold"
-                                android:fontFamily="@font/caviardreams"/>
+                                android:textStyle="bold" />
 
                         </LinearLayout>
 
                     </LinearLayout>
 
                     <!-- ========================= -->
-                    <!-- TITULO                    -->
-                    <!-- ========================= -->
-
-                    <mx.com.gourmeet.app.views.StrokeTextView
-                        android:id="@+id/txtTitulo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-
-                        android:text="Enchiladas Verdes"
-                        android:textColor="@android:color/white"
-                        android:textSize="24sp"
-
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"/>
-
-                    <!-- ========================= -->
-                    <!-- COINCIDENCIA              -->
-                    <!-- ========================= -->
-
-                    <mx.com.gourmeet.app.views.BlueStrokeTextView
-                        android:id="@+id/txtCoincidencia"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Coincidencia: 35%"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:fontFamily="@font/caviardreams"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/txtTitulo"/>
-
-                    <!-- ========================= -->
-                    <!-- CALIFICACION              -->
+                    <!-- CALIFICACIÓN: INFERIOR DERECHA -->
                     <!-- ========================= -->
 
                     <LinearLayout
+                        android:id="@+id/layoutCalificacion"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_margin="12dp"
+                        android:layout_marginEnd="12dp"
+                        android:layout_marginBottom="12dp"
                         android:gravity="center"
                         android:orientation="vertical"
                         app:layout_constraintBottom_toBottomOf="parent"
@@ -200,28 +212,31 @@
                             android:text="4.0"
                             android:textColor="@android:color/white"
                             android:textSize="22sp"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold" />
 
                         <RatingBar
                             android:id="@+id/ratingReceta"
                             style="?android:attr/ratingBarStyleSmall"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:numStars="5"
-                            android:stepSize="1"
-                            android:rating="0"
                             android:isIndicator="true"
+                            android:numStars="5"
+                            android:progressBackgroundTint="#D6D6D6"
                             android:progressTint="#177AFF"
+                            android:rating="0"
                             android:secondaryProgressTint="#177AFF"
-                            android:progressBackgroundTint="#D6D6D6"/>
+                            android:stepSize="1" />
+
                     </LinearLayout>
+
                 </androidx.constraintlayout.widget.ConstraintLayout>
+
             </FrameLayout>
         </androidx.cardview.widget.CardView>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="170dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="0dp"
             android:orientation="horizontal">
             <!-- PANEL DATO GOURMEET -->
 
@@ -304,6 +319,18 @@
                 android:textSize="22sp"
                 android:fontFamily="@font/caviardreams"
                 android:textColor="#222"/>
+            <mx.com.gourmeet.app.views.BlueStrokeTextView
+                android:id="@+id/txtCoincidencia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="8dp"
+                android:text="Coincidencia: 35%"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/caviardreams"
+                android:layout_gravity="center"
+                />
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvIngredientes"
                 android:layout_width="match_parent"
@@ -601,7 +628,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 app:cardBackgroundColor="@android:color/transparent"
-               >
+                >
 
                 <!-- Encabezado -->
                 <LinearLayout
@@ -733,16 +760,16 @@
                 android:orientation="horizontal"
                 android:layout_marginBottom="16dp"
                 android:gravity="center_vertical">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="Completa tu comida"
-                android:fontFamily="@font/caviardreams"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"/>
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Completa tu comida"
+                    android:fontFamily="@font/caviardreams"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"/>
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
@@ -797,7 +824,7 @@
                             android:layout_width="54dp"
                             android:layout_height="54dp"
                             android:src="@drawable/ic_guardar"
-                            android:tint="@color/azulgourmeet"/>
+                            app:tint="@color/azulgourmeet"/>
 
                         <TextView
                             android:id="@+id/texguardar"

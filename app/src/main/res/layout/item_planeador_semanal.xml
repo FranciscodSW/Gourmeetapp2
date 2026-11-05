@@ -180,6 +180,7 @@ android:background="@drawable/bg_bottom_sheet_alacena">
 
     </LinearLayout>
 
+
     <Button
         android:id="@+id/btnVerListaCompras"
         android:layout_width="105dp"

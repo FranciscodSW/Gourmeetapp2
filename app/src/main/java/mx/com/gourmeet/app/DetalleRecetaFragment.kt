@@ -1079,13 +1079,20 @@ class DetalleRecetaFragment : Fragment() {
                             LinearLayoutManager.HORIZONTAL,
                             false
                         )
+                    binding.rvIngredientes.layoutManager =
+                        LinearLayoutManager(
+                            requireContext(),
+                            LinearLayoutManager.HORIZONTAL,
+                            false
+                        )
                     binding.rvIngredientes.adapter =
-                        IngredientesMiniAdapter(
-                            response.ingredientes.map {
+                        IngredienteRecetaAdapter(
+                            response.ingredientes.map { ingrediente ->
                                 IngredienteReceta(
-                                    id = it.ING_ID,
-                                    nombre = it.ING_DESCRIPCION,
-                                    foto = it.Foto_Ingrediente
+                                    id = ingrediente.ING_ID,
+                                    nombre = ingrediente.ING_DESCRIPCION,
+                                    foto = ingrediente.Foto_Ingrediente,
+                                    cantidad = ingrediente.cantidad
                                 )
                             }
                         )
@@ -1621,11 +1628,8 @@ class DetalleRecetaFragment : Fragment() {
         dialog.show()
     }
     private fun reportarReceta(problema: String,descripcion: String, dialog: BottomSheetDialog) {
-
         lifecycleScope.launch {
-
             try {
-
                 val request = ReportarRecetaRequest(
                     cliId = obtenerId(requireContext()),
                     recId = recetaId,
@@ -1666,51 +1670,29 @@ class DetalleRecetaFragment : Fragment() {
 
     }
     private fun obtenerCodigoProblema(motivo: String): String {
-
         return when (motivo) {
-
             "Información incorrecta o engañosa" -> "INFORMACION_INCORRECTA"
-
             "Ingredientes erróneos o incompletos" -> "INGREDIENTES_ERRONEOS"
-
             "Pasos incompletos o desordenados" -> "PASOS_INCOMPLETOS"
-
             "Faltas ortográficas" -> "FALTAS_ORTOGRAFICAS"
-
             "Contenido inapropiado" -> "CONTENIDO_INAPROPIADO"
-
             "Fotografías engañosas" -> "FOTOGRAFIAS_ENGANOSAS"
-
             "Receta duplicada" -> "RECETA_DUPLICADA"
-
             "Sabor desagradable" -> "SABOR_DESAGRADABLE"
-
             "Mala redacción de la receta" -> "MALA_REDACCION"
-
             else -> ""
         }
-
     }
     private val motivosReporte = listOf(
-
         "Información incorrecta o engañosa",
-
         "Ingredientes erróneos o incompletos",
-
         "Pasos incompletos o desordenados",
-
         "Faltas ortográficas",
-
         "Contenido inapropiado",
-
         "Fotografías engañosas",
-
         "Receta duplicada",
-
         "Sabor desagradable",
-
         "Mala redacción de la receta"
-
     )
     private fun actualizarBotonRecetaTerminada() {
         if (recetaTerminada) {

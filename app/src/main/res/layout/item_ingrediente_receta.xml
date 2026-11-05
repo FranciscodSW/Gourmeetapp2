@@ -5,20 +5,28 @@
     android:layout_height="wrap_content"
     android:gravity="center"
     android:orientation="vertical">
+    <TextView
+        android:id="@+id/txtIngrediente"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/azulgourmeet"
+        android:textSize="12sp"
+        android:maxLines="2"
+        android:gravity="center"/>
 
     <ImageView
         android:id="@+id/imgIngrediente"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:background="@drawable/bg_circulo_azul_margen_blanco"
-        android:padding="4dp"/>
+        />
 
     <TextView
-        android:id="@+id/txtIngrediente"
-        android:layout_width="wrap_content"
+        android:gravity="center"
+        android:id="@+id/txtcantidad"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
+        android:textColor="@color/azulgourmeet"
         android:textSize="12sp"
-        android:maxLines="1"/>
-
+        android:maxLines="2"/>
 </LinearLayout>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="7dp">
+
+    <!-- CÍRCULO DE CANTIDAD -->
+    <TextView
+        android:id="@+id/txtCantidadCirculo"
+        android:layout_width="66dp"
+        android:layout_height="66dp"
+        android:background="@drawable/bg_circulo_cantidad_compra"
+        android:gravity="center"
+        android:fontFamily="@font/caviardreams"
+        android:text="2 pza"
+        android:textColor="@color/txt_cantidad_compra_selector"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:maxLines="2"
+        android:padding="5dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="Marcar ingrediente como comprado"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <!-- NOMBRE DEL INGREDIENTE -->
+    <TextView
+        android:id="@+id/txtNombreIngrediente"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="13dp"
+        android:fontFamily="@font/caviardreams"
+        android:text="Tomate"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/txtCantidadCirculo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/txtCantidadCirculo"
+        app:layout_constraintBottom_toBottomOf="@id/txtCantidadCirculo"
+        app:layout_constraintVertical_bias="0.5"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

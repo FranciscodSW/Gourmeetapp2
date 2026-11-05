@@ -1,13 +1,13 @@
 package mx.com.gourmeet.app
 import mx.com.gourmeet.app.ui.applySafeDrawingInsets
 
-import android.R.attr.singleLine
 import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.text.Editable
 import android.text.TextWatcher
@@ -97,6 +97,7 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
         }
         configurarRecyclerView()
         configurarDiasQueVamosACocinar()
+        configurarBotonListaCompras()
         obtenerPlaneadorSemanal()
     }
 
@@ -3075,6 +3076,37 @@ class PlaneadorSemanalActivity : AppCompatActivity() {
                 ).show()
             }
         }
+    }
+    // =========================================================
+// ABRIR LISTA DE COMPRAS
+// =========================================================
+
+    private fun configurarBotonListaCompras() {
+        binding.btnVerListaCompras.setOnClickListener {
+            abrirListaDeCompras()
+        }
+    }
+
+    private fun abrirListaDeCompras() {
+        if (plaId <= 0) {
+            Toast.makeText(
+                this,
+                "Espera a que cargue el planeador.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        val intent = Intent(
+            this,
+            ListaDeComprasActivity::class.java
+        ).apply {
+            putExtra("PLA_ID", plaId)
+            putExtra("HOG_ID", hogId)
+            putExtra("CLI_ID", cliId)
+        }
+
+        startActivity(intent)
     }
 
 

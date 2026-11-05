@@ -26,8 +26,6 @@
         android:gravity="center"
         android:maxLines="2"
         android:text="Tomate"
-
-
         android:textColor="@color/black"
         android:textSize="10sp" />
 
