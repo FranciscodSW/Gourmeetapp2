@@ -6,7 +6,6 @@ import androidx.core.view.doOnLayout
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-/** Use the actual list viewport, including dialogs, rather than the physical screen. */
 fun View.fitRecipeCardTo(parent: ViewGroup) {
     parent.doOnLayout {
         val viewport = parent.width - parent.paddingLeft - parent.paddingRight

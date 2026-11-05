@@ -1,5 +1,4 @@
 <resources>
-    <!-- Existing screens have light surfaces. Keep one readable palette until a full dark theme exists. -->
     <style name="Theme.Gourmeet2" parent="Base.Theme.Gourmeet2">
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

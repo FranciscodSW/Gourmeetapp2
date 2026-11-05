@@ -7,10 +7,6 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnAttach
 
-/**
- * Keeps each activity's content inside the system bars and camera cutout.
- * Installed on the content host so screen-specific keyboard listeners remain intact.
- */
 fun Activity.applySafeDrawingInsets() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
     val content = findViewById<View>(android.R.id.content)
@@ -22,7 +18,6 @@ fun Activity.applySafeDrawingInsets() {
         val safe = insets.getInsets(
             WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
         )
-        // Always derive from the original padding: redispatches must not accumulate.
         view.setPadding(left + safe.left, top + safe.top, right + safe.right, bottom + safe.bottom)
         insets
     }

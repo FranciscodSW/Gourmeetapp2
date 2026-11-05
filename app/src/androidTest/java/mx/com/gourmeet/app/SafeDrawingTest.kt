@@ -21,7 +21,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 
-/** Checks real window geometry, including system bars and the configured display cutout. */
 @RunWith(AndroidJUnit4::class)
 class SafeDrawingTest {
     @Before fun seedLocalSession() {
@@ -57,7 +56,7 @@ class SafeDrawingTest {
             )
         }
         try {
-            Thread.sleep(1800) // Allow layout, the initial inset dispatch and entrance animations.
+            Thread.sleep(1800)
             if (guestPantry) {
                 instrumentation.runOnMainSync {
                     val activity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
