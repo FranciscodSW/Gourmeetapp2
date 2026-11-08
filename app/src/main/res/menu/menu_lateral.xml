@@ -26,7 +26,6 @@
 
         </item>
 
-
         <item
             android:id="@+id/menu_planeador_semanal"
             android:icon="@drawable/ic_calendario"
@@ -41,6 +40,10 @@
             android:id="@+id/menu_premium"
             android:icon="@drawable/ic_premium"
             android:title="Vuélvete Premium"/>
+        <item
+            android:id="@+id/cerrar_sesion"
+            android:icon="@drawable/ic_premium"
+            android:title="Cerrar sesion"/>
 
     </group>
 

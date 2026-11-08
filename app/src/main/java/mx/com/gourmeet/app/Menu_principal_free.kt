@@ -968,7 +968,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                 binding.headerProveedores.btnfiltros
                     .setImageResource(
-                        R.drawable.ic_filtro_on
+                        R.drawable.ic_filtro
                     )
 
 
@@ -1789,7 +1789,6 @@ class Menu_principal_free : AppCompatActivity() {
                         "MENU_LATERAL",
                         "Abriendo GourMeet Premium"
                     )
-
                     startActivity(
                         Intent(
                             this,
@@ -1798,6 +1797,18 @@ class Menu_principal_free : AppCompatActivity() {
                     )
                     true
                 }
+                R.id.cerrar_sesion -> {
+
+                    Log.d(
+                        "MENU_LATERAL",
+                        "Solicitando cerrar sesión"
+                    )
+
+                    confirmarCerrarSesion()
+
+                    true
+                }
+
 
                 else -> {
                     Log.w(
@@ -9100,6 +9111,68 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             cerrarNotificaciones_usuario()
         }
 
+    }
+    private fun confirmarCerrarSesion() {
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Cerrar sesión")
+            .setMessage("¿Estás seguro de que deseas cerrar tu sesión en GourMeet?")
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Cerrar sesión", null)
+            .create()
+
+        dialog.setOnShowListener {
+
+            // Botón CANCELAR: azul con letras blancas
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).apply {
+                setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                        android.graphics.Color.parseColor("#177AFF")
+                    )
+                )
+                setTextColor(android.graphics.Color.WHITE)
+            }
+
+            // Botón CERRAR SESIÓN: rojo con letras blancas
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).apply {
+                setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                        android.graphics.Color.parseColor("#E53935")
+                    )
+                )
+                setTextColor(android.graphics.Color.WHITE)
+
+                setOnClickListener {
+
+                    SesionUsuario.cerrarSesion(this@Menu_principal_free)
+
+                    Log.d("SESION", "Sesión cerrada correctamente")
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        "Has cerrado sesión",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    val intent = Intent(
+                        this@Menu_principal_free,
+                        Login::class.java
+                    ).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+
+                    startActivity(intent)
+
+                    overridePendingTransition(
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out
+                    )
+                }
+            }
+        }
+
+        dialog.show()
     }
 
 }
