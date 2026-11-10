@@ -58,6 +58,9 @@ class DetalleRecetaFragment : Fragment() {
     private var _binding: FragmentDetalleRecetaBinding? = null
     private val binding get() = _binding!!
     private var recetaId: Int = 0
+    private var recetaActual: RecetaDetalle? = null
+    private var actualizandoFavorito = false
+    private var verificandoFavorito = false
     private var mostrandoTodosLosPasos = false
     private var pasos = emptyList<PasoPreparacion>()
     private var pasoActual = 0
@@ -243,110 +246,18 @@ class DetalleRecetaFragment : Fragment() {
         binding.rvComentarios.layoutManager = LinearLayoutManager(requireContext())
         binding.rvComentarios.adapter = comentarioAdapter
         binding.layoutFavoritos.setOnClickListener { cambiarFavorito()}
-        binding.layoutColeccion.setOnClickListener {
-
-            if (binding.scrollColecciones.visibility == View.VISIBLE) {
-
-                // =========================
-                // CERRAR
-                // =========================
-
-                binding.imagenguardar.setImageResource(
-                    R.drawable.ic_guardar
-                )
-
-                ocultarColeccionesAnimadas {
-
-                    // Ya desaparecieron todas las colecciones
-
-                    binding.rectanguloColeccion
-                        .animate()
-                        .scaleX(0f)
-                        .setDuration(300)
-                        .withEndAction {
-
-                            binding.rectanguloColeccion.visibility =
-                                View.GONE
-
-                            binding.scrollColecciones.visibility =
-                                View.GONE
-
-                            // Guardar vuelve a normal
-                            binding.layoutColeccion
-                                .animate()
-                                .scaleX(1f)
-                                .scaleY(1f)
-                                .setDuration(150)
-                                .start()
-
-                            // Mostrar botones
-                            binding.layoutPlaneador.visibility =
-                                View.VISIBLE
-
-                            binding.layoutCompartir.visibility =
-                                View.VISIBLE
-
-                            binding.layoutFavoritos.visibility =
-                                View.VISIBLE
-
-                            binding.texguardar.visibility =
-                                View.VISIBLE
-                        }
-                        .start()
-                }
-            }else {
-
-                // =========================
-                // ABRIR
-                // =========================
-
-                // Ocultar los otros botones ANTES
-                binding.layoutPlaneador.visibility = View.GONE
-                binding.layoutCompartir.visibility = View.GONE
-                binding.layoutFavoritos.visibility = View.GONE
-                binding.texguardar.visibility = View.GONE
-
-                // Mostrar rectángulo
-                binding.rectanguloColeccion.visibility = View.VISIBLE
-
-                // Reiniciar posición de animación
-                binding.rectanguloColeccion.scaleX = 0f
-
-                // Expandir rectángulo
-                binding.rectanguloColeccion
-                    .animate()
-                    .scaleX(1f)
-                    .setDuration(300)
-                    .start()
-
-                // Comprimir Guardar
-                binding.layoutColeccion
-                    .animate()
-                    .scaleX(0.75f)
-                    .scaleY(0.85f)
-                    .setDuration(300)
-                    .start()
-
-                // Cambiar icono
-                binding.imagenguardar.setImageResource(
-                    R.drawable.ic_guardar
-                )
-
-                // Mostrar colecciones
-                mostrarColecciones()
-
-                binding.scrollColecciones.visibility = View.VISIBLE
-            }
-        }
-
-
-
+        binding.layoutColeccion.setOnClickListener { mostrarColecciones() }
+        binding.layoutCompartir.setOnClickListener { compartirReceta() }
+        binding.layoutPlaneador.setOnClickListener { agendarReceta() }
+        binding.btnCerrarDetalle.setOnClickListener { parentFragmentManager.popBackStack() }
+        binding.layoutCompartir.isEnabled = false
+        binding.layoutPlaneador.isEnabled = false
     }
     private fun cargarComentarios() {
 
         val usuarioId = obtenerId(requireContext())
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val response = ApiClient.apiService.listarComentarios(
                 ListarComentariosRequest(
                     receta = recetaId,
@@ -641,7 +552,7 @@ class DetalleRecetaFragment : Fragment() {
     ) {
         val usuarioId = obtenerId(requireContext())
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
 
             try {
 
@@ -1038,8 +949,16 @@ class DetalleRecetaFragment : Fragment() {
 
     }
     private fun cargarDetalle() {
+        recetaActual = null
+        binding.recipeLoadStatus.text = "Cargando receta…"
+        binding.recipeLoadStatus.visibility = View.VISIBLE
+        binding.recipeLoadStatus.isEnabled = false
+        listOf(binding.layoutCompartir, binding.layoutPlaneador, binding.layoutColeccion, binding.layoutFavoritos).forEach {
+            it.isEnabled = false
+            it.alpha = 0.5f
+        }
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
 
             try {
 
@@ -1051,7 +970,15 @@ class DetalleRecetaFragment : Fragment() {
 
                 )
                 if(response.success){
+                    if (_binding == null) return@launch
                     val receta = response.receta
+                    recetaActual = receta
+                    binding.recipeLoadStatus.visibility = View.GONE
+                    listOf(binding.layoutCompartir, binding.layoutPlaneador, binding.layoutColeccion, binding.layoutFavoritos).forEach {
+                        it.isEnabled = true
+                        it.alpha = 1f
+                    }
+                    binding.layoutFavoritos.isEnabled = !actualizandoFavorito && !verificandoFavorito
                     Glide.with(requireContext())
                         .load(receta.FotoReceta)
                         .placeholder(R.drawable.ic_logo_circular)
@@ -1063,26 +990,27 @@ class DetalleRecetaFragment : Fragment() {
                     binding.tvDatoGourmet.text =
                         receta.REC_DATOGOUMEET
                     binding.txtTiempo.text =
-                        receta.REC_TIEMPO_PREPARACION
-                    binding.txtCosto.text = "-"
+                        "${receta.REC_TIEMPO_PREPARACION} min"
+                    (binding.txtCosto.parent as View).visibility = View.GONE
                     binding.txtNivel.text =
                         receta.Dificultad
                     binding.txtTipo.text =
                         receta.Categoria
-                    binding.txtCalificacion.text =
-                        String.format("%.1f", response.calificacion.promedio)
-                    binding.ratingReceta.rating =
-                        response.calificacion.promedio.toFloat()
+                    binding.txtCalificacion.text = if (response.calificacion.total > 0)
+                        "${String.format("%.1f", response.calificacion.promedio)} · ${response.calificacion.total} calificaciones"
+                    else "Sin calificaciones todavía"
+                    binding.ratingReceta.visibility = if (response.calificacion.total > 0) View.VISIBLE else View.GONE
+                    binding.ratingReceta.rating = response.calificacion.promedio
                     binding.rvIngredientes.layoutManager =
                         LinearLayoutManager(
                             requireContext(),
-                            LinearLayoutManager.HORIZONTAL,
+                            LinearLayoutManager.VERTICAL,
                             false
                         )
                     binding.rvIngredientes.layoutManager =
                         LinearLayoutManager(
                             requireContext(),
-                            LinearLayoutManager.HORIZONTAL,
+                            LinearLayoutManager.VERTICAL,
                             false
                         )
                     binding.rvIngredientes.adapter =
@@ -1128,16 +1056,23 @@ class DetalleRecetaFragment : Fragment() {
                             }
                         }
                     }
+                } else {
+                    mostrarErrorCargaReceta()
                 }
-            }
-            catch (e: Exception){
-
-                e.printStackTrace()
-
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                mostrarErrorCargaReceta()
             }
 
         }
 
+    }
+    private fun mostrarErrorCargaReceta() {
+        val current = _binding ?: return
+        current.recipeLoadStatus.text = "No pudimos cargar la receta. Toca aquí para reintentar."
+        current.recipeLoadStatus.isEnabled = true
+        current.recipeLoadStatus.setOnClickListener { cargarDetalle() }
     }
     private fun ejecutarComandoVoz(comando: ComandoVoz) {
         when (comando) {
@@ -1347,7 +1282,13 @@ class DetalleRecetaFragment : Fragment() {
     }
     private fun mostrarPaso() {
         iniciarLecturaPasoActual()
-        if (pasos.isEmpty()) return
+        binding.btnAnterior.isEnabled = pasoActual > 0
+        binding.btnSiguiente.isEnabled = pasoActual < pasos.lastIndex
+        binding.btnVerTodo.isEnabled = pasos.isNotEmpty()
+        if (pasos.isEmpty()) {
+            binding.tvDescripcionPaso.text = "Esta receta aún no tiene pasos de preparación."
+            return
+        }
         val paso = pasos[pasoActual]
         binding.tvDescripcionPaso.text =
             paso.descripcion
@@ -1514,7 +1455,7 @@ class DetalleRecetaFragment : Fragment() {
     }
     private fun guardarComentario(comentario: String, calificacion: Double) {
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
 
             try {
 
@@ -1628,7 +1569,7 @@ class DetalleRecetaFragment : Fragment() {
         dialog.show()
     }
     private fun reportarReceta(problema: String,descripcion: String, dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val request = ReportarRecetaRequest(
                     cliId = obtenerId(requireContext()),
@@ -1709,7 +1650,7 @@ class DetalleRecetaFragment : Fragment() {
             if (habilitado) 1f else 0.5f
     }
     private fun cargarMiComentario() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response =
                     ApiClient.apiService.obtenerMiComentario(
@@ -1772,7 +1713,7 @@ class DetalleRecetaFragment : Fragment() {
 
         )
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
 
             try {
 
@@ -1903,7 +1844,7 @@ class DetalleRecetaFragment : Fragment() {
 
         )
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
 
             try {
 
@@ -1938,457 +1879,242 @@ class DetalleRecetaFragment : Fragment() {
             if (habilitar) 1f else 0.5f
     }
     override fun onDestroyView() {
+        speechRecognizer?.cancel()
+        speechRecognizer?.destroy()
+        speechRecognizer = null
+        textToSpeech?.stop()
+        textToSpeech?.shutdown()
+        textToSpeech = null
+        animatorSet?.cancel()
+        recetaActual = null
         super.onDestroyView()
         _binding = null
     }
     private val Int.dp: Int get() = (this * resources.displayMetrics.density).toInt()
+    private fun pedirSesion(): Boolean {
+        if (obtenerId(requireContext()) > 0) return true
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Guarda tus recetas")
+            .setMessage("Inicia sesión para guardar recetas en tus colecciones y favoritos.")
+            .setNegativeButton("Ahora no", null)
+            .setPositiveButton("Iniciar sesión") { _, _ -> startActivity(Intent(requireContext(), Login::class.java)) }
+            .show()
+        return false
+    }
+
+    private fun compartirReceta() {
+        val receta = recetaActual ?: return
+        val intent = mx.com.gourmeet.app.ui.RecipeIntents.share(receta, pasos, BuildConfig.LOCAL_ONLY)
+        try {
+            startActivity(Intent.createChooser(intent, "Compartir receta"))
+        } catch (_: android.content.ActivityNotFoundException) {
+            Toast.makeText(requireContext(), "No hay una aplicación disponible para compartir.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun agendarReceta() {
+        val receta = recetaActual ?: return
+        try {
+            startActivity(mx.com.gourmeet.app.ui.RecipeIntents.calendar(receta, pasos, BuildConfig.LOCAL_ONLY))
+        } catch (_: android.content.ActivityNotFoundException) {
+            Toast.makeText(requireContext(), "Instala o activa una aplicación de calendario para agendar la receta.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun actualizarFavorito(guardada: Boolean) {
+        val current = _binding ?: return
+        current.layoutFavoritos.isSelected = guardada
+        current.imgFavorito.setImageResource(if (guardada) R.drawable.gm_favorite_on else R.drawable.gm_favorite)
+        current.txtAccionFavorito.text = if (guardada) "En favoritos" else "Guardar en favoritos"
+        current.layoutFavoritos.contentDescription = if (guardada) "Quitar de favoritos" else "Guardar en favoritos"
+    }
+
     private fun cambiarFavorito() {
-
-        val cliId =
-            obtenerId(requireContext())
-
-        if (cliId <= 0) {
-
-            Toast.makeText(
-                requireContext(),
-                "No se encontró el usuario",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            return
-        }
-
-        if (recetaId <= 0) {
-
-            Toast.makeText(
-                requireContext(),
-                "Receta inválida",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            return
-        }
-
-        lifecycleScope.launch {
-
+        if (!pedirSesion() || recetaId <= 0 || actualizandoFavorito) return
+        actualizandoFavorito = true
+        verificandoFavorito = true
+        binding.layoutFavoritos.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
-
-                val request =
-                    GestionarFavoritoRequest(
-
-                        CLI_ID = cliId,
-
-                        REC_ID = recetaId
-
-                    )
-
-                val response =
-                    ApiClient.apiService
-                        .gestionarFavorito(request)
-
-
-                if (response.success) {
-
-                    // ==========================================
-                    // ACTUALIZAR ICONO
-                    // ==========================================
-
-                    if (response.guardada) {
-
-                        binding.imgFavorito.setImageResource(
-                            R.drawable.ic_favorito
-                        )
-
-                    } else {
-
-                        binding.imgFavorito.setImageResource(
-                            R.drawable.ic_favorito
-                        )
-                    }
-
-
-                    Toast.makeText(
-                        requireContext(),
-                        response.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                } else {
-
-                    Toast.makeText(
-                        requireContext(),
-                        response.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-
-            } catch (e: Exception) {
-
-                e.printStackTrace()
-
-                Toast.makeText(
-                    requireContext(),
-                    "Error al actualizar favoritos",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val response = ApiClient.apiService.gestionarFavorito(
+                    GestionarFavoritoRequest(CLI_ID = obtenerId(requireContext()), REC_ID = recetaId)
+                )
+                if (response.success) actualizarFavorito(response.guardada)
+                Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                if (isAdded) Toast.makeText(requireContext(), "No se pudo actualizar favoritos. Intenta de nuevo.", Toast.LENGTH_LONG).show()
+            } finally {
+                actualizandoFavorito = false
+                _binding?.layoutFavoritos?.isEnabled = true
             }
         }
     }
+
     private fun verificarFavorito() {
-
-        val cliId =
-            obtenerId(
-                requireContext()
-            )
-
+        val cliId = obtenerId(requireContext())
         if (cliId <= 0 || recetaId <= 0) {
+            actualizarFavorito(false)
             return
         }
-
-        lifecycleScope.launch {
-
+        verificandoFavorito = true
+        binding.layoutFavoritos.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
-
-                Log.d(
-                    "FAVORITO",
-                    "Verificando favorito - CLI_ID: $cliId REC_ID: $recetaId"
-                )
-
-                val response =
-                    ApiClient.apiService.verificarFavorito(
-
-                        VerificarFavoritoRequest(
-
-                            CLI_ID = cliId,
-
-                            REC_ID = recetaId
-
-                        )
-
-                    )
-
-                if (!response.success) {
-
-                    Log.d(
-                        "FAVORITO",
-                        "No se pudo verificar: ${response.message}"
-                    )
-
-                    return@launch
-                }
-
-                if (response.guardada) {
-
-                    binding.imgFavorito.setImageResource(
-                        R.drawable.ic_favorito
-                    )
-                    Log.d(
-                        "FAVORITO",
-                        "Receta guardada en favoritos"
-                    )
-                } else {
-
-                    binding.imgFavorito.setImageResource(
-                        R.drawable.ic_favorito
-                    )
-
-                    Log.d(
-                        "FAVORITO",
-                        "Receta no está guardada en favoritos"
-                    )
-                }
-
-            } catch (e: Exception) {
-
-                e.printStackTrace()
-
-                Log.e(
-                    "FAVORITO",
-                    "Error verificando favorito",
-                    e
-                )
+                val response = ApiClient.apiService.verificarFavorito(VerificarFavoritoRequest(CLI_ID = cliId, REC_ID = recetaId))
+                if (response.success) actualizarFavorito(response.guardada)
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                _binding?.txtAccionFavorito?.text = "Guardar en favoritos"
+            } finally {
+                verificandoFavorito = false
+                if (!actualizandoFavorito) _binding?.layoutFavoritos?.isEnabled = recetaActual != null
             }
         }
     }
+
     private fun mostrarColecciones() {
+        if (!pedirSesion()) return
+        val context = requireContext()
+        val sheet = BottomSheetDialog(context)
+        val content = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24.dp, 20.dp, 24.dp, 24.dp)
+        }
+        content.addView(TextView(context).apply {
+            text = "Guardar en colección"
+            textSize = 22f
+            setTextColor(ContextCompat.getColor(context, R.color.gm_ink))
+        })
+        val status = TextView(context).apply {
+            id = R.id.recipeCollectionsStatus
+            text = "Cargando tus colecciones…"
+            textSize = 15f
+            setPadding(0, 12.dp, 0, 12.dp)
+            setTextColor(ContextCompat.getColor(context, R.color.gm_muted))
+        }
+        content.addView(status)
+        val list = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; id = R.id.recipeCollectionsList }
+        val scroll = android.widget.ScrollView(context).apply { addView(list) }
+        content.addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 220.dp))
+        val create = com.google.android.material.button.MaterialButton(context).apply {
+            id = R.id.recipeCreateCollection
+            text = "Crear colección"
+            isAllCaps = false
+            backgroundTintList = android.content.res.ColorStateList.valueOf(ContextCompat.getColor(context, R.color.gm_accent))
+            setTextColor(Color.WHITE)
+            setOnClickListener { crearColeccionDesdeReceta { cargarColeccionesEnSelector(sheet, list, status) } }
+        }
+        content.addView(create)
+        sheet.setContentView(content)
+        sheet.show()
+        cargarColeccionesEnSelector(sheet, list, status)
+    }
 
-        binding.contenedorColecciones.removeAllViews()
-
-        lifecycleScope.launch {
-
+    private fun cargarColeccionesEnSelector(sheet: BottomSheetDialog, list: LinearLayout, status: TextView) {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
-
-                val cliId = obtenerId(requireContext())
-
-                if (cliId <= 0) {
-                    return@launch
-                }
-
-                val response =
-                    ApiClient.apiService.listarColeccionesConRecetas(
-                        ListarColeccionesRecetasRequest(cliId)
-                    )
-
+                val response = ApiClient.apiService.listarColeccionesConRecetas(ListarColeccionesRecetasRequest(obtenerId(requireContext())))
+                if (!sheet.isShowing || _binding == null) return@launch
+                list.removeAllViews()
                 if (!response.success) {
+                    status.text = "No se pudieron cargar las colecciones. Cierra y vuelve a intentar."
                     return@launch
                 }
-
-                response.colecciones.forEachIndexed { index, coleccion ->
-
-                    // Crear el elemento pero inicialmente invisible
-                    val item = crearColeccionVisual(coleccion)
-
-                    item.alpha = 0f
-                    item.scaleX = 0.7f
-                    item.scaleY = 0.7f
-
-                    binding.contenedorColecciones.addView(item)
-
-                    // Tiempo entre cada colección
-                    delay(index * 80L)
-
-                    // Aparece
-                    item.animate()
-                        .alpha(1f)
-                        .scaleX(1f)
-                        .scaleY(1f)
-                        .setDuration(180)
-                        .start()
+                status.text = if (response.colecciones.isEmpty()) "Crea una colección para guardar esta receta." else "Toca una colección para guardar o quitar esta receta."
+                response.colecciones.forEach { coleccion ->
+                    val guardada = coleccion.RECETAS.any { it.REC_ID == recetaId }
+                    val button = com.google.android.material.button.MaterialButton(requireContext()).apply {
+                        tag = coleccion.COL_ID
+                        text = if (guardada) "${coleccion.COL_NOMBRE} · Guardada" else coleccion.COL_NOMBRE
+                        isAllCaps = false
+                        isSelected = guardada
+                        cornerRadius = 14.dp
+                        minHeight = 52.dp
+                        backgroundTintList = android.content.res.ColorStateList.valueOf(ContextCompat.getColor(context,
+                            if (guardada) R.color.gm_accent else R.color.gm_accent_soft))
+                        setTextColor(if (guardada) Color.WHITE else ContextCompat.getColor(context, R.color.gm_accent))
+                        contentDescription = if (guardada) "Quitar de ${coleccion.COL_NOMBRE}" else "Guardar en ${coleccion.COL_NOMBRE}"
+                        setOnClickListener {
+                            for (i in 0 until list.childCount) list.getChildAt(i).isEnabled = false
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                try {
+                                    val result = ApiClient.apiService.gestionarRecetaColeccion(
+                                        GestionarRecetaColeccionRequest(
+                                            CLI_ID = obtenerId(requireContext()), COL_ID = coleccion.COL_ID,
+                                            REC_ID = recetaId, ACCION = if (guardada) "ELIMINAR" else "AGREGAR"
+                                        )
+                                    )
+                                    if (!result.success) Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
+                                    verificarFavorito()
+                                    cargarColeccionesEnSelector(sheet, list, status)
+                                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                                    if (isAdded) Toast.makeText(requireContext(), "No se pudo guardar el cambio. Intenta de nuevo.", Toast.LENGTH_LONG).show()
+                                    for (i in 0 until list.childCount) list.getChildAt(i).isEnabled = true
+                                }
+                            }
+                        }
+                    }
+                    list.addView(button, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
                 }
-
-            } catch (e: Exception) {
-
-                e.printStackTrace()
-
-                Toast.makeText(
-                    requireContext(),
-                    "No fue posible cargar las colecciones",
-                    Toast.LENGTH_SHORT
-                ).show()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                if (sheet.isShowing) status.text = "Sin conexión. Cierra y vuelve a intentar."
             }
         }
     }
-    private fun crearColeccionVisual(
-        coleccion: ColeccionConRecetas
-    ): View {
 
-        val item =
-            layoutInflater.inflate(
-                R.layout.item_seleccionado_con_circulo_azul,
-                binding.contenedorColecciones,
-                false
-            )
-
-        val img =
-            item.findViewById<ImageView>(
-                R.id.img
-            )
-
-        val txt =
-            item.findViewById<TextView>(
-                R.id.txt
-            )
-
-        val circuloAzul =
-            item.findViewById<View>(
-                R.id.circuloAzul
-            )
-
-        txt.text = coleccion.COL_NOMBRE
-
-        // ==========================================
-        // ICONO
-        // ==========================================
-
-        val icono =
-            when (coleccion.COL_PORTADA) {
-
-                "Favoritos" ->
-                    R.drawable.ic_favoritos
-
-                "Desayuno" ->
-                    R.drawable.ic_desayuno
-
-                "Pasta" ->
-                    R.drawable.ic_pasta
-
-                "Guardar" ->
-                    R.drawable.ic_guardar
-
-                else ->
-                    R.drawable.ic_nuevo_icono
-            }
-
-        img.setImageResource(icono)
-
-        // ==========================================
-        // ¿YA ESTÁ GUARDADA ESTA RECETA?
-        // ==========================================
-
-        val estaGuardada =
-            coleccion.RECETAS.any {
-                it.REC_ID == recetaId
-            }
-
-        if (estaGuardada) {
-
-            circuloAzul.visibility =
-                View.VISIBLE
-
-        } else {
-
-            circuloAzul.visibility =
-                View.GONE
+    private fun crearColeccionDesdeReceta(onCreated: () -> Unit) {
+        val field = android.widget.EditText(requireContext()).apply {
+            id = R.id.recipeCollectionName
+            hint = "Nombre de la colección"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            filters = arrayOf(android.text.InputFilter.LengthFilter(100))
+            setSingleLine()
         }
-
-        // ==========================================
-        // CLICK
-        // ==========================================
-
-        item.setOnClickListener {
-
-            gestionarRecetaEnColeccion(
-                coleccion
-            )
+        val box = android.widget.FrameLayout(requireContext()).apply {
+            setPadding(24.dp, 8.dp, 24.dp, 0)
+            addView(field)
         }
-
-        return item
-    }
-    private fun ocultarColeccionesAnimadas(
-        onComplete: () -> Unit
-    ) {
-        val contenedor = binding.contenedorColecciones
-
-        val cantidad = contenedor.childCount
-
-        if (cantidad == 0) {
-            onComplete()
-            return
-        }
-
-        var terminadas = 0
-
-        for (i in cantidad - 1 downTo 0) {
-
-            val item = contenedor.getChildAt(i)
-
-            item.animate()
-                .alpha(0f)
-                .scaleX(0.7f)
-                .scaleY(0.7f)
-                .setStartDelay((cantidad - 1 - i) * 60L)
-                .setDuration(150)
-                .withEndAction {
-
-                    terminadas++
-
-                    if (terminadas == cantidad) {
-                        contenedor.removeAllViews()
-                        onComplete()
+        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Nueva colección").setView(box)
+            .setNegativeButton("Cancelar", null).setPositiveButton("Crear y guardar", null).create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val nombre = field.text.toString().trim()
+                if (nombre.isBlank()) {
+                    field.error = "Escribe un nombre"
+                    return@setOnClickListener
+                }
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+                viewLifecycleOwner.lifecycleScope.launch {
+                    try {
+                        val response = ApiClient.apiService.crearColeccion(
+                            CrearColeccionRequest(obtenerId(requireContext()), nombre, "ic_guardar", 1, listOf(recetaId))
+                        )
+                        if (response.success && _binding != null) {
+                            dialog.dismiss()
+                            onCreated()
+                            Toast.makeText(requireContext(), "Receta guardada en $nombre", Toast.LENGTH_SHORT).show()
+                        } else {
+                            field.error = response.message
+                        }
+                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                        field.error = "No se pudo crear la colección. Intenta de nuevo."
+                    } finally {
+                        if (dialog.isShowing) dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
                     }
                 }
-                .start()
-        }
-    }
-    private fun gestionarRecetaEnColeccion(
-        coleccion: ColeccionConRecetas
-    ) {
-
-        val cliId =
-            obtenerId(requireContext())
-
-        if (cliId <= 0 || recetaId <= 0) {
-            return
-        }
-
-        val yaEstaGuardada =
-            coleccion.RECETAS.any {
-                it.REC_ID == recetaId
-            }
-
-        lifecycleScope.launch {
-
-            try {
-
-                Log.d(
-                    "COLECCION",
-                    "Colección: ${coleccion.COL_ID}"
-                )
-
-                Log.d(
-                    "COLECCION",
-                    "Receta: $recetaId"
-                )
-
-                Log.d(
-                    "COLECCION",
-                    "Ya guardada: $yaEstaGuardada"
-                )
-
-                val request =
-                    GestionarRecetaColeccionRequest(
-
-                        CLI_ID = cliId,
-
-                        COL_ID = coleccion.COL_ID,
-
-                        REC_ID = recetaId,
-
-                        ACCION =
-                            if (yaEstaGuardada) {
-                                "ELIMINAR"
-                            } else {
-                                "AGREGAR"
-                            }
-                    )
-
-                val response =
-                    ApiClient.apiService.gestionarRecetaColeccion(
-                        request
-                    )
-
-                if (!response.success) {
-
-                    Toast.makeText(
-                        requireContext(),
-                        response.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    return@launch
-                }
-
-                // ==========================================
-                // ACTUALIZAR CÍRCULO AZUL
-                // ==========================================
-
-                mostrarColecciones()
-
-                Toast.makeText(
-                    requireContext(),
-                    if (yaEstaGuardada)
-                        "Receta eliminada de ${coleccion.COL_NOMBRE}"
-                    else
-                        "Receta agregada a ${coleccion.COL_NOMBRE}",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-            } catch (e: Exception) {
-
-                e.printStackTrace()
-
-                Log.e(
-                    "COLECCION",
-                    "Error gestionando receta",
-                    e
-                )
-
-                Toast.makeText(
-                    requireContext(),
-                    "No fue posible actualizar la colección",
-                    Toast.LENGTH_SHORT
-                ).show()
             }
         }
+        dialog.show()
     }
+
 }

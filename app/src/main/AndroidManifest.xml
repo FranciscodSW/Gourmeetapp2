@@ -73,6 +73,7 @@
             android:exported="false" />
         <activity
             android:name=".Menu_principal_free"
+            android:windowSoftInputMode="adjustResize"
             android:exported="false" />
         <activity
             android:name=".Trancicion_de_carga_para_menu_free"

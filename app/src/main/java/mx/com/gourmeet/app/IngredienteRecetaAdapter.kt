@@ -30,8 +30,8 @@ class IngredienteRecetaAdapter(
             // Fotografía del ingrediente
             Glide.with(binding.root.context)
                 .load(ingrediente.foto)
-                .placeholder(R.drawable.ic_logo_circular)
-                .error(R.drawable.ic_logo_circular)
+                .placeholder(R.drawable.gm_nav_pantry)
+                .error(R.drawable.gm_nav_pantry)
                 .into(binding.imgIngrediente)
         }
     }

@@ -1,6 +1,6 @@
 # Desarrollo y pruebas de GourMeet
 
-Actualizado el 9 de noviembre de 2026. Rama `anmiel/local-adaptive-ui`, con los cambios de `origin/master` hasta `9ddbd28`. El backend se trabaja en `anmiel/local-environment` del repositorio gourmeet-web.
+Actualizado el 10 de noviembre de 2026. Rama `anmiel/local-adaptive-ui`, con los cambios de `origin/master` hasta `9ddbd28`. El backend se trabaja en `anmiel/local-environment` del repositorio gourmeet-web.
 
 ## Entorno
 
@@ -51,7 +51,7 @@ Las fotos y nombres del catálogo ficticio son ejemplos de dimensiones y pueden 
 
 ## Verificación
 
-SafeDrawingTest comprueba área segura, padding no acumulativo, contraste, textos, tarjetas, invitado y navegación explícita. La suite, incluida la prueba del paquete, contiene10 pruebas. Para pixel:
+SafeDrawingTest comprueba área segura, padding no acumulativo, contraste, textos, tarjetas, invitado y navegación explícita. La suite, incluida la prueba del paquete, contiene16 pruebas. Para pixel:
 
 ```sh
 bash gradlew :app:assemblePixel :app:assemblePixelAndroidTest -Pgourmeet.testBuildType=pixel
@@ -66,3 +66,17 @@ Se comprobó el Pixel10ProXL físico con Android17/API37, además de emulador AP
 Persisten pendientes del servidor: identidad y autorización de API, esquema definitivo, compras y migraciones. Lint tenía errores heredados documentados en los informes del laboratorio. Compilar y pasar estas comprobaciones no certifica todos los flujos de negocio.
 
 Guía oficial de conexión: https://developer.android.com/studio/run/device/.
+
+## Detalle de receta y acciones
+
+La revisión del10 de noviembre amplía el diseño al detalle: título separado de la fotografía, metadatos legibles, descripción y preparación con altura por contenido e ingredientes en filas. Se retiraron el35% de coincidencia fijo y la presentación de precio sin datos. Si una receta no carga, se informa el fallo y se puede reintentar.
+
+Guardar en colección abre un selector que permite crear una colección con la receta incluida, agregarla y quitarla. Favoritos refleja el estado persistido con icono y texto distintos, evita solicitudes simultáneas y exige sesión para guardar. Las operaciones usan las API existentes.
+
+Compartir abre el selector Android con el texto de la receta; no envía automáticamente. En pixel se identifica el contenido como laboratorio y se omite un enlace de producción que correspondería a otros IDs. En las demás variantes se incluye la URL pública con REC_ID.
+
+Agendar en calendario abre ACTION_INSERT con URI de eventos, MIME vnd.android.cursor.dir/event, título, descripción y duración. La persona elige fecha, hora y calendario y confirma el guardado en la aplicación de calendario. No requiere permisos de lectura/escritura del calendario ni guarda eventos en segundo plano. No añade por sí mismo una entrada al planeador semanal del backend ni implementa sincronización bidireccional.
+
+Para el teclado, Menu_principal_free incluye IME en el área segura usando max(systemBars,IME), oculta la navegación inferior mientras está abierto y elimina el desplazamiento manual de50px. La búsqueda conserva sus constraints y vuelve a su posición al cerrar el teclado.
+
+RecipeInteractionsTest verifica persistencia de favoritos, creación y membresía de colecciones desde la interfaz, apertura de intents de compartir/calendario interceptados sin enviar ni guardar, error con reintento y geometría real del teclado. Usa exclusivamente fixtures y API localhost/10.0.2.2; restaura favoritos y elimina sus colecciones de prueba.

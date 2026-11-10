@@ -7,7 +7,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnAttach
 
-fun Activity.applySafeDrawingInsets() {
+fun Activity.applySafeDrawingInsets(includeIme: Boolean = false) {
     WindowCompat.setDecorFitsSystemWindows(window, false)
     val content = findViewById<View>(android.R.id.content)
     val left = content.paddingLeft
@@ -18,7 +18,8 @@ fun Activity.applySafeDrawingInsets() {
         val safe = insets.getInsets(
             WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
         )
-        view.setPadding(left + safe.left, top + safe.top, right + safe.right, bottom + safe.bottom)
+        val keyboard = if (includeIme) insets.getInsets(WindowInsetsCompat.Type.ime()).bottom else 0
+        view.setPadding(left + safe.left, top + safe.top, right + safe.right, bottom + maxOf(safe.bottom, keyboard))
         insets
     }
     content.doOnAttach { ViewCompat.requestApplyInsets(it) }

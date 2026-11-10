@@ -192,7 +192,7 @@ class Menu_principal_free : AppCompatActivity() {
             ActivityMenuPrincipalFreeBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
-        applySafeDrawingInsets()
+        applySafeDrawingInsets(includeIme = true)
 
         // =========================================================
         // BOTÓN ATRÁS
@@ -1068,27 +1068,11 @@ class Menu_principal_free : AppCompatActivity() {
         // TECLADO
         // =========================================================
 
-        ViewCompat.setOnApplyWindowInsetsListener(
-            binding.root
-        ) { _, insets ->
-
-            val imeHeight =
-                insets.getInsets(
-                    WindowInsetsCompat.Type.ime()
-                ).bottom.toFloat()
-
-
-            val extraOffset = 50f
-
-
-            binding.panelBusqueda.translationY =
-                -(imeHeight - extraOffset)
-
-
-            binding.panelingredietes.translationY =
-                -(imeHeight - extraOffset)
-
-
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val tecladoVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
+            binding.barraInferior.visibility = if (tecladoVisible) View.GONE else View.VISIBLE
+            binding.panelBusqueda.translationY = 0f
+            binding.panelingredietes.translationY = 0f
             insets
         }
 

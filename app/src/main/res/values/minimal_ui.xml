@@ -20,4 +20,8 @@
     <string name="search_recipes">Busca una receta</string>
     <string name="pixel_app_name">GourMeet Local</string>
     <string name="local_social_unavailable">En esta versión de pruebas usa el acceso por correo o continúa sin cuenta.</string>
+    <item type="id" name="recipeCollectionsStatus"/>
+    <item type="id" name="recipeCollectionsList"/>
+    <item type="id" name="recipeCreateCollection"/>
+    <item type="id" name="recipeCollectionName"/>
 </resources>
