@@ -71,8 +71,12 @@ import java.util.Calendar
 import java.util.Locale
 import kotlin.collections.emptyList
 import kotlin.toString
+import android.view.GestureDetector
+import android.view.MotionEvent
 
 class Menu_principal_free : AppCompatActivity() {
+    private var gestoDeslizado = false
+    private lateinit var detectorGestosBarra: GestureDetector
     private var menuAbierto = false
     private lateinit var binding: ActivityMenuPrincipalFreeBinding
     private var modoActual = Modo.INGREDIENTES
@@ -308,6 +312,7 @@ class Menu_principal_free : AppCompatActivity() {
         inicializarMenuLateral()
         configurarPreferenciasCuenta()
         configurarNotificaciones()
+        configurarGestosBarraInferior()
         fusedLocationClient =
             LocationServices.getFusedLocationProviderClient(this)
         inicializarProveedores()
@@ -395,6 +400,10 @@ class Menu_principal_free : AppCompatActivity() {
         // BOTÓN PROVEEDORES
         // =========================================================
         binding.btnProveedores.setOnClickListener {
+            if (gestoDeslizado) {
+                gestoDeslizado = false
+                return@setOnClickListener
+            }
 
             // ==========================================
             // CERRAR PANEL
@@ -662,6 +671,11 @@ class Menu_principal_free : AppCompatActivity() {
         // =========================================================
 
         binding.cardCentro.setOnClickListener {
+
+            if (gestoDeslizado) {
+                gestoDeslizado = false
+                return@setOnClickListener
+            }
 
             cambiarSeccion()
         }
@@ -970,7 +984,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                 binding.headerProveedores.btnfiltros
                     .setImageResource(
-                        R.drawable.ic_filtro_on
+                        R.drawable.ic_filtro
                     )
 
 
@@ -1085,7 +1099,10 @@ class Menu_principal_free : AppCompatActivity() {
         // =========================================================
 
         binding.btnPerfil.setOnClickListener {
-
+            if (gestoDeslizado) {
+                gestoDeslizado = false
+                return@setOnClickListener
+            }
             cargarInformacionUsuario()
 
             binding.drawerLayout.openDrawer(
@@ -1193,66 +1210,7 @@ class Menu_principal_free : AppCompatActivity() {
             .start()
     }
     private fun cambiarSeccion() {
-
-        when (seccionActual) {
-
-            // ==========================================
-            // BUSCADOR → ALACENA
-            // ==========================================
-
-            Seccion.BUSCADOR -> {
-
-                seccionActual = Seccion.ALACENA
-
-                binding.txtSeccionActual.text = "Alacena"
-
-                mostrarSeccionAlacena()
-            }
-
-
-            // ==========================================
-            // ALACENA → PLANEADOR
-            // ==========================================
-
-            Seccion.ALACENA -> {
-
-                seccionActual = Seccion.PLANEADOR
-
-                binding.txtSeccionActual.text =
-                    "Planeador semanal"
-
-                ocultarSeccionAlacena()
-
-                mostrarSeccionBuscador()
-            }
-
-
-            // ==========================================
-            // PLANEADOR → BUSCADOR
-            // ==========================================
-
-            Seccion.PLANEADOR -> {
-
-                seccionActual = Seccion.BUSCADOR
-
-                actualizarTextoBuscador()
-
-                mostrarSeccionBuscador()
-            }
-
-
-            // ==========================================
-            // LISTA DE COMPRAS
-            // ==========================================
-
-            Seccion.LISTA_DE_COMPRAS -> {
-
-                seccionActual = Seccion.LISTA_DE_COMPRAS
-
-                binding.txtSeccionActual.text =
-                    "Lista de compras"
-            }
-        }
+        navegarSeccion(1)
     }
     private fun mostrarSeccionAlacena() {
 
@@ -1757,16 +1715,13 @@ class Menu_principal_free : AppCompatActivity() {
                 }
 
                 R.id.menu_planeador_semanal -> {
+
                     Log.d(
                         "MENU_LATERAL",
                         "Abriendo planeador semanal"
                     )
 
-                    Toast.makeText(
-                        this,
-                        "Planeador semanal",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    abrirPlaneadorDesdeMenu()
 
                     true
                 }
@@ -1791,7 +1746,6 @@ class Menu_principal_free : AppCompatActivity() {
                         "MENU_LATERAL",
                         "Abriendo GourMeet Premium"
                     )
-
                     startActivity(
                         Intent(
                             this,
@@ -1800,6 +1754,18 @@ class Menu_principal_free : AppCompatActivity() {
                     )
                     true
                 }
+                R.id.cerrar_sesion -> {
+
+                    Log.d(
+                        "MENU_LATERAL",
+                        "Solicitando cerrar sesión"
+                    )
+
+                    confirmarCerrarSesion()
+
+                    true
+                }
+
 
                 else -> {
                     Log.w(
@@ -9106,6 +9072,259 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             cerrarNotificaciones_usuario()
         }
 
+    }
+    private fun confirmarCerrarSesion() {
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Cerrar sesión")
+            .setMessage("¿Estás seguro de que deseas cerrar tu sesión en GourMeet?")
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Cerrar sesión", null)
+            .create()
+
+        dialog.setOnShowListener {
+
+            // Botón CANCELAR: azul con letras blancas
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).apply {
+                setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                        android.graphics.Color.parseColor("#177AFF")
+                    )
+                )
+                setTextColor(android.graphics.Color.WHITE)
+            }
+
+            // Botón CERRAR SESIÓN: rojo con letras blancas
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).apply {
+                setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                        android.graphics.Color.parseColor("#E53935")
+                    )
+                )
+                setTextColor(android.graphics.Color.WHITE)
+
+                setOnClickListener {
+
+                    SesionUsuario.cerrarSesion(this@Menu_principal_free)
+
+                    Log.d("SESION", "Sesión cerrada correctamente")
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        "Has cerrado sesión",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    val intent = Intent(
+                        this@Menu_principal_free,
+                        Login::class.java
+                    ).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+
+                    startActivity(intent)
+
+                    overridePendingTransition(
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out
+                    )
+                }
+            }
+        }
+
+        dialog.show()
+    }
+    private fun configurarGestosBarraInferior() {
+
+        detectorGestosBarra = GestureDetector(
+            this,
+            object : GestureDetector.SimpleOnGestureListener() {
+
+                override fun onDown(e: MotionEvent): Boolean {
+                    gestoDeslizado = false
+                    return true
+                }
+
+                override fun onFling(
+                    e1: MotionEvent?,
+                    e2: MotionEvent,
+                    velocityX: Float,
+                    velocityY: Float
+                ): Boolean {
+
+                    if (e1 == null) return false
+
+                    val distanciaX = e2.x - e1.x
+                    val distanciaY = e2.y - e1.y
+
+                    // Evitar confundir un desplazamiento vertical con uno horizontal.
+                    if (
+                        kotlin.math.abs(distanciaX) > 80 &&
+                        kotlin.math.abs(distanciaX) >
+                        kotlin.math.abs(distanciaY) * 1.5f &&
+                        kotlin.math.abs(velocityX) > 100
+                    ) {
+
+                        gestoDeslizado = true
+
+                        if (distanciaX < 0) {
+                            // Deslizar a la izquierda: avanzar.
+                            navegarSeccion(1)
+                        } else {
+                            // Deslizar a la derecha: regresar.
+                            navegarSeccion(-1)
+                        }
+
+                        return true
+                    }
+
+                    return false
+                }
+            }
+        )
+
+        // La barra completa detecta gestos en sus espacios libres.
+        binding.barraInferior.setOnTouchListener { _, event ->
+            detectorGestosBarra.onTouchEvent(event)
+            false
+        }
+
+        // También detectamos gestos sobre los elementos que reciben clics.
+        binding.cardCentro.setOnTouchListener { _, event ->
+            detectorGestosBarra.onTouchEvent(event)
+            false
+        }
+
+        binding.btnProveedores.setOnTouchListener { _, event ->
+            detectorGestosBarra.onTouchEvent(event)
+            false
+        }
+
+        binding.btnPerfil.setOnTouchListener { _, event ->
+            detectorGestosBarra.onTouchEvent(event)
+            false
+        }
+    }
+    private fun navegarSeccion(direccion: Int) {
+
+        val seccionesDisponibles = listOf(
+            Seccion.BUSCADOR,
+            Seccion.ALACENA
+        )
+
+        val indiceActual = seccionesDisponibles.indexOf(seccionActual)
+            .takeIf { it >= 0 } ?: 0
+
+        val nuevoIndice = (
+                indiceActual + direccion + seccionesDisponibles.size
+                ) % seccionesDisponibles.size
+
+        seccionActual = seccionesDisponibles[nuevoIndice]
+
+        when (seccionActual) {
+
+            Seccion.BUSCADOR -> {
+                actualizarTextoBuscador()
+                mostrarSeccionBuscador()
+            }
+
+            Seccion.ALACENA -> {
+                binding.txtSeccionActual.text = "Alacena"
+                mostrarSeccionAlacena()
+            }
+
+            else -> Unit
+        }
+    }
+    private fun abrirPlaneadorDesdeMenu() {
+
+        val cliId = SesionUsuario.obtenerId(this)
+
+        if (cliId <= 0) {
+            Toast.makeText(
+                this,
+                "No se pudo identificar al usuario.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        lifecycleScope.launch {
+
+            try {
+
+                // Consultar el hogar asociado al usuario.
+                val respuesta = ApiClient.apiService
+                    .obtenerHogarUsuario(cliId)
+
+                if (!respuesta.success) {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        respuesta.mensaje,
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    return@launch
+                }
+
+                // Verificar que tenga un hogar.
+                if (!respuesta.tiene_hogar || respuesta.hogar == null) {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        "Primero debes crear o unirte a un hogar.",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    return@launch
+                }
+
+                val hogar = respuesta.hogar
+
+                // Validar membresía.
+                if (hogar.HOG_USU_ID <= 0) {
+
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        "No se pudo identificar tu membresía del hogar.",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    return@launch
+                }
+
+                // Abrir el planeador existente.
+                val intent = Intent(
+                    this@Menu_principal_free,
+                    PlaneadorSemanalActivity::class.java
+                ).apply {
+
+                    putExtra("CLI_ID", cliId)
+                    putExtra("HOG_ID", hogar.HOG_ID)
+                    putExtra("HOG_USU_ID", hogar.HOG_USU_ID)
+
+                }
+
+                startActivity(intent)
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "MENU_PLANEADOR",
+                    "Error al abrir el planeador semanal",
+                    e
+                )
+
+                Toast.makeText(
+                    this@Menu_principal_free,
+                    "No se pudo cargar el planeador. Verifica tu conexión.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
 }

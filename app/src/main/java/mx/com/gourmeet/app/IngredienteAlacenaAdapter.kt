@@ -149,7 +149,7 @@ class IngredienteAlacenaAdapter(
 
         val imagenEstado = when (estadoIngrediente) {
             "no perecedero"->
-                R.drawable.ic_no_perecedero
+                R.drawable.ic_alimentos
 
             "verde"->
                 R.drawable.ic_verde

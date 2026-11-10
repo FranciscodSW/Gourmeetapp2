@@ -21,11 +21,11 @@ android {
     buildTypes {
         debug {
             val apiUrl = providers.gradleProperty("gourmeet.apiBaseUrl")
-                .getOrElse("http://192.168.1.71:3001/api/")
+                .getOrElse("http://192.168.1.116:3001/api/")
             buildConfigField("String", "API_BASE_URL", "\"$apiUrl\"")
         }
         release {
-            buildConfigField("String", "API_BASE_URL", "\"http://192.168.1.71:3001/api/\"")
+            buildConfigField("String", "API_BASE_URL", "\"http://192.168.1.116:3001/api/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

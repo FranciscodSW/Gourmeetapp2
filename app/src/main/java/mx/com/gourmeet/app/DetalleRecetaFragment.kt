@@ -329,7 +329,7 @@ class DetalleRecetaFragment : Fragment() {
 
                 // Cambiar icono
                 binding.imagenguardar.setImageResource(
-                    R.drawable.ic_guardar_on
+                    R.drawable.ic_guardar
                 )
 
                 // Mostrar colecciones
@@ -1996,7 +1996,7 @@ class DetalleRecetaFragment : Fragment() {
                     if (response.guardada) {
 
                         binding.imgFavorito.setImageResource(
-                            R.drawable.ic_favorito_on
+                            R.drawable.ic_favorito
                         )
 
                     } else {
@@ -2080,14 +2080,12 @@ class DetalleRecetaFragment : Fragment() {
                 if (response.guardada) {
 
                     binding.imgFavorito.setImageResource(
-                        R.drawable.ic_favorito_on
+                        R.drawable.ic_favorito
                     )
-
                     Log.d(
                         "FAVORITO",
                         "Receta guardada en favoritos"
                     )
-
                 } else {
 
                     binding.imgFavorito.setImageResource(

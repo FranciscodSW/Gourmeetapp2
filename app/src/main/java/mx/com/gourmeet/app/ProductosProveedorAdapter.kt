@@ -99,7 +99,7 @@ class ProductosProveedorAdapter(
 
                 if (guardado) {
 
-                    R.drawable.ic_guardar_on
+                    R.drawable.ic_guardar
 
                 } else {
 
