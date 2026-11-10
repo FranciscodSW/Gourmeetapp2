@@ -1,0 +1,649 @@
+{
+  "status": "reference_from_android_not_a_validated_ios_contract",
+  "source": "app/src/main/java/mx/com/gourmeet/app/data/api/ApiService.kt",
+  "source_commit": "5549624caed99200ef9ad9d0fa8b182e6580990e",
+  "date": "2026-11-10",
+  "route_count": 80,
+  "routes": [
+    {
+      "method": "POST",
+      "path": "usuario/RegistroUsuario.php",
+      "android_function": "registrarUsuario",
+      "parameters": "@Body request: UsuarioRegistro",
+      "response_type": "AuthResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "usuario/login_usuario.php",
+      "android_function": "loginUsuario",
+      "parameters": "@Body request: Login",
+      "response_type": "AuthResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "usuario/verificar_usuario.php",
+      "android_function": "verificarUsuario",
+      "parameters": "@Body request: VerificarUsuario",
+      "response_type": "VerificarUsuarioResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "usuario/RegistroUsuarioGoogle.php",
+      "android_function": "registroGoogle",
+      "parameters": "@Body request: RegistroGoogle",
+      "response_type": "AuthResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "usuario/login_google.php",
+      "android_function": "loginUsuarioGoogle",
+      "parameters": "@Body request: LoginGoogle",
+      "response_type": "AuthResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "GET",
+      "path": "ingredientes/api_autocomplete_ingredientes.php",
+      "android_function": "autocompleteIngredientes",
+      "parameters": "@Query(\"busqueda\") busqueda: String",
+      "response_type": "BuscarIngredientesResponse",
+      "encoding": "query"
+    },
+    {
+      "method": "GET",
+      "path": "recetas/api_autocomplete_recetas.php",
+      "android_function": "autocompleteRecetas",
+      "parameters": "@Query(\"busqueda\") busqueda: String",
+      "response_type": "BuscarRecetasResponse",
+      "encoding": "query"
+    },
+    {
+      "method": "POST",
+      "path": "ingredientes/api_filtros_recetas.php",
+      "android_function": "getFiltrosRecetas",
+      "parameters": "@Body request: FiltrosRecetasRequest",
+      "response_type": "FiltrosRecetasResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "recetas/api_filtros_recetas_nombre.php",
+      "android_function": "getFiltrosRecetasNombre",
+      "parameters": "@Body request: FiltrosRecetasNombreRequest",
+      "response_type": "FiltrosRecetasResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "recetas/api_detalle_receta.php",
+      "android_function": "getDetalleReceta",
+      "parameters": "@Body request: DetalleRecetaRequest",
+      "response_type": "DetalleRecetaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "recetas/api_recetas_inicio.php",
+      "android_function": "getRecetasInicio",
+      "parameters": "@Body request: RecetasInicioRequest",
+      "response_type": "FiltrosRecetasResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "recetas/comentar_calificar_receta_api.php",
+      "android_function": "comentarCalificarReceta",
+      "parameters": "@Body request: ComentarCalificarRequest",
+      "response_type": "ComentarCalificarResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "recetas/obtener_mi_comentario_api.php",
+      "android_function": "obtenerMiComentario",
+      "parameters": "@Body request: ObtenerMiComentarioRequest",
+      "response_type": "ObtenerMiComentarioResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "recetas/marcar_receta_terminada_api.php",
+      "android_function": "marcarRecetaTerminada",
+      "parameters": "@Body request: MarcarRecetaTerminadaRequest",
+      "response_type": "MarcarRecetaTerminadaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "recetas/verificar_receta_terminada_api.php",
+      "android_function": "verificarRecetaTerminada",
+      "parameters": "@Body request: VerificarRecetaTerminadaRequest",
+      "response_type": "VerificarRecetaTerminadaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "comentarios/listar_comentarios.php",
+      "android_function": "listarComentarios",
+      "parameters": "@Body request: ListarComentariosRequest",
+      "response_type": "ListarComentariosResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "comentarios/reaccionar_comentario.php",
+      "android_function": "reaccionarComentario",
+      "parameters": "@Body request: ReaccionComentarioRequest",
+      "response_type": "ReaccionComentarioResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "comentarios/responder_comentario.php",
+      "android_function": "responderComentario",
+      "parameters": "@Body request: RespuestaComentarioRequest",
+      "response_type": "RespuestaComentarioResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "comentarios/eliminar_comentario.php",
+      "android_function": "eliminarComentario",
+      "parameters": "@Body request: EliminarComentarioRequest",
+      "response_type": "EliminarComentarioResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "comentarios/reaccionar_comentario_respuesta.php",
+      "android_function": "reaccionarRespuesta",
+      "parameters": "@Body request: ReaccionRespuestaRequest",
+      "response_type": "ReaccionRespuestaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "recetas/reportar_receta_api.php",
+      "android_function": "reportarReceta",
+      "parameters": "@Body request: ReportarRecetaRequest",
+      "response_type": "ReportarRecetaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "colecciones/listar_mis_colecciones.php",
+      "android_function": "listarMisColecciones",
+      "parameters": "@Body request: ListarColeccionesRequest",
+      "response_type": "ListarColeccionesResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "colecciones/listar_colecciones_con_recetas.php",
+      "android_function": "listarColeccionesConRecetas",
+      "parameters": "@Body request: ListarColeccionesRecetasRequest",
+      "response_type": "ListarColeccionesRecetasResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "colecciones/crear_coleccion.php",
+      "android_function": "crearColeccion",
+      "parameters": "@Body request: CrearColeccionRequest",
+      "response_type": "CrearColeccionResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "colecciones/buscar_contenido_coleccion.php",
+      "android_function": "buscarContenidoColeccion",
+      "parameters": "@Body request: BuscarContenidoColeccionRequest",
+      "response_type": "BuscarContenidoColeccionResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "ingredientes/buscar_recetas_por_ingredientes.php",
+      "android_function": "buscarRecetasPorIngredientes",
+      "parameters": "@Body request: BuscarRecetasPorIngredientesRequest",
+      "response_type": "BuscarRecetasPorIngredientesResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "colecciones/eliminar_coleccion.php",
+      "android_function": "eliminarColeccion",
+      "parameters": "@Body request: EliminarColeccionRequest",
+      "response_type": "EliminarColeccionResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "colecciones/actualizar_coleccion.php",
+      "android_function": "actualizarColeccion",
+      "parameters": "@Body request: ActualizarColeccionRequest",
+      "response_type": "ActualizarColeccionResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "colecciones/gestionar_favorito.php",
+      "android_function": "gestionarFavorito",
+      "parameters": "@Body request: GestionarFavoritoRequest",
+      "response_type": "GestionarFavoritoResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "colecciones/verificar_favorito.php",
+      "android_function": "verificarFavorito",
+      "parameters": "@Body request: VerificarFavoritoRequest",
+      "response_type": "VerificarFavoritoResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "colecciones/gestionar_receta_coleccion.php",
+      "android_function": "gestionarRecetaColeccion",
+      "parameters": "@Body request: GestionarRecetaColeccionRequest",
+      "response_type": "GestionarRecetaColeccionResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "recetas_realizadas/listar_recetas_realizadas.php",
+      "android_function": "listarRecetasRealizadas",
+      "parameters": "@Body request: RecetasRealizadasRequest",
+      "response_type": "RecetasRealizadasResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "GET",
+      "path": "proveedores/listar_proveedores.php",
+      "android_function": "listarProveedores",
+      "parameters": "",
+      "response_type": "ProveedoresResponse",
+      "encoding": "query"
+    },
+    {
+      "method": "GET",
+      "path": "proveedores/detalle_proveedor.php",
+      "android_function": "obtenerDetalleProveedor",
+      "parameters": "@Query(\"ID_PROVEEDOR\") idProveedor: Int",
+      "response_type": "DetalleProveedorResponse",
+      "encoding": "query"
+    },
+    {
+      "method": "GET",
+      "path": "proveedores/listar_recetas_proveedor.php",
+      "android_function": "listarRecetasProveedor",
+      "parameters": "@Query(\"idProveedor\") idProveedor: Int",
+      "response_type": "RecetasProveedorResponse",
+      "encoding": "query"
+    },
+    {
+      "method": "POST",
+      "path": "colecciones/agregar_proveedor_coleccion.php",
+      "android_function": "crearProveedorColeccion",
+      "parameters": "@Body datos: CrearColeccionProveedor",
+      "response_type": "CrearColeccionProveedorResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "colecciones/listar_colecciones_proveedores.php",
+      "android_function": "listarColeccionesProveedores",
+      "parameters": "@Body datos: ConsultarColeccionesProveedor",
+      "response_type": "ListarColeccionesProveedoresResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "usuario/cambiar_nombre_usuario.php",
+      "android_function": "cambiarNombreUsuario",
+      "parameters": "@Body datos: CambiarNombreRequest",
+      "response_type": "CambiarNombreResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "reportes/crear_reporte_problema.php",
+      "android_function": "crearReporteProblema",
+      "parameters": "@Body request: ReporteProblemaRequest",
+      "response_type": "ReporteProblemaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "alacena/crear_alacena.php",
+      "android_function": "crearAlacena",
+      "parameters": "@Body request: CrearAlacenaRequest",
+      "response_type": "AlacenaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "alacena/listar_alacenas.php",
+      "android_function": "listarAlacenas",
+      "parameters": "@Body request: ListarAlacenasRequest",
+      "response_type": "ListaAlacenasResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "alacena/editar_alacena.php",
+      "android_function": "editarAlacena",
+      "parameters": "@Body request: EditarAlacenaRequest",
+      "response_type": "AlacenaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "alacena/eliminar_alacena.php",
+      "android_function": "eliminarAlacena",
+      "parameters": "@Body request: EliminarAlacenaRequest",
+      "response_type": "AlacenaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "alacena/guardar_ingrediente_alacena.php",
+      "android_function": "guardarIngredienteAlacena",
+      "parameters": "@Body request: GuardarIngredienteAlacenaRequest",
+      "response_type": "GuardarIngredienteAlacenaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "alacena/listar_ingredientes_alacena.php",
+      "android_function": "listarIngredientesAlacena",
+      "parameters": "@Body request: ListarIngredientesAlacenaRequest",
+      "response_type": "ListarIngredientesAlacenaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "GET",
+      "path": "ingredientes/obtener_clasificacion_ingrediente.php",
+      "android_function": "buscarIngredientesClasificacion",
+      "parameters": "@Query(\"nombre\") nombre: String",
+      "response_type": "IngredienteClasificacionResponse",
+      "encoding": "query"
+    },
+    {
+      "method": "POST",
+      "path": "alacena/actualizar_estados.php",
+      "android_function": "actualizarEstadosAlacena",
+      "parameters": "@Field(\"ALC_ID\") alcId: Int",
+      "response_type": "ActualizarEstadosAlacenaResponse",
+      "encoding": "form"
+    },
+    {
+      "method": "POST",
+      "path": "alacena/editar_ingrediente.php",
+      "android_function": "editarIngredienteAlacena",
+      "parameters": "@Body request: GuardarIngredienteAlacenaRequest",
+      "response_type": "GuardarIngredienteAlacenaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "alacena/eliminar_ingrediente.php",
+      "android_function": "eliminarIngredienteAlacena",
+      "parameters": "@Body request: EliminarIngredienteAlacenaRequest",
+      "response_type": "GuardarIngredienteAlacenaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "usuario/enviar_codigo_verificacion.php",
+      "android_function": "enviarCodigoVerificacion",
+      "parameters": "@Body request: EnviarCodigoVerificacionRequest",
+      "response_type": "EnviarCodigoVerificacionResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "usuario/verificar_codigo_correo.php",
+      "android_function": "verificarCodigoCorreo",
+      "parameters": "@Body request: VerificarCodigoCorreoRequest",
+      "response_type": "VerificarCodigoCorreoResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "GET",
+      "path": "hogar/obtener_hogar_usuario.php",
+      "android_function": "obtenerHogarUsuario",
+      "parameters": "@Query(\"cli_id\") cliId: Int",
+      "response_type": "HogarResponse",
+      "encoding": "query"
+    },
+    {
+      "method": "GET",
+      "path": "hogar/buscar_usuarios.php",
+      "android_function": "buscarUsuariosHogar",
+      "parameters": "@Query(\"busqueda\") busqueda: String,@Query(\"cli_id\") cliId: Int",
+      "response_type": "BuscarUsuariosResponse",
+      "encoding": "query"
+    },
+    {
+      "method": "POST",
+      "path": "hogar/invitar_usuario.php",
+      "android_function": "invitarUsuarioHogar",
+      "parameters": "@Field(\"hog_id\") hogId: Int, @Field(\"cli_id_propietario\") cliIdPropietario: Int, @Field(\"cli_id_invitado\") cliIdInvitado: Int",
+      "response_type": "InvitarUsuarioResponse",
+      "encoding": "form"
+    },
+    {
+      "method": "POST",
+      "path": "hogar/crear_hogar.php",
+      "android_function": "crearHogar",
+      "parameters": "@Body request: CrearHogarRequest",
+      "response_type": "CrearHogarResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "hogar/agregar_usuario_hogar.php",
+      "android_function": "agregarUsuarioHogar",
+      "parameters": "@Body request: AgregarUsuarioHogarRequest",
+      "response_type": "AgregarUsuarioHogarResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "hogar/crear_alacena_hogar.php",
+      "android_function": "crearAlacenaHogar",
+      "parameters": "@Body request: CrearAlacenaHogarRequest",
+      "response_type": "CrearAlacenaHogarResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "hogar/agregar_miembros_sin_cuenta.php",
+      "android_function": "agregarMiembrosSinCuenta",
+      "parameters": "@Body request: CrearMiembrosHogarRequest",
+      "response_type": "CrearMiembrosHogarResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "hogar/listar_miembros_hogar.php",
+      "android_function": "listarMiembrosHogar",
+      "parameters": "@Body request: ListarMiembrosHogarRequest",
+      "response_type": "MiembroHogarResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "hogar/eliminar_miembro_hogar.php",
+      "android_function": "eliminarMiembroHogar",
+      "parameters": "@Body request: EliminarMiembroHogarRequest",
+      "response_type": "EliminarMiembroHogarResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "GET",
+      "path": "hogar/obtener_alacena_hogar.php",
+      "android_function": "obtenerAlacenaHogar",
+      "parameters": "@Query(\"HOG_ID\") hogId: Int",
+      "response_type": "ObtenerAlacenaHogarResponse",
+      "encoding": "query"
+    },
+    {
+      "method": "POST",
+      "path": "alacena/listar_ingredientes_alacena.php",
+      "android_function": "listarIngredientesAlacenaHogar",
+      "parameters": "@Body request: ObtenerIngredientesAlacenaRequest",
+      "response_type": "IngredientesAlacenaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "hogar/agregar_miembro_hogar.php",
+      "android_function": "agregarMiembroHogar",
+      "parameters": "@Body request: AgregarMiembroHogarRequest",
+      "response_type": "AgregarMiembroHogarResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "notificaciones/marcar_notificacion_leida.php",
+      "android_function": "marcarNotificacionLeida",
+      "parameters": "@Body request: MarcarNotificacionLeidaRequest",
+      "response_type": "MarcarNotificacionLeidaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "notificaciones/aceptar_invitacion_hogar.php",
+      "android_function": "aceptarInvitacionHogar",
+      "parameters": "@Body request: AceptarInvitacionHogarRequest",
+      "response_type": "AceptarInvitacionHogarResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "notificaciones/rechazar_invitacion_hogar.php",
+      "android_function": "rechazarInvitacionHogar",
+      "parameters": "@Body request: RechazarInvitacionHogarRequest",
+      "response_type": "RechazarInvitacionHogarResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "planeador/obtener_o_crear_planeador.php",
+      "android_function": "obtenerOCrearPlaneador",
+      "parameters": "@Body request: PlaneadorRequest",
+      "response_type": "PlaneadorResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "planeador/guardar_receta_planeador.php",
+      "android_function": "guardarRecetaPlaneador",
+      "parameters": "@Body request: GuardarRecetaPlaneadorRequest",
+      "response_type": "GuardarRecetaPlaneadorResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "planeador/actualizar_hora_espacio.php",
+      "android_function": "actualizarHoraEspacio",
+      "parameters": "@Body request: ActualizarHoraEspacioRequest",
+      "response_type": "ActualizarHoraEspacioResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "planeador/guardar_colacion.php",
+      "android_function": "guardarColacion",
+      "parameters": "@Body request: GuardarColacionRequest",
+      "response_type": "GuardarColacionResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "planeador/eliminar_receta_espacio.php",
+      "android_function": "eliminarRecetaEspacio",
+      "parameters": "@Body request: EliminarRecetaEspacioRequest",
+      "response_type": "EliminarRecetaEspacioResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "planeador/eliminar_ingrediente_espacio.php",
+      "android_function": "eliminarIngredienteEspacio",
+      "parameters": "@Body request: EliminarIngredienteEspacioRequest",
+      "response_type": "EliminarIngredienteEspacioResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "planeador/actualizar_estado_dia.php",
+      "android_function": "actualizarEstadoDia",
+      "parameters": "@Body request: ActualizarEstadoDiaRequest",
+      "response_type": "ActualizarEstadoDiaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "hogar/buscar_integrantes_hogar.php",
+      "android_function": "buscarIntegrantesHogar",
+      "parameters": "@Body request: BuscarIntegrantesHogarRequest",
+      "response_type": "BuscarIntegrantesHogarResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "planeador/asignar_cocinero.php",
+      "android_function": "asignarCocinero",
+      "parameters": "@Body request: AsignarCocineroRequest",
+      "response_type": "AsignarCocineroResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "listadecompras/obtener_o_crear_lista.php",
+      "android_function": "obtenerOCrearLista",
+      "parameters": "@Body request: ListaCompraRequest",
+      "response_type": "ListaCompraResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "listadecompras/sincronizar_lista_compras.php",
+      "android_function": "sincronizarListaCompras",
+      "parameters": "@Body request: ListaCompraRequest",
+      "response_type": "SincronizarListaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "listadecompras/listar_ingredientes_lista.php",
+      "android_function": "listarIngredientesLista",
+      "parameters": "@Body request: ListaCompraRequest",
+      "response_type": "ListarIngredientesListaResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "listadecompras/actualizar_estado_compra.php",
+      "android_function": "actualizarEstadoCompra",
+      "parameters": "@Body request: ActualizarEstadoCompraRequest",
+      "response_type": "ActualizarEstadoCompraResponse",
+      "encoding": "json"
+    },
+    {
+      "method": "POST",
+      "path": "listadecompras/eliminar_ingrediente_lista.php",
+      "android_function": "eliminarIngredienteLista",
+      "parameters": "@Body request: EliminarIngredienteListaRequest",
+      "response_type": "EliminarIngredienteListaResponse",
+      "encoding": "json"
+    }
+  ]
+}
