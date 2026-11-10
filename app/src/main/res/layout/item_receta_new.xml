@@ -1,59 +1,33 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="300dp" android:layout_height="wrap_content" android:layout_margin="4dp"
-    app:cardCornerRadius="20dp" app:cardElevation="1dp" app:cardBackgroundColor="@android:color/white">
+<?xml version='1.0' encoding='utf-8'?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="300dp" android:layout_height="wrap_content" android:layout_margin="6dp" app:cardCornerRadius="20dp" app:cardElevation="0dp" app:cardBackgroundColor="@android:color/white" app:strokeWidth="0dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardTitulo"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp" app:cardElevation="0dp" app:cardBackgroundColor="#177AFF">
-            <TextView android:id="@+id/txtTitulo" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:minHeight="48dp" android:padding="12dp" android:fontFamily="@font/caviardreams"
-                android:gravity="center" android:textColor="@android:color/white" android:textSize="18sp" android:textStyle="bold"/>
-        </com.google.android.material.card.MaterialCardView>
-        <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/cardImagen"
-            android:layout_width="match_parent" android:layout_height="wrap_content">
-            <ImageView android:id="@+id/imgReceta" android:layout_width="0dp" android:layout_height="0dp"
-                android:scaleType="centerCrop" app:layout_constraintDimensionRatio="16:9"
-                app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"/>
+        <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/cardImagen" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <ImageView android:id="@+id/imgReceta" android:layout_width="0dp" android:layout_height="0dp" android:scaleType="centerCrop" app:layout_constraintDimensionRatio="16:9" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
-        <LinearLayout android:id="@+id/cardStats" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:minHeight="64dp" android:paddingHorizontal="4dp" android:paddingVertical="8dp"
-            android:gravity="center_vertical" android:orientation="horizontal" android:background="#EAF2FF">
-            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                android:paddingHorizontal="2dp" android:orientation="vertical" android:gravity="center_horizontal">
-                <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_clock_bg" android:importantForAccessibility="no"/>
-                <TextView android:id="@+id/txtTiempo" android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" android:gravity="center" android:textSize="12sp" android:textColor="#303030" android:text="Tiempo"/>
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardTitulo" android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="0dp" app:cardElevation="0dp" app:cardBackgroundColor="@android:color/white" app:strokeWidth="0dp">
+            <TextView android:id="@+id/txtTitulo" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:padding="16dp" android:fontFamily="sans-serif-medium" android:gravity="start" android:textColor="@color/gm_ink" android:textSize="18sp" android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
+        <LinearLayout android:id="@+id/cardStats" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="56dp" android:paddingHorizontal="4dp" android:paddingVertical="4dp" android:gravity="center_vertical" android:orientation="horizontal" android:background="@android:color/white">
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:paddingHorizontal="2dp" android:orientation="vertical" android:gravity="center_horizontal">
+                <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_clock_bg" android:importantForAccessibility="no" />
+                <TextView android:id="@+id/txtTiempo" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:gravity="center" android:textSize="12sp" android:textColor="@color/gm_muted" android:text="Tiempo" android:fontFamily="sans-serif" />
             </LinearLayout>
-            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                android:paddingHorizontal="2dp" android:orientation="vertical" android:gravity="center_horizontal">
-                <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_gorrito_nuevo_azul" android:importantForAccessibility="no"/>
-                <TextView android:id="@+id/txtNivel" android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" android:gravity="center" android:textSize="12sp" android:textColor="#303030" android:text="Dificultad"/>
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:paddingHorizontal="2dp" android:orientation="vertical" android:gravity="center_horizontal">
+                <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_gorrito_nuevo_azul" android:importantForAccessibility="no" />
+                <TextView android:id="@+id/txtNivel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:gravity="center" android:textSize="12sp" android:textColor="@color/gm_muted" android:text="Dificultad" android:fontFamily="sans-serif" />
             </LinearLayout>
-            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                android:paddingHorizontal="2dp" android:orientation="vertical" android:gravity="center_horizontal">
-                <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_dinero" android:importantForAccessibility="no"/>
-                <TextView android:id="@+id/txtCosto" android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" android:gravity="center" android:textSize="12sp" android:textColor="#303030" android:text="Costo"/>
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:paddingHorizontal="2dp" android:orientation="vertical" android:gravity="center_horizontal">
+                <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_dinero" android:importantForAccessibility="no" />
+                <TextView android:id="@+id/txtCosto" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:gravity="center" android:textSize="12sp" android:textColor="@color/gm_muted" android:text="Costo" android:fontFamily="sans-serif" />
             </LinearLayout>
-            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                android:paddingHorizontal="2dp" android:orientation="vertical" android:gravity="center_horizontal">
-                <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_comida" android:importantForAccessibility="no"/>
-                <TextView android:id="@+id/txtTipo" android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" android:gravity="center" android:textSize="12sp" android:textColor="#303030" android:text="Tipo"/>
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:paddingHorizontal="2dp" android:orientation="vertical" android:gravity="center_horizontal">
+                <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_comida" android:importantForAccessibility="no" />
+                <TextView android:id="@+id/txtTipo" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:gravity="center" android:textSize="12sp" android:textColor="@color/gm_muted" android:text="Tipo" android:fontFamily="sans-serif" />
             </LinearLayout>
         </LinearLayout>
-        <LinearLayout android:id="@+id/cardIngredientes" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:minHeight="88dp" android:padding="8dp" android:orientation="horizontal" android:gravity="center_vertical" android:background="#DCEAFF">
-            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvIngredientes" android:layout_width="0dp"
-                android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="72dp"
-                android:overScrollMode="never" android:scrollbars="horizontal"/>
-            <TextView android:id="@+id/txtCoincidencia" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:minWidth="44dp" android:layout_marginStart="8dp" android:padding="6dp" android:gravity="center"
-                android:text="--" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/azulgourmeet"/>
+        <LinearLayout android:id="@+id/cardIngredientes" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="88dp" android:padding="10dp" android:orientation="horizontal" android:gravity="center_vertical" android:background="@color/gm_surface">
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvIngredientes" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="72dp" android:overScrollMode="never" android:scrollbars="horizontal" />
+            <TextView android:id="@+id/txtCoincidencia" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="44dp" android:layout_marginStart="8dp" android:padding="6dp" android:gravity="center" android:text="--" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/azulgourmeet" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

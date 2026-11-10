@@ -57,7 +57,8 @@ class IngredienteAlacenaAdapter(
 
         val view = LayoutInflater.from(parent.context)
             .inflate(
-                R.layout.item_ingrediente_alacena,
+                if (((parent as? RecyclerView)?.layoutManager as? androidx.recyclerview.widget.LinearLayoutManager)?.orientation == RecyclerView.VERTICAL)
+                    R.layout.item_ingrediente_alacena_row else R.layout.item_ingrediente_alacena,
                 parent,
                 false
 
@@ -74,6 +75,9 @@ class IngredienteAlacenaAdapter(
     ) {
 
         val ingrediente = lista[position]
+        holder.itemView.findViewById<TextView>(R.id.txtEstadoIngrediente).text =
+            ingrediente.AI_ESTADO?.trim()?.replaceFirstChar { it.uppercase() }.orEmpty()
+
 
         Log.d(
             "ALACENA_ADAPTER",
@@ -83,6 +87,8 @@ class IngredienteAlacenaAdapter(
         // ==========================================
         // NOMBRE DEL INGREDIENTE
         // ==========================================
+
+        holder.estado.visibility = View.GONE
 
         holder.nombre.text =
             ingrediente.ING_DESCRIPCION.trim()
@@ -191,14 +197,14 @@ class IngredienteAlacenaAdapter(
 
             Glide.with(holder.itemView.context)
                 .load(ingrediente.Foto_Ingrediente)
-                .placeholder(R.drawable.ic_ingredientes)
-                .error(R.drawable.ic_ingredientes)
+                .placeholder(R.drawable.gm_nav_pantry)
+                .error(R.drawable.gm_nav_pantry)
                 .into(holder.imagen)
 
         } else {
 
             holder.imagen.setImageResource(
-                R.drawable.ic_ingredientes
+                R.drawable.gm_nav_pantry
             )
         }
         holder.itemView.setOnClickListener {

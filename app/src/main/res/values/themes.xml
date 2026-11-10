@@ -15,6 +15,9 @@
     </style>
     <!-- Base application theme. -->
     <style name="Base.Theme.Gourmeet2" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowBackground">@color/gm_surface</item>
+        <item name="colorPrimary">@color/gm_accent</item>
+        <item name="colorSurface">@android:color/white</item>
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>

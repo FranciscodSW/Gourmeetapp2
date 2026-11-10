@@ -1,0 +1,23 @@
+<resources>
+    <color name="gm_ink">#172337</color>
+    <color name="gm_muted">#596579</color>
+    <color name="gm_surface">#F7F8FA</color>
+    <color name="gm_border">#E5E9F0</color>
+    <color name="gm_accent">#145CC5</color>
+    <color name="gm_accent_soft">#EDF3FF</color>
+    <string name="nav_cook">Cocinar</string>
+    <string name="nav_pantry">Alacena</string>
+    <string name="nav_suppliers">Tiendas</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="cook_title">¿Qué cocinamos?</string>
+    <string name="pantry_title">Mi alacena</string>
+    <string name="pantry_soon">Para consumir primero</string>
+    <string name="pantry_all">Tus ingredientes</string>
+    <string name="pantry_add">Agregar ingrediente</string>
+    <string name="pantry_hint">Lo que tienes en casa, en un solo lugar</string>
+    <string name="cook_hint">Encuentra ideas con lo que tienes</string>
+    <string name="search_ingredients">Busca un ingrediente</string>
+    <string name="search_recipes">Busca una receta</string>
+    <string name="pixel_app_name">GourMeet Local</string>
+    <string name="local_social_unavailable">En esta versión de pruebas usa el acceso por correo o continúa sin cuenta.</string>
+</resources>

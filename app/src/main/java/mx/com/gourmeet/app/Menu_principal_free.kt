@@ -312,7 +312,7 @@ class Menu_principal_free : AppCompatActivity() {
         inicializarMenuLateral()
         configurarPreferenciasCuenta()
         configurarNotificaciones()
-        configurarGestosBarraInferior()
+        actualizarNavegacionPrincipal()
         fusedLocationClient =
             LocationServices.getFusedLocationProviderClient(this)
         inicializarProveedores()
@@ -426,6 +426,7 @@ class Menu_principal_free : AppCompatActivity() {
 
                         binding.panelProveedores.translationX =
                             0f
+                        actualizarNavegacionPrincipal()
                     }
                     .start()
 
@@ -467,6 +468,7 @@ class Menu_principal_free : AppCompatActivity() {
             // ==========================================
             binding.panelProveedores.visibility =
                 View.VISIBLE
+            actualizarNavegacionPrincipal()
 
             binding.panelProveedores.post {
 
@@ -671,13 +673,10 @@ class Menu_principal_free : AppCompatActivity() {
         // =========================================================
 
         binding.cardCentro.setOnClickListener {
-
-            if (gestoDeslizado) {
-                gestoDeslizado = false
-                return@setOnClickListener
-            }
-
-            cambiarSeccion()
+            seleccionarSeccionPrincipal(Seccion.ALACENA)
+        }
+        binding.btnCocinar.setOnClickListener {
+            seleccionarSeccionPrincipal(Seccion.BUSCADOR)
         }
 
 
@@ -1251,13 +1250,47 @@ class Menu_principal_free : AppCompatActivity() {
             View.VISIBLE
     }
     private fun actualizarTextoBuscador() {
-        if (seccionActual == Seccion.BUSCADOR) {
-            if (modoActual == Modo.INGREDIENTES) {
-                binding.txtSeccionActual.text = "Buscador por ingredientes"
-            } else {
-                binding.txtSeccionActual.text = "Buscador por recetas"
-            }
+        binding.editBusqueda.setHint(
+            if (modoActual == Modo.INGREDIENTES) R.string.search_ingredients else R.string.search_recipes
+        )
+        binding.txtSeccionActual.setText(R.string.nav_pantry)
+    }
+    private fun seleccionarSeccionPrincipal(seccion: Seccion) {
+        if (seccion == seccionActual && binding.panelProveedores.visibility != View.VISIBLE &&
+            ((seccion == Seccion.ALACENA && binding.panelAlacena.visibility == View.VISIBLE) ||
+                (seccion == Seccion.BUSCADOR && binding.rvPrincipal.visibility == View.VISIBLE))) {
+            cerrarMenu()
+            return
         }
+        binding.panelProveedores.animate().cancel()
+        binding.panelProveedores.visibility = View.GONE
+        binding.panelProveedores.translationX = 0f
+        cerrarMenu()
+        seccionActual = seccion
+        if (seccion == Seccion.ALACENA) {
+            mostrarSeccionAlacena()
+        } else {
+            mostrarSeccionBuscador()
+        }
+        actualizarNavegacionPrincipal()
+    }
+    private fun actualizarNavegacionPrincipal() {
+        val proveedoresVisible = binding.panelProveedores.visibility == View.VISIBLE
+        binding.btnCocinar.isSelected = !proveedoresVisible && seccionActual == Seccion.BUSCADOR
+        binding.cardCentro.isSelected = !proveedoresVisible && seccionActual == Seccion.ALACENA
+        binding.btnProveedores.isSelected = proveedoresVisible
+        val accent = androidx.core.content.ContextCompat.getColor(this, R.color.gm_accent)
+        val muted = androidx.core.content.ContextCompat.getColor(this, R.color.gm_muted)
+        binding.txtNavProveedores.setTextColor(if (proveedoresVisible) accent else muted)
+        binding.iconBtnProveedores.setColorFilter(if (proveedoresVisible) accent else muted)
+        binding.txtNavCocinar.setTextColor(if (binding.btnCocinar.isSelected) accent else muted)
+        binding.txtSeccionActual.setTextColor(if (binding.cardCentro.isSelected) accent else muted)
+        binding.iconBtnCocinar.setColorFilter(if (binding.btnCocinar.isSelected) accent else muted)
+        binding.iconCardCentro.setColorFilter(if (binding.cardCentro.isSelected) accent else muted)
+        binding.txtSeccionActual.setText(R.string.nav_pantry)
+        binding.txtTitulo.setText(R.string.cook_title)
+        binding.btnCocinar.contentDescription = getString(R.string.nav_cook)
+        binding.cardCentro.contentDescription = getString(R.string.nav_pantry)
     }
     private fun cambiarEncabezado(titulo: String, imagen: Int) {
         binding.txtTitulo.text = titulo
@@ -9230,7 +9263,7 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             }
 
             Seccion.ALACENA -> {
-                binding.txtSeccionActual.text = "Alacena"
+                binding.txtSeccionActual.setText(R.string.nav_pantry)
                 mostrarSeccionAlacena()
             }
 

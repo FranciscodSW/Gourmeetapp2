@@ -16,13 +16,24 @@ android {
         versionCode = 5
         versionName = "1.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("boolean", "LOCAL_ONLY", "false")
     }
+
+    testBuildType = providers.gradleProperty("gourmeet.testBuildType").getOrElse("debug")
 
     buildTypes {
         debug {
             val apiUrl = providers.gradleProperty("gourmeet.apiBaseUrl")
                 .getOrElse("http://192.168.1.116:3001/api/")
             buildConfigField("String", "API_BASE_URL", "\"$apiUrl\"")
+        }
+        create("pixel") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".local"
+            versionNameSuffix = "-local"
+            matchingFallbacks += listOf("debug")
+            buildConfigField("boolean", "LOCAL_ONLY", "true")
+            buildConfigField("String", "API_BASE_URL", "\"http://127.0.0.1:8081/api/\"")
         }
         release {
             buildConfigField("String", "API_BASE_URL", "\"http://192.168.1.116:3001/api/\"")

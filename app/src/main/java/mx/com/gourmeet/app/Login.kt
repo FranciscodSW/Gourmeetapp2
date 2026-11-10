@@ -210,7 +210,7 @@ class Login : AppCompatActivity() {
         }
         callbackManager = CallbackManager.Factory.create()
 
-        LoginManager.getInstance().registerCallback(callbackManager,
+        if (!BuildConfig.LOCAL_ONLY) LoginManager.getInstance().registerCallback(callbackManager,
             object : FacebookCallback<LoginResult> {
 
                 override fun onSuccess(result: LoginResult) {
@@ -248,6 +248,10 @@ class Login : AppCompatActivity() {
         )
 
         iconGmail.setOnClickListener {
+            if (BuildConfig.LOCAL_ONLY) {
+                Toast.makeText(this, R.string.local_social_unavailable, Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
             googleSignInClient.signOut().addOnCompleteListener {
                 val signInIntent = googleSignInClient.signInIntent
                 startActivityForResult(signInIntent, RC_SIGN_IN)

@@ -27,14 +27,14 @@ class IngredienteMiniAdapter(
 
                 Glide.with(binding.imgIngrediente.context)
                     .load(ingrediente.imagen_url)
-                    .placeholder(R.drawable.ic_ingredientes)
-                    .error(R.drawable.ic_ingredientes)
+                    .placeholder(R.drawable.gm_nav_pantry)
+                    .error(R.drawable.gm_nav_pantry)
                     .into(binding.imgIngrediente)
 
             } else {
 
                 binding.imgIngrediente.setImageResource(
-                    R.drawable.ic_ingredientes
+                    R.drawable.gm_nav_pantry
                 )
             }
 

@@ -1,190 +1,25 @@
-<?xml version="1.0" encoding="utf-8"?>
-
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="155dp"
-    android:layout_height="170dp"
-    android:backgroundTint="@android:color/transparent"
-    >
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="5dp"
-        >
-        <!-- CIRCULO DEL EMOJI -->
-        <FrameLayout
-            android:id="@+id/contenedorEmoji"
-            android:layout_width="95dp"
-            android:layout_height="95dp"
-            android:background="@drawable/bg_circulo_azul"
-            android:gravity="center"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-            <ImageView
-                android:id="@+id/EmojiIngrediente"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:src="@drawable/ic_ingredientes"
-                />
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="152dp" android:layout_height="wrap_content" android:layout_marginEnd="10dp" android:layout_marginBottom="8dp"
+    app:cardCornerRadius="16dp" app:cardElevation="0dp" app:cardBackgroundColor="@android:color/white" app:strokeColor="@color/gm_border" app:strokeWidth="1dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="174dp" android:padding="14dp" android:orientation="vertical">
+        <FrameLayout android:id="@+id/contenedorEmoji" android:layout_width="match_parent" android:layout_height="44dp">
+            <ImageView android:id="@+id/EmojiIngrediente" android:layout_width="40dp" android:layout_height="40dp" android:scaleType="centerInside" android:src="@drawable/ic_ingredientes" android:importantForAccessibility="no"/>
+            <ImageView android:id="@+id/imgEstadoIngrediente" android:layout_width="20dp" android:layout_height="20dp" android:layout_gravity="end|center_vertical" android:importantForAccessibility="no"/>
         </FrameLayout>
-
-        <!-- ESTADO -->
-        <ImageView
-            android:id="@+id/imgEstadoIngrediente"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:elevation="0dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_verde"
-            android:contentDescription="Estado del ingrediente"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="-1dp"
-            android:layout_marginEnd="2dp"/>
-        <!-- NOMBRE -->
-        <LinearLayout
-            android:id="@+id/contenedorNombre"
-            android:layout_width="match_parent"
-            android:layout_height="35dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            app:layout_constraintTop_toBottomOf="@id/contenedorEmoji"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <!-- NOMBRE -->
-            <TextView
-                android:id="@+id/txtNombreIngrediente"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="3dp"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:fontFamily="@font/caviardreams"
-                android:gravity="center"
-                android:maxLines="2"
-                android:text="Germinado de lentejejas"
-                android:textColor="@color/azulgourmeet"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <!-- CANTIDAD -->
-            <TextView
-                android:id="@+id/txtCantidadIngrediente"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:layout_marginEnd="8dp"
-                android:text="500 KG"
-                android:textStyle="bold"
-                android:textColor="@color/azulgourmeet"
-                android:textSize="14sp"
-                android:fontFamily="@font/caviardreams"
-                android:maxLines="1"
-                android:ellipsize="end" />
-
+        <LinearLayout android:id="@+id/contenedorNombre" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical">
+            <TextView android:id="@+id/txtNombreIngrediente" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="sans-serif-medium" android:textSize="15sp" android:textColor="@color/gm_ink"/>
+            <TextView android:id="@+id/txtCantidadIngrediente" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:fontFamily="sans-serif" android:textSize="13sp" android:textColor="@color/gm_muted"/>
         </LinearLayout>
-        <LinearLayout
-            android:id="@+id/fechaconsumo"
-            android:layout_width="match_parent"
-            android:layout_height="25dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:visibility="visible"
-            app:layout_constraintTop_toBottomOf="@id/contenedorNombre"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_marginTop="3.1dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="2dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/caviardreams"
-                android:gravity="center"
-                android:text="Caducidad:"
-                android:textColor="@color/azulgourmeet"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/txtFechadecompra"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="end"
-            android:layout_marginEnd="8dp"
-            android:text="09/10"
-            android:textStyle="bold"
-            android:textColor="@color/azulgourmeet"
-            android:textSize="16sp"
-
-            android:fontFamily="@font/caviardreams"
-            app:layout_constraintTop_toBottomOf="@id/contenedorNombre"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-
-            />
+        <TextView android:id="@+id/txtEstadoIngrediente" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:fontFamily="sans-serif-medium" android:textSize="12sp" android:textColor="@color/gm_accent"/>
+        <LinearLayout android:id="@+id/fechaconsumo" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:orientation="horizontal">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Vence " android:textSize="12sp" android:textColor="@color/gm_muted"/>
+            <TextView android:id="@+id/txtFechadecompra" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/gm_muted"/>
         </LinearLayout>
-        <LinearLayout
-            android:id="@+id/proximo_a_caducar"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:visibility="gone"
-            app:layout_constraintTop_toBottomOf="@id/contenedorNombre"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="55dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:layout_marginTop="-7dp"
-                android:background="@color/azulgourmeet"
-                android:layout_gravity="center_vertical"
-                android:text="Proximo a caducar"
-                android:textColor="@color/white"
-                android:textSize="13sp"
-                android:fontFamily="@font/caviardreams"
-                />
-
-
+        <LinearLayout android:id="@+id/proximo_a_caducar" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:orientation="vertical" android:visibility="gone">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Consume pronto" android:textSize="12sp" android:textColor="#865800"/>
         </LinearLayout>
-        <LinearLayout
-            android:id="@+id/revisar"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-
-            android:visibility="gone"
-            app:layout_constraintTop_toBottomOf="@id/contenedorNombre"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="45dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:layout_marginTop="-5dp"
-                android:background="@color/rojo"
-                android:layout_gravity="center_vertical"
-                android:text="⚠️ Revisar ingrediente"
-                android:textColor="@color/white"
-                android:textSize="13sp"
-                android:fontFamily="@font/caviardreams"
-                />
-
-
+        <LinearLayout android:id="@+id/revisar" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:orientation="vertical" android:visibility="gone">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Revisar ingrediente" android:textSize="12sp" android:textColor="#A32929"/>
         </LinearLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

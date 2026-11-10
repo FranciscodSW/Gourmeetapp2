@@ -46,7 +46,10 @@ class SafeDrawingTest {
         checkScreen(Menu_principal_free::class.java, "guest-pantry", true)
     }
 
-    private fun <A : Activity> checkScreen(type: Class<A>, label: String, guestPantry: Boolean = false) {
+    @Test fun pantryNavigationHasStableDestinations() =
+        checkScreen(Menu_principal_free::class.java, "pantry-navigation", pantry = true)
+
+    private fun <A : Activity> checkScreen(type: Class<A>, label: String, guestPantry: Boolean = false, pantry: Boolean = false) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         instrumentation.runOnMainSync {
             instrumentation.targetContext.startActivity(
@@ -57,13 +60,13 @@ class SafeDrawingTest {
         }
         try {
             Thread.sleep(1800)
-            if (guestPantry) {
+            if (guestPantry || pantry) {
                 instrumentation.runOnMainSync {
                     val activity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
                         .first { type.isInstance(it) }
                     activity.findViewById<View>(R.id.cardCentro).performClick()
                 }
-                Thread.sleep(400)
+                Thread.sleep(1000)
             }
             val phase = InstrumentationRegistry.getArguments().getString("phase") ?: "current"
             val directory = File(instrumentation.targetContext.getExternalFilesDir(null), "ui-evidence")
@@ -96,6 +99,18 @@ class SafeDrawingTest {
                     org.junit.Assert.assertEquals(activity.getString(R.string.pantry_sign_in_action),
                         activity.findViewById<TextView>(R.id.btnCrearPrimeraAlacena).text.toString())
                 }
+                if (pantry) {
+                    val destination = activity.findViewById<View>(R.id.cardCentro)
+                    assertTrue("Pantry tab must be selected", destination.isSelected)
+                    destination.performClick()
+                    assertTrue("Repeated pantry taps must keep the pantry open", activity.findViewById<View>(R.id.panelAlacena).isShown)
+                    org.junit.Assert.assertEquals(activity.getString(R.string.nav_pantry), activity.findViewById<TextView>(R.id.txtSeccionActual).text.toString())
+                    val cook = activity.findViewById<View>(R.id.btnCocinar)
+                    cook.performClick()
+                    assertTrue("Cook tab must return to recipes", cook.isSelected && activity.findViewById<View>(R.id.rvPrincipal).isShown)
+                    assertTrue("Cook tab must close the pantry", !activity.findViewById<View>(R.id.panelAlacena).isShown)
+                    destination.performClick()
+                }
                 val container = activity.findViewById<ViewGroup>(android.R.id.content)
                 val root = container.getChildAt(0)
                 val insets = requireNotNull(ViewCompat.getRootWindowInsets(activity.window.decorView))
@@ -111,7 +126,7 @@ class SafeDrawingTest {
                 repeat(2) { ViewCompat.dispatchApplyWindowInsets(container, originalInsets) }
                 org.junit.Assert.assertEquals("Insets must not accumulate padding", padding,
                     listOf(container.paddingLeft, container.paddingTop, container.paddingRight, container.paddingBottom))
-                if (activity is Menu_principal_free && !guestPantry) {
+                if (activity is Menu_principal_free && !guestPantry && !pantry) {
                     for (id in listOf(R.id.txtTitulo, R.id.txtSeccionActual)) {
                         val labelView = root.findViewById<TextView>(id)
                         val labelLayout = requireNotNull(labelView.layout)

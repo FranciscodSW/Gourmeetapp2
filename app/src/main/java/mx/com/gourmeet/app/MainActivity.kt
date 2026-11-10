@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        FirebaseApp.initializeApp(this)
+        if (!BuildConfig.LOCAL_ONLY) FirebaseApp.initializeApp(this)
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -192,7 +192,7 @@ class MainActivity : AppCompatActivity() {
             )
 
             navegarA(
-                Trancicion_de_carga_para_menu_free::class.java
+                if (BuildConfig.LOCAL_ONLY) Menu_principal_free::class.java else Trancicion_de_carga_para_menu_free::class.java
             )
 
         } else {

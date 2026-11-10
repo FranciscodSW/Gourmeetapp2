@@ -80,7 +80,7 @@ class CategoriaIngredientesAdapter(
         holder.recyclerIngredientes.layoutManager =
             LinearLayoutManager(
                 holder.itemView.context,
-                LinearLayoutManager.HORIZONTAL,
+                LinearLayoutManager.VERTICAL,
                 false
             )
 
@@ -93,6 +93,8 @@ class CategoriaIngredientesAdapter(
                 categoria.ingredientes,
                 onIngredienteClick
             )
+
+        holder.recyclerIngredientes.isNestedScrollingEnabled = false
 
         holder.recyclerIngredientes.adapter =
             adapterIngredientes

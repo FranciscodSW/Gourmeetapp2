@@ -1,639 +1,102 @@
-<androidx.drawerlayout.widget.DrawerLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawerLayout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F5F5F5">
-    <!-- Encabezado -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/header"
-        android:layout_marginTop="8dp"
-        android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:background="@drawable/bg_header"
-        android:paddingHorizontal="20dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-        <!-- Logo -->
-        <ImageView
-            android:id="@+id/imgLogo"
-            android:layout_width="55dp"
-            android:layout_height="55dp"
-            android:src="@drawable/ic_logo_circular"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
-        <!-- Flecha -->
-        <ImageView
-            android:id="@+id/imgFlecha"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:src="@drawable/ic_flecha_abajo"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
-        <!--Título-->
-        <TextView
-            android:id="@+id/txtTitulo"
-                android:maxLines="1"
-            app:autoSizeTextType="uniform"
-            app:autoSizeMinTextSize="18sp"
-            app:autoSizeMaxTextSize="34sp"
-            app:autoSizeStepGranularity="1sp"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:text="Ingredientes"
-            android:textColor="#FFFFFF"
-            android:textSize="34sp"
-            android:textStyle="bold"
-            android:fontFamily="@font/caviardreams"
-            android:gravity="center"
-            app:layout_constraintStart_toEndOf="@id/imgLogo"
-            app:layout_constraintEnd_toStartOf="@id/imgFlecha"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Icono del modo actual -->
-    <LinearLayout
-        android:id="@+id/menuCategorias"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:background="@android:color/white"
-        android:elevation="8dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:orientation="horizontal"
-        android:weightSum="6"
-        app:layout_constraintTop_toBottomOf="@id/header"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-            <!-- POSTRE -->
-            <LinearLayout
-                android:id="@+id/opPostre"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_postre"/>
-                <TextView
-                    android:fontFamily="@font/caviardreams"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Postre"
-                    android:textStyle="bold"
-                    android:textSize="10sp"/>
-            </LinearLayout>
-            <!-- BEBIDA -->
-            <LinearLayout
-                android:id="@+id/opBebida"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_bebida"/>
-                <TextView
-                    android:fontFamily="@font/caviardreams"
-                    android:text="Bebida"
-                    android:textStyle="bold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="10sp"/>
-            </LinearLayout>
-            <!-- SNACK -->
-            <LinearLayout
-                android:id="@+id/opSnack"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_snack"/>
-                <TextView
-                    android:fontFamily="@font/caviardreams"
-                    android:text="Snack"
-                    android:textStyle="bold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="10sp"/>
-            </LinearLayout>
-            <!-- ENTRADA -->
-            <LinearLayout
-                android:id="@+id/opEntrada"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_entrada"/>
-                <TextView
-                    android:fontFamily="@font/caviardreams"
-                    android:text="Entrada"
-                    android:textStyle="bold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="10sp"/>
-            </LinearLayout>
-            <!-- PLATO FUERTE -->
-            <LinearLayout
-                android:id="@+id/opPlatoFuerte"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_plato_fuerte"/>
-                <TextView
-                    android:fontFamily="@font/caviardreams"
-                    android:text="Plato fuerte"
-                    android:textStyle="bold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="10sp"/>
-            </LinearLayout>
-            <!-- MODO -->
-            <LinearLayout
-                android:id="@+id/opModo"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:id="@+id/imgModo"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_recetas"/>
-                <TextView
-                    android:fontFamily="@font/caviardreams"
-                    android:id="@+id/txtModo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Recetas"
-                    android:textStyle="bold"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-    </LinearLayout>
-    <!-- CONTENIDO PRINCIPAL -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvPrincipal"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/menuCategorias"
-        app:layout_constraintBottom_toTopOf="@id/panelingredietes"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-    <LinearLayout
-        android:id="@+id/panelingredietes"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@drawable/bg_barra_de_ingrediestes"
-        android:padding="0dp"
-        app:layout_constraintBottom_toTopOf="@id/panelBusqueda"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingTop="1dp"
-        android:paddingBottom="1dp"
-        android:visibility="gone"
-        android:paddingHorizontal="16dp">
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvResultados"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:paddingTop="6dp"
-            android:layout_marginTop="12dp"
-            app:cardCornerRadius="18dp"
-            app:cardBackgroundColor="#FFFFFF"/>
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupResultados"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="3dp"
-            app:chipSpacing="2dp"/>
-    </LinearLayout>
-    <!-- PANEL DE BÚSQUEDA -->
-    <LinearLayout
-        android:id="@+id/panelBusqueda"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@drawable/bg_barra_de_busqueda"
-        android:padding="0dp"
-        app:layout_constraintBottom_toTopOf="@id/barraInferior"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:paddingHorizontal="16dp">
-
-        <!-- Barra expandir -->
-        <View
-            android:id="@+id/barraExpandirBusqueda"
-            android:layout_width="80dp"
-            android:layout_height="6dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="1dp"
-            android:background="@drawable/bg_barra_expandir"/>
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="2dp"/>
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <ImageView
-                android:id="@+id/imgLupa"
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_marginStart="8dp"
-                android:src="@drawable/ic_lupa"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.533" />
-            <ImageView
-                android:id="@+id/imgFiltro"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="16dp"
-                android:src="@drawable/ic_filtro"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0" />
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
-                app:cardCornerRadius="25dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:layout_constraintStart_toEndOf="@id/imgLupa"
-                app:layout_constraintEnd_toStartOf="@id/imgFiltro"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent">
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/editBusqueda"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:hint="Buscar..."
-                    android:fontFamily="@font/caviardreams"
-                    android:background="@null"
-                    android:paddingHorizontal="16dp"
-                    android:singleLine="true"
-                    android:maxLines="1"
-                    android:inputType="text"
-                    android:imeOptions="actionNone|flagNoEnterAction"/>
-            </androidx.cardview.widget.CardView>
-            <!-- Filtro -->
+<?xml version='1.0' encoding='utf-8'?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/drawerLayout" android:layout_width="match_parent" android:layout_height="match_parent">
+    <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/gm_surface">
+        <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/header" android:layout_marginTop="0dp" android:layout_width="0dp" android:layout_height="80dp" android:background="@color/gm_surface" android:paddingHorizontal="20dp" app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+            <ImageView android:id="@+id/imgLogo" android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_logo_circular" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" android:visibility="gone" />
+            <ImageView android:id="@+id/imgFlecha" android:layout_width="48dp" android:layout_height="48dp" android:src="@drawable/ic_flecha_abajo" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" android:padding="14dp" android:contentDescription="Cambiar categoría" app:tint="@color/gm_accent" />
+            <TextView android:id="@+id/txtTitulo" android:maxLines="1" app:autoSizeTextType="uniform" app:autoSizeMinTextSize="18sp" app:autoSizeMaxTextSize="26sp" app:autoSizeStepGranularity="1sp" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="0dp" android:layout_marginEnd="8dp" android:text="@string/cook_title" android:textColor="@color/gm_ink" android:textSize="26sp" android:textStyle="bold" android:fontFamily="sans-serif-medium" android:gravity="start" app:layout_constraintEnd_toStartOf="@id/imgFlecha" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="12dp"/>
-        <!-- CONTENEDOR BLANCO -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cardSeleccionados"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_barra_ingredientes">
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvSeleccionados"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-        </androidx.cardview.widget.CardView>
-    </LinearLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/barraInferior"
-        android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:background="@drawable/bg_menu_inferior"
-        android:paddingHorizontal="20dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <!-- Proveedores -->
-        <LinearLayout
-            android:id="@+id/btnProveedores"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
-            <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_carrito"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Proveedor"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/caviardreams"/>
+        <LinearLayout android:id="@+id/menuCategorias" android:layout_width="0dp" android:layout_height="wrap_content" android:visibility="gone" android:background="@android:color/white" android:elevation="8dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:orientation="horizontal" android:weightSum="6" app:layout_constraintTop_toBottomOf="@id/header" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+            <LinearLayout android:id="@+id/opPostre" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical">
+                <ImageView android:layout_width="48dp" android:layout_height="48dp" android:src="@drawable/ic_postre" />
+                <TextView android:fontFamily="@font/caviardreams" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Postre" android:textStyle="bold" android:textSize="10sp" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/opBebida" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical">
+                <ImageView android:layout_width="48dp" android:layout_height="48dp" android:src="@drawable/ic_bebida" />
+                <TextView android:fontFamily="@font/caviardreams" android:text="Bebida" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="10sp" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/opSnack" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical">
+                <ImageView android:layout_width="48dp" android:layout_height="48dp" android:src="@drawable/ic_snack" />
+                <TextView android:fontFamily="@font/caviardreams" android:text="Snack" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="10sp" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/opEntrada" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical">
+                <ImageView android:layout_width="48dp" android:layout_height="48dp" android:src="@drawable/ic_entrada" />
+                <TextView android:fontFamily="@font/caviardreams" android:text="Entrada" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="10sp" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/opPlatoFuerte" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical">
+                <ImageView android:layout_width="48dp" android:layout_height="48dp" android:src="@drawable/ic_plato_fuerte" />
+                <TextView android:fontFamily="@font/caviardreams" android:text="Plato fuerte" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="10sp" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/opModo" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical">
+                <ImageView android:id="@+id/imgModo" android:layout_width="48dp" android:layout_height="48dp" android:src="@drawable/ic_recetas" />
+                <TextView android:fontFamily="@font/caviardreams" android:id="@+id/txtModo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Recetas" android:textStyle="bold" android:textSize="11sp" />
+            </LinearLayout>
         </LinearLayout>
-        <!-- Perfil -->
-        <LinearLayout
-            android:id="@+id/btnPerfil"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
-            <ImageView
-                android:id="@+id/imgUsuario"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_icono_usuario"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Perfil"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/caviardreams"/>
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvPrincipal" android:layout_width="0dp" android:layout_height="0dp" app:layout_constraintTop_toBottomOf="@id/menuCategorias" app:layout_constraintBottom_toTopOf="@id/panelingredietes" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" android:clipToPadding="false" android:paddingBottom="12dp" />
+        <LinearLayout android:id="@+id/panelingredietes" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/bg_barra_de_ingrediestes" android:padding="0dp" app:layout_constraintBottom_toTopOf="@id/panelBusqueda" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" android:paddingTop="1dp" android:paddingBottom="1dp" android:visibility="gone" android:paddingHorizontal="16dp">
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvResultados" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" android:paddingTop="6dp" android:layout_marginTop="12dp" app:cardCornerRadius="18dp" app:cardBackgroundColor="#FFFFFF" />
+            <com.google.android.material.chip.ChipGroup android:id="@+id/chipGroupResultados" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="3dp" app:chipSpacing="2dp" />
         </LinearLayout>
-        <!-- Botón central -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cardCentro"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:layout_marginHorizontal="15dp"
-            app:cardBackgroundColor="#177AFF"
-            app:cardCornerRadius="35dp"
-            app:layout_constraintStart_toEndOf="@id/btnProveedores"
-            app:layout_constraintEnd_toStartOf="@id/btnPerfil"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
-            <TextView
-                android:id="@+id/txtSeccionActual"
-                android:maxLines="2"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
-                app:autoSizeTextType="uniform"
-                app:autoSizeMinTextSize="12sp"
-                app:autoSizeMaxTextSize="18sp"
-                app:autoSizeStepGranularity="1sp"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="Buscador por ingredientes"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/caviardreams"/>
-        </androidx.cardview.widget.CardView>
-
+        <LinearLayout android:id="@+id/panelBusqueda" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="vertical" android:background="@color/gm_surface" android:padding="0dp" app:layout_constraintBottom_toTopOf="@id/barraInferior" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" android:paddingTop="10dp" android:paddingBottom="10dp" android:paddingHorizontal="16dp">
+            <View android:id="@+id/barraExpandirBusqueda" android:layout_width="80dp" android:layout_height="6dp" android:layout_gravity="center_horizontal" android:layout_marginTop="4dp" android:layout_marginBottom="1dp" android:background="@drawable/bg_barra_expandir" android:visibility="gone" />
+            <View android:layout_width="match_parent" android:layout_height="2dp" />
+            <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                <ImageView android:id="@+id/imgLupa" android:layout_width="40dp" android:layout_height="48dp" android:layout_marginStart="8dp" android:src="@drawable/gm_search" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintVertical_bias="0.533" android:padding="10dp" />
+                <ImageView android:id="@+id/imgFiltro" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginEnd="0dp" android:src="@drawable/gm_filter" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintVertical_bias="0.0" android:padding="12dp" android:contentDescription="Filtrar recetas" />
+                <androidx.cardview.widget.CardView android:layout_width="0dp" android:layout_height="48dp" android:layout_marginStart="0dp" android:layout_marginEnd="4dp" app:cardCornerRadius="14dp" app:cardBackgroundColor="#FFFFFF" app:layout_constraintStart_toEndOf="@id/imgLupa" app:layout_constraintEnd_toStartOf="@id/imgFiltro" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:cardElevation="0dp">
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView android:id="@+id/editBusqueda" android:layout_width="match_parent" android:layout_height="match_parent" android:hint="@string/search_ingredients" android:fontFamily="sans-serif" android:background="@null" android:paddingHorizontal="16dp" android:singleLine="true" android:maxLines="1" android:inputType="text" android:imeOptions="actionNone|flagNoEnterAction" android:textSize="15sp" android:textColor="@color/gm_ink" android:textColorHint="@color/gm_muted" />
+                </androidx.cardview.widget.CardView>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            <View android:layout_width="match_parent" android:layout_height="12dp" />
+            <androidx.cardview.widget.CardView android:id="@+id/cardSeleccionados" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_barra_ingredientes">
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvSeleccionados" android:layout_width="match_parent" android:layout_height="wrap_content" />
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/barraInferior" android:layout_width="0dp" android:layout_height="wrap_content" android:minHeight="76dp" android:orientation="horizontal" android:background="@android:color/white" android:paddingHorizontal="8dp" android:paddingVertical="8dp" android:elevation="2dp" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+            <LinearLayout android:id="@+id/btnCocinar" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="60dp" android:paddingHorizontal="2dp" android:paddingVertical="6dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/gm_nav_item" android:clickable="true" android:focusable="true" android:contentDescription="@string/nav_cook">
+                <ImageView android:id="@+id/iconBtnCocinar" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/gm_nav_cook" android:importantForAccessibility="no" />
+                <TextView android:id="@+id/txtNavCocinar" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/nav_cook" android:textColor="@color/gm_muted" android:fontFamily="sans-serif-medium" android:textSize="11sp" android:gravity="center" android:maxLines="2" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/cardCentro" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="60dp" android:paddingHorizontal="2dp" android:paddingVertical="6dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/gm_nav_item" android:clickable="true" android:focusable="true" android:contentDescription="@string/nav_pantry">
+                <ImageView android:id="@+id/iconCardCentro" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/gm_nav_pantry" android:importantForAccessibility="no" />
+                <TextView android:id="@+id/txtSeccionActual" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/nav_pantry" android:textColor="@color/gm_muted" android:fontFamily="sans-serif-medium" android:textSize="11sp" android:gravity="center" android:maxLines="2" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/btnProveedores" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="60dp" android:paddingHorizontal="2dp" android:paddingVertical="6dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/gm_nav_item" android:clickable="true" android:focusable="true" android:contentDescription="@string/nav_suppliers">
+                <ImageView android:id="@+id/iconBtnProveedores" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/gm_nav_suppliers" android:importantForAccessibility="no" />
+                <TextView android:id="@+id/txtNavProveedores" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/nav_suppliers" android:textColor="@color/gm_muted" android:fontFamily="sans-serif-medium" android:textSize="11sp" android:gravity="center" android:maxLines="2" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/btnPerfil" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="60dp" android:paddingHorizontal="2dp" android:paddingVertical="6dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/gm_nav_item" android:clickable="true" android:focusable="true" android:contentDescription="@string/nav_profile">
+                <ImageView android:id="@+id/imgUsuario" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/gm_nav_profile" android:importantForAccessibility="no" />
+                <TextView android:id="@+id/txtNavPerfil" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/nav_profile" android:textColor="@color/gm_muted" android:fontFamily="sans-serif-medium" android:textSize="11sp" android:gravity="center" android:maxLines="2" />
+            </LinearLayout>
+        </LinearLayout>
+        <FrameLayout android:id="@+id/containerDetalleReceta" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" android:background="#CCFFFFFF" android:elevation="20dp" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+        <FrameLayout android:id="@+id/panelAlacena" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" android:background="@android:color/white" android:elevation="0dp" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toTopOf="@id/barraInferior" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+            <include android:id="@+id/includeAlacena" layout="@layout/activity_mi_alacena" android:layout_width="match_parent" android:layout_height="match_parent" />
+        </FrameLayout>
+        <FrameLayout android:id="@+id/panelPlaneador" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" android:background="@android:color/white" android:elevation="0dp" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toTopOf="@id/barraInferior" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+            <include android:id="@+id/includePlaneador" layout="@layout/item_planeador_semanal" android:layout_width="match_parent" android:layout_height="match_parent" />
+        </FrameLayout>
+        <FrameLayout android:id="@+id/panelProveedores" android:layout_width="0dp" android:layout_height="0dp" android:background="@android:color/white" android:elevation="15dp" android:layout_marginTop="0dp" android:translationX="400dp" android:visibility="gone" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toTopOf="@id/barraInferior" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+            <include android:id="@+id/headerProveedores" layout="@layout/encabezado_ventana_proveedor" android:layout_width="match_parent" android:layout_height="105dp" android:layout_gravity="top" />
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvProveedores" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginTop="105dp" android:clipToPadding="false" android:overScrollMode="never" />
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvMisColeccionesProveedores" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginTop="105dp" android:clipToPadding="false" android:overScrollMode="never" android:visibility="gone" />
+            <LinearLayout android:id="@+id/layoutSinProveedores" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginTop="105dp" android:orientation="vertical" android:gravity="center" android:padding="30dp" android:visibility="gone" android:background="@color/white">
+                <ImageView android:id="@+id/imgSinProveedores" android:layout_width="280dp" android:layout_height="280dp" android:src="@drawable/ic_no_se_encontro_provedor" android:scaleType="fitCenter" android:contentDescription="No se encontraron proveedores" />
+            </LinearLayout>
+        </FrameLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
-    <FrameLayout
-        android:id="@+id/containerDetalleReceta"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        android:background="#CCFFFFFF"
-        android:elevation="20dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-    <!-- ========================================= -->
-    <!-- PANEL ALACENA -->
-    <!-- ========================================= -->
-
-    <FrameLayout
-        android:id="@+id/panelAlacena"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        android:background="@android:color/white"
-        android:elevation="10dp"
-
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/barraInferior"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <include
-            android:id="@+id/includeAlacena"
-            layout="@layout/activity_mi_alacena"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-
-    </FrameLayout>
-    <!-- ========================================= -->
-    <!-- PANEL PLANEADOR SEMANAL -->
-    <!-- ========================================= -->
-    <FrameLayout
-        android:id="@+id/panelPlaneador"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        android:background="@android:color/white"
-        android:elevation="10dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/barraInferior"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <include
-            android:id="@+id/includePlaneador"
-            layout="@layout/item_planeador_semanal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </FrameLayout>
-
-
-    <FrameLayout
-        android:id="@+id/panelProveedores"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@android:color/white"
-        android:elevation="15dp"
-        android:layout_marginTop="30dp"
-        android:translationX="400dp"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/barraInferior"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <!-- ENCABEZADO -->
-        <include
-            android:id="@+id/headerProveedores"
-            layout="@layout/encabezado_ventana_proveedor"
-            android:layout_width="match_parent"
-            android:layout_height="105dp"
-            android:layout_gravity="top"/>
-
-        <!-- LISTA DE PROVEEDORES -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvProveedores"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="105dp"
-            android:clipToPadding="false"
-            android:overScrollMode="never"/>
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvMisColeccionesProveedores"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="105dp"
-            android:clipToPadding="false"
-            android:overScrollMode="never"
-            android:visibility="gone"/>
-
-        <!-- ========================================= -->
-        <!-- SIN RESULTADOS -->
-        <!-- ========================================= -->
-
-        <LinearLayout
-            android:id="@+id/layoutSinProveedores"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="105dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="30dp"
-            android:visibility="gone"
-            android:background="@color/white">
-
-            <ImageView
-                android:id="@+id/imgSinProveedores"
-                android:layout_width="280dp"
-                android:layout_height="280dp"
-                android:src="@drawable/ic_no_se_encontro_provedor"
-                android:scaleType="fitCenter"
-                android:contentDescription="No se encontraron proveedores"/>
-
-        </LinearLayout>
-
-    </FrameLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
-    <FrameLayout
-        android:id="@+id/drawerDerecho"
-        android:layout_width="310dp"
-        android:layout_height="450dp"
-        android:layout_marginTop="350dp"
-        android:layout_gravity="end"
-        android:background="@android:color/white">
-
-        <!-- ========================================= -->
-        <!-- MENÚ LATERAL -->
-        <!-- ========================================= -->
-
-        <com.google.android.material.navigation.NavigationView
-            android:id="@+id/navigationView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/white"
-            app:headerLayout="@layout/encabezado_menu_lateral"
-            app:itemIconTint="@color/azulgourmeet"
-            app:itemTextColor="@android:color/black"
-            app:itemHorizontalPadding="5dp"
-            app:itemTextAppearance="@style/TextoMenuLateral"
-            app:itemBackground="@android:color/transparent"
-            app:itemRippleColor="@android:color/transparent"
-            app:menu="@menu/menu_lateral"/>
-
-
-        <!-- ========================================= -->
-        <!-- PREFERENCIAS DE CUENTA -->
-        <!-- ========================================= -->
-
-        <FrameLayout
-            android:id="@+id/panelPreferenciasCuenta"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/white"
-            android:visibility="gone">
-            <include
-                android:id="@+id/includePreferenciasCuenta"
-                layout="@layout/activity_preferencias_de_cuenta"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+    <FrameLayout android:id="@+id/drawerDerecho" android:layout_width="310dp" android:layout_height="450dp" android:layout_marginTop="350dp" android:layout_gravity="end" android:background="@android:color/white">
+        <com.google.android.material.navigation.NavigationView android:id="@+id/navigationView" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/white" app:headerLayout="@layout/encabezado_menu_lateral" app:itemIconTint="@color/azulgourmeet" app:itemTextColor="@android:color/black" app:itemHorizontalPadding="5dp" app:itemTextAppearance="@style/TextoMenuLateral" app:itemBackground="@android:color/transparent" app:itemRippleColor="@android:color/transparent" app:menu="@menu/menu_lateral" />
+        <FrameLayout android:id="@+id/panelPreferenciasCuenta" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/white" android:visibility="gone">
+            <include android:id="@+id/includePreferenciasCuenta" layout="@layout/activity_preferencias_de_cuenta" android:layout_width="match_parent" android:layout_height="match_parent" />
         </FrameLayout>
-        <FrameLayout
-            android:id="@+id/panelnotificaciones"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/white"
-            android:visibility="gone">
-            <include
-                android:id="@+id/includenotificaiones"
-                layout="@layout/dialog_mostrar_notificaciones_usuario"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+        <FrameLayout android:id="@+id/panelnotificaciones" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/white" android:visibility="gone">
+            <include android:id="@+id/includenotificaiones" layout="@layout/dialog_mostrar_notificaciones_usuario" android:layout_width="match_parent" android:layout_height="match_parent" />
         </FrameLayout>
-
     </FrameLayout>
-    <FrameLayout
-        android:id="@+id/panelFiltrosProveedores"
-        android:layout_width="match_parent"
-        android:layout_height="350dp"
-        android:elevation="30dp"
-        android:layout_marginTop="440dp"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-        <include
-            layout="@layout/panel_filtros_proveedores"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="bottom"/>
+    <FrameLayout android:id="@+id/panelFiltrosProveedores" android:layout_width="match_parent" android:layout_height="350dp" android:elevation="30dp" android:layout_marginTop="440dp" android:visibility="gone" app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+        <include layout="@layout/panel_filtros_proveedores" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="bottom" />
     </FrameLayout>
-    <FrameLayout
-        android:id="@+id/containerDetalleProveedor"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        android:background="@color/white"
-        android:elevation="30dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-    <!-- ========================================= -->
-    <!-- PANEL PREFERENCIAS DE CUENTA -->
-    <!-- ========================================= -->
-
-
-
+    <FrameLayout android:id="@+id/containerDetalleProveedor" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" android:background="@color/white" android:elevation="30dp" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
 </androidx.drawerlayout.widget.DrawerLayout>
