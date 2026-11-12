@@ -10,13 +10,14 @@ struct GourMeetApp: App {
             Group {
                 if let address, !address.isEmpty {
                     if let api = try? RecipeAPI(address: address) {
-                        RecipeCatalogView(source: api, isDemo: false)
+                        RecipeCatalogView(source: api, isDemo: false,
+                                          favoritesScope: api.baseURL.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/")))
                     } else {
                         ContentUnavailableView("Dirección inválida", systemImage: "exclamationmark.circle",
                                                description: Text("Revisa GOURMEET_API_URL en el esquema de Xcode."))
                     }
                 } else {
-                    RecipeCatalogView(source: DemoRecipes(), isDemo: true)
+                    RecipeCatalogView(source: DemoRecipes(), isDemo: true, favoritesScope: "demo")
                 }
             }
             .tint(accent)

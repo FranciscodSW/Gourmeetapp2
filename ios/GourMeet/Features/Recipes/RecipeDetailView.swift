@@ -3,6 +3,7 @@ import SwiftUI
 struct RecipeDetailView: View {
     let summary: Recipe
     let source: any RecipeSource
+    @Binding var savedRecipes: Data
 
     @State private var state: LoadState<RecipeDetail> = .loading
     @State private var revision = 0
@@ -15,7 +16,11 @@ struct RecipeDetailView: View {
             case .failure:
                 LoadErrorView(message: "No se pudo abrir la receta.") { revision += 1 }
             case .loaded(let detail):
-                content(detail)
+                RecipeDetailContent(
+                    detail: detail,
+                    imageURL: source.imageURL(for: detail.recipe) ?? source.imageURL(for: summary),
+                    savedRecipes: $savedRecipes
+                )
             }
         }
         .navigationTitle("Receta")
@@ -25,12 +30,37 @@ struct RecipeDetailView: View {
         .task(id: revision) { await load() }
     }
 
-    private func content(_ detail: RecipeDetail) -> some View {
+    private func load() async {
+        if case .loaded = state { return }
+        state = .loading
+        do {
+            let detail = try await source.detail(for: summary.id)
+            guard !Task.isCancelled else { return }
+            state = .loaded(detail)
+        } catch {
+            guard !Task.isCancelled else { return }
+            state = .failure
+        }
+    }
+}
+
+struct RecipeDetailContent: View {
+    let detail: RecipeDetail
+    let imageURL: URL?
+    @Binding var savedRecipes: Data
+    @State private var checkedIngredients: Set<Int> = []
+    @State private var showSaveError = false
+
+    private var favorites: FavoriteRecipes { FavoriteRecipes(data: savedRecipes) }
+
+    var body: some View {
         let recipe = detail.recipe
-        return ScrollView {
+        ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                RecipePhoto(url: source.imageURL(for: recipe) ?? source.imageURL(for: summary), height: 240)
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                if let imageURL {
+                    RecipePhoto(url: imageURL, height: 216)
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                }
                 VStack(alignment: .leading, spacing: 10) {
                     if let category = recipe.category, !category.isEmpty {
                         Text(category).font(.subheadline.weight(.semibold)).foregroundStyle(Color.accentColor)
@@ -45,8 +75,7 @@ struct RecipeDetailView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         sectionTitle("Ingredientes")
                         ForEach(detail.ingredients.indices, id: \.self) { index in
-                            let ingredient = detail.ingredients[index]
-                            LabeledContent(ingredient.name, value: ingredient.amount ?? "")
+                            ingredientRow(at: index)
                             if index < detail.ingredients.count - 1 { Divider() }
                         }
                     }
@@ -70,15 +99,64 @@ struct RecipeDetailView: View {
                         Text(tip)
                     }
                 }
-                ShareLink(item: shareText(detail)) {
-                    Label("Compartir receta", systemImage: "square.and.arrow.up")
-                }
-                .buttonStyle(.bordered)
             }
             .frame(maxWidth: 680, alignment: .leading)
             .padding(16)
             .frame(maxWidth: .infinity)
         }
+        .navigationTitle("Receta")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            let isSaved = favorites.contains(detail.id)
+            Button {
+                do {
+                    savedRecipes = try favorites.toggling(detail)
+                } catch {
+                    showSaveError = true
+                }
+            } label: {
+                Label(isSaved ? "Quitar de favoritos" : "Guardar en favoritos",
+                      systemImage: isSaved ? "heart.fill" : "heart")
+            }
+            ShareLink(item: shareText(detail)) {
+                Label("Compartir receta", systemImage: "square.and.arrow.up")
+            }
+        }
+        .alert("No se pudo actualizar Favoritos", isPresented: $showSaveError) {
+            Button("Aceptar", role: .cancel) {}
+        }
+    }
+
+    private func ingredientRow(at index: Int) -> some View {
+        let ingredient = detail.ingredients[index]
+        let isChecked = checkedIngredients.contains(index)
+        return Button {
+            if isChecked {
+                checkedIngredients.remove(index)
+            } else {
+                checkedIngredients.insert(index)
+            }
+        } label: {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: isChecked ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isChecked ? Color.accentColor : .secondary)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(ingredient.name).strikethrough(isChecked)
+                    if let amount = ingredient.amount, !amount.isEmpty {
+                        Text(amount).font(.subheadline).foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(isChecked ? "Listo" : "Pendiente")
+        .accessibilityHint("Cambia el estado del ingrediente")
     }
 
     private func sectionTitle(_ title: String) -> some View {
@@ -96,18 +174,6 @@ struct RecipeDetailView: View {
             steps.isEmpty ? nil : (["Preparación"] + steps).joined(separator: "\n")
         ]
         return sections.compactMap { $0 }.joined(separator: "\n\n")
-    }
-
-    private func load() async {
-        state = .loading
-        do {
-            let detail = try await source.detail(for: summary.id)
-            guard !Task.isCancelled else { return }
-            state = .loaded(detail)
-        } catch {
-            guard !Task.isCancelled else { return }
-            state = .failure
-        }
     }
 }
 

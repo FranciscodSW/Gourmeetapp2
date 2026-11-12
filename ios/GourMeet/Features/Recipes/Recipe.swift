@@ -1,6 +1,6 @@
 import Foundation
 
-struct Recipe: Decodable, Identifiable, Sendable {
+struct Recipe: Codable, Identifiable, Sendable {
     let id: Int
     let name: String
     let minutes: Int?
@@ -55,7 +55,7 @@ struct Recipe: Decodable, Identifiable, Sendable {
     }
 }
 
-struct Ingredient: Decodable, Sendable {
+struct Ingredient: Codable, Sendable {
     let name: String
     let amount: String?
 
@@ -65,7 +65,7 @@ struct Ingredient: Decodable, Sendable {
     }
 }
 
-struct RecipeStep: Decodable, Sendable {
+struct RecipeStep: Codable, Sendable {
     let number: Int
     let instruction: String
 
@@ -75,10 +75,34 @@ struct RecipeStep: Decodable, Sendable {
     }
 }
 
-struct RecipeDetail: Sendable {
+struct RecipeDetail: Codable, Identifiable, Sendable {
     let recipe: Recipe
     let ingredients: [Ingredient]
     let steps: [RecipeStep]
+
+    var id: Int { recipe.id }
+}
+
+struct FavoriteRecipes {
+    let entries: [RecipeDetail]
+
+    init(data: Data) {
+        entries = (try? JSONDecoder().decode([RecipeDetail].self, from: data)) ?? []
+    }
+
+    func contains(_ id: Int) -> Bool {
+        entries.contains { $0.id == id }
+    }
+
+    func toggling(_ detail: RecipeDetail) throws -> Data {
+        var updated = entries
+        if let index = updated.firstIndex(where: { $0.id == detail.id }) {
+            updated.remove(at: index)
+        } else {
+            updated.insert(detail, at: 0)
+        }
+        return try JSONEncoder().encode(updated)
+    }
 }
 
 private extension KeyedDecodingContainer {

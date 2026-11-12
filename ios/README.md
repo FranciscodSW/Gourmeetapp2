@@ -1,6 +1,6 @@
 # GourMeet para iOS
 
-La primera versión en SwiftUI incluye el catálogo de **Qué cocinar**, búsqueda por nombre y el detalle con ingredientes, porciones, preparación y la opción de compartir como texto. El modo demostración usa dos recetas de ejemplo y funciona sin conexión.
+La primera versión en SwiftUI incluye el catálogo de **Qué cocinar**, búsqueda por nombre y el detalle con ingredientes, porciones, preparación y la opción de compartir como texto. Puedes marcar ingredientes mientras preparas la receta y guardar favoritos en el dispositivo. Los favoritos conservan el detalle para leerlo sin conexión. La foto requiere conexión. El modo demostración usa dos recetas de ejemplo y guarda sus favoritos por separado.
 
 ## Cómo probarla
 
