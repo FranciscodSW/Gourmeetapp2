@@ -1,5 +1,9 @@
 package mx.com.gourmeet.app
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Handler
+import android.os.Looper
 import android.text.TextWatcher
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -13,7 +17,9 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import mx.com.gourmeet.app.databinding.FragmentDetalleRecetaBinding
@@ -65,7 +71,19 @@ class DetalleRecetaFragment : Fragment() {
     private var pasos = emptyList<PasoPreparacion>()
     private var pasoActual = 0
     private var speechRecognizer: SpeechRecognizer? = null
-    private lateinit var recognizerIntent: Intent
+    private val vozHandler = Handler(Looper.getMainLooper())
+    private val reanudarEscucha = Runnable { iniciarEscucha() }
+    private var reconocimientoEnCurso = false
+    private var lecturaId: String? = null
+    private var secuenciaLectura = 0
+    private var sintetizadorListo = false
+    private val permisoMicrofono = registerForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
+        if (concedido && _binding != null &&
+            viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+        ) {
+            activarEscucha()
+        }
+    }
     private var escuchando = false
     private var escuchaContinua = false
     private var lecturaActiva = false
@@ -115,7 +133,6 @@ class DetalleRecetaFragment : Fragment() {
         cargarDetalle()
         verificarFavorito()
         inicializarTextToSpeech()
-        inicializarReconocimiento()
         inicializarRecyclerComentarios()
         verificarRecetaTerminada()
         gestureDetector = GestureDetector(
@@ -163,29 +180,11 @@ class DetalleRecetaFragment : Fragment() {
             marcarRecetaTerminada()
         }
         binding.btnVoz.setOnClickListener {
-
-            if (!escuchaContinua) {
-
-                escuchaContinua = true
-
-                binding.btnVoz.icon =
-                    ContextCompat.getDrawable(
-                        requireContext(),
-                        R.drawable.ic_microfono_on
-                    )
-
-                iniciarEscucha()
-
-            } else {
-
-                escuchaContinua = false
-
-                binding.btnVoz.icon =
-                    ContextCompat.getDrawable(
-                        requireContext(),
-                        R.drawable.ic_microfono
-                    )
-                detenerEscucha()
+            when {
+                escuchaContinua -> desactivarEscucha()
+                ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO) !=
+                    PackageManager.PERMISSION_GRANTED -> permisoMicrofono.launch(Manifest.permission.RECORD_AUDIO)
+                else -> activarEscucha()
             }
         }
         binding.editComentario.addTextChangedListener {
@@ -1110,164 +1109,170 @@ class DetalleRecetaFragment : Fragment() {
             }
         }
     }
-    private fun inicializarReconocimiento() {
-        Log.d("VOZ", "Entró a iniciarEscucha")
-        if (!SpeechRecognizer.isRecognitionAvailable(requireContext()))
-            return
-        speechRecognizer =
-            SpeechRecognizer.createSpeechRecognizer(requireContext())
-        recognizerIntent = Intent(
-            RecognizerIntent.ACTION_RECOGNIZE_SPEECH
-        ).apply {
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE,
-                "es-MX"
-            )
-            putExtra(
-                RecognizerIntent.EXTRA_PARTIAL_RESULTS,
-                false
-            )
-        }
-        Log.d("VOZ", "Comenzando reconocimiento")
-        speechRecognizer?.setRecognitionListener(
-            object : RecognitionListener {
-                override fun onResults(results: Bundle?) {
-                    escuchando = false
-                    val texto = results
-                        ?.getStringArrayList(
-                            SpeechRecognizer.RESULTS_RECOGNITION
-                        )
-                        ?.firstOrNull()
-                        ?: return
-                    Log.d("VOZ", "Texto reconocido: $texto")
-                    // Analizar el texto reconocido
-                    val comando = administradorComandosVoz.analizarTexto(texto)
-                    // Ejecutar el comando encontrado
-                    ejecutarComandoVoz(comando)
-                    if (escuchaContinua) {
-                        binding.root.postDelayed({
-                            iniciarEscucha()
-                        }, 600)
-                    }
+    private fun crearReconocedor(): SpeechRecognizer {
+        val reconocedor = SpeechRecognizer.createSpeechRecognizer(requireContext())
+        reconocedor.setRecognitionListener(object : RecognitionListener {
+            private fun turnoVigente() =
+                speechRecognizer === reconocedor && reconocimientoEnCurso && lecturaId == null
+
+            override fun onResults(results: Bundle?) {
+                if (!turnoVigente()) return
+                finalizarTurnoEscucha()
+                val texto = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
+                if (texto != null) {
+                    ejecutarComandoVoz(administradorComandosVoz.analizarTexto(texto))
                 }
-                override fun onReadyForSpeech(params: Bundle?) {
-                    escuchando = true
-                    iniciarAnimacionMicrofono()
-                }
-                override fun onBeginningOfSpeech() {}
-                override fun onRmsChanged(rmsdB: Float) {
-                    requireActivity().runOnUiThread {
-                        val escala = (1f + (rmsdB / 15f))
-                            .coerceIn(1f, 1.35f)
-                        binding.btnVoz.scaleX = escala
-                        binding.btnVoz.scaleY = escala
-                    }
-                }
-                override fun onBufferReceived(buffer: ByteArray?) {}
-                override fun onEndOfSpeech() {
-                    escuchando = false
-                    detenerAnimacionMicrofono()
-                }
-                override fun onError(error: Int) {
-                    escuchando = false
-                    detenerAnimacionMicrofono()
-                    Log.d("VOZ","Error: $error")
-                    when(error){
-                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> return
-                        SpeechRecognizer.ERROR_CLIENT -> return
-                    }
-                    if(escuchaContinua){
-                        binding.root.postDelayed({
-                            iniciarEscucha()
-                        },800)
-                    }
-                }
-                override fun onPartialResults(partialResults: Bundle?) {}
-                override fun onEvent(eventType: Int, params: Bundle?) {}
+                programarEscucha()
             }
-        )
+
+            override fun onReadyForSpeech(params: Bundle?) {
+                if (!turnoVigente()) return
+                escuchando = true
+                iniciarAnimacionMicrofono()
+            }
+
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(rmsdB: Float) {
+                if (!turnoVigente() || !escuchando) return
+                val boton = _binding?.btnVoz ?: return
+                val escala = (1f + rmsdB / 15f).coerceIn(1f, 1.35f)
+                boton.scaleX = escala
+                boton.scaleY = escala
+            }
+
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEndOfSpeech() {
+                if (!turnoVigente()) return
+                apagarAnimacionEscucha()
+            }
+
+            override fun onError(error: Int) {
+                if (!turnoVigente()) return
+                finalizarTurnoEscucha()
+                when (error) {
+                    SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT ->
+                        programarEscucha()
+                    else -> {
+                        desactivarEscucha()
+                        Toast.makeText(context, "No se pudo usar el micrófono. Toca para reintentar.",
+                            Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            override fun onPartialResults(partialResults: Bundle?) {}
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
+        return reconocedor
     }
+
     private fun inicializarTextToSpeech() {
-
+        val vista = binding
         textToSpeech = TextToSpeech(requireContext()) { status ->
-
-            if (status == TextToSpeech.SUCCESS) {
-
-                val voz = textToSpeech?.voices?.firstOrNull {
-                    it.name == "es-es-x-eec-network"
-                }
-
-                if (voz != null) {
-
-                    Log.d("TTS", "Usando voz: ${voz.name}")
-
-                    textToSpeech?.voice = voz
-
-                } else {
-
-                    Log.d("TTS", "No se encontró la voz.")
-
-                    textToSpeech?.language = Locale("es", "MX")
-
-                }
-
-                textToSpeech?.setSpeechRate(0.9f)
-
-                textToSpeech?.setPitch(1.0f)
-
-                textToSpeech?.setOnUtteranceProgressListener(
+            vozHandler.post {
+                if (_binding !== vista || status != TextToSpeech.SUCCESS) return@post
+                val motor = textToSpeech ?: return@post
+                val voz = motor.voices?.firstOrNull { it.name == "es-es-x-eec-network" }
+                if (voz != null) motor.voice = voz else motor.language = Locale.forLanguageTag("es-MX")
+                motor.setSpeechRate(0.9f)
+                motor.setPitch(1.0f)
+                sintetizadorListo = motor.setOnUtteranceProgressListener(
                     object : UtteranceProgressListener() {
-
-                        override fun onStart(utteranceId: String?) {
-                            Log.d("TTS", "Comenzó la lectura")
-                        }
-
-                        override fun onDone(utteranceId: String?) {
-                            Log.d("TTS", "Terminó la lectura")
-                        }
-
-                        override fun onError(utteranceId: String?) {
-                            Log.d("TTS", "Error al leer")
-                        }
+                        override fun onStart(utteranceId: String?) {}
+                        override fun onDone(utteranceId: String?) = terminarLectura(utteranceId)
+                        override fun onError(utteranceId: String?) = terminarLectura(utteranceId)
+                        override fun onStop(utteranceId: String?, interrupted: Boolean) =
+                            terminarLectura(utteranceId)
                     }
-                )
-
-            } else {
-
-                Log.e("TTS", "No se pudo inicializar TextToSpeech")
-
+                ) == TextToSpeech.SUCCESS
+                iniciarLecturaPasoActual()
             }
         }
     }
+
     private fun iniciarLecturaPasoActual() {
-        if (!lecturaActiva) {
+        if (!lecturaActiva || !sintetizadorListo) return
+        val paso = pasos.getOrNull(pasoActual) ?: return
+        val motor = textToSpeech ?: return
+        val id = "paso-${++secuenciaLectura}"
+        lecturaId = id
+        cancelarEscucha()
+        if (motor.speak(paso.descripcion, TextToSpeech.QUEUE_FLUSH, null, id) != TextToSpeech.SUCCESS) {
+            terminarLectura(id)
+        }
+    }
+
+    private fun terminarLectura(id: String?) {
+        vozHandler.post {
+            if (id == null || id != lecturaId) return@post
+            lecturaId = null
+            programarEscucha()
+        }
+    }
+
+    private fun detenerLectura() {
+        val estabaLeyendo = lecturaId != null
+        lecturaId = null
+        textToSpeech?.stop()
+        if (estabaLeyendo) programarEscucha()
+    }
+
+    private fun activarEscucha() {
+        if (!SpeechRecognizer.isRecognitionAvailable(requireContext())) {
+            Toast.makeText(context, "El reconocimiento de voz no está disponible.", Toast.LENGTH_SHORT).show()
             return
         }
-        if (pasos.isEmpty()) return
-        val texto = pasos[pasoActual].descripcion
-        textToSpeech?.speak(
-            texto,
-            TextToSpeech.QUEUE_FLUSH,
-            null,
-            "PASO_ACTUAL"
-        )
+        escuchaContinua = true
+        binding.btnVoz.setIconResource(R.drawable.ic_microfono_on)
+        programarEscucha()
     }
-    private fun detenerLectura() {
-        textToSpeech?.stop()
-    }
+
     private fun iniciarEscucha() {
-        if (escuchando) return
-        escuchando = true
-        speechRecognizer?.startListening(recognizerIntent)
+        if (_binding == null || !escuchaContinua || reconocimientoEnCurso || lecturaId != null) return
+        val reconocedor = speechRecognizer ?: crearReconocedor().also { speechRecognizer = it }
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-MX")
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+        }
+        reconocimientoEnCurso = true
+        reconocedor.startListening(intent)
     }
-    private fun detenerEscucha() {
+
+    private fun programarEscucha() {
+        if (!escuchaContinua || lecturaId != null) return
+        vozHandler.removeCallbacks(reanudarEscucha)
+        vozHandler.postDelayed(reanudarEscucha, 600L)
+    }
+
+    private fun finalizarTurnoEscucha() {
+        reconocimientoEnCurso = false
+        apagarAnimacionEscucha()
+    }
+
+    private fun apagarAnimacionEscucha() {
         escuchando = false
-        speechRecognizer?.stopListening()
+        val boton = _binding?.btnVoz ?: return
+        detenerAnimacionMicrofono()
+        boton.scaleX = 1f
+        boton.scaleY = 1f
     }
+
+    private fun cancelarEscucha() {
+        vozHandler.removeCallbacks(reanudarEscucha)
+        val reconocedor = speechRecognizer
+        speechRecognizer = null
+        finalizarTurnoEscucha()
+        reconocedor?.cancel()
+        reconocedor?.destroy()
+    }
+
+    private fun desactivarEscucha() {
+        escuchaContinua = false
+        _binding?.btnVoz?.setIconResource(R.drawable.ic_microfono)
+        cancelarEscucha()
+    }
+
     private fun siguientePaso() {
         if (pasoActual < pasos.lastIndex) {
             pasoActual++
@@ -1333,10 +1338,6 @@ class DetalleRecetaFragment : Fragment() {
             circulo.setOnClickListener {
                 pasoActual = i
                 mostrarPaso()
-                actualizarIndicadores()
-                if (lecturaActiva) {
-                    iniciarLecturaPasoActual()
-                }
             }
             binding.containerIndicadores.addView(circulo)
             if (i < pasos.lastIndex) {
@@ -1878,14 +1879,22 @@ class DetalleRecetaFragment : Fragment() {
         binding.btnComentar.alpha =
             if (habilitar) 1f else 0.5f
     }
+    override fun onStop() {
+        desactivarEscucha()
+        lecturaActiva = false
+        _binding?.btnParlante?.setIconResource(R.drawable.ic_audio_off)
+        detenerLectura()
+        super.onStop()
+    }
+
     override fun onDestroyView() {
-        speechRecognizer?.cancel()
-        speechRecognizer?.destroy()
-        speechRecognizer = null
-        textToSpeech?.stop()
+        desactivarEscucha()
+        detenerLectura()
+        sintetizadorListo = false
         textToSpeech?.shutdown()
         textToSpeech = null
-        animatorSet?.cancel()
+        vozHandler.removeCallbacksAndMessages(null)
+        animatorSet = null
         recetaActual = null
         super.onDestroyView()
         _binding = null
