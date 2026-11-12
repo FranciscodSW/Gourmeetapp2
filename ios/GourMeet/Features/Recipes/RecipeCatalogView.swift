@@ -75,6 +75,18 @@ struct RecipeCatalogView: View {
 
     private func catalog(_ recipes: [Recipe]) -> some View {
         ScrollView {
+            if request.query.isEmpty {
+                Image("GourMeetWordmark", bundle: .main)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 126)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    .accessibilityLabel("GourMeet")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding([.top, .horizontal], 16)
+            }
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 16)], spacing: 16) {
                 ForEach(recipes) { recipe in
                     NavigationLink {
