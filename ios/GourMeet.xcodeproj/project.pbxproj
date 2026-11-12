@@ -1,0 +1,260 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+		D53F389973E28E9DF7962AF2 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			name = "GourMeetApp.swift";
+			path = "App/GourMeetApp.swift";
+			sourceTree = "<group>";
+		};
+		E7744682A23F74A92F1CF7A8 = {
+			isa = "PBXBuildFile";
+			fileRef = "D53F389973E28E9DF7962AF2";
+		};
+		6F71A7822D93A1DE140680D0 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			name = "RecipeAPI.swift";
+			path = "Core/Networking/RecipeAPI.swift";
+			sourceTree = "<group>";
+		};
+		D8C27407ED172AC3583781B5 = {
+			isa = "PBXBuildFile";
+			fileRef = "6F71A7822D93A1DE140680D0";
+		};
+		1AD764192A0FC2CA577A84B3 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			name = "DemoRecipes.swift";
+			path = "Features/Recipes/DemoRecipes.swift";
+			sourceTree = "<group>";
+		};
+		21073B28CE20081A0DCF22BD = {
+			isa = "PBXBuildFile";
+			fileRef = "1AD764192A0FC2CA577A84B3";
+		};
+		7A48A0389388F39948645D01 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			name = "Recipe.swift";
+			path = "Features/Recipes/Recipe.swift";
+			sourceTree = "<group>";
+		};
+		D05202B5A5BEEEACA82C8D2E = {
+			isa = "PBXBuildFile";
+			fileRef = "7A48A0389388F39948645D01";
+		};
+		72B61189CED54BE01615573D = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			name = "RecipeCatalogView.swift";
+			path = "Features/Recipes/RecipeCatalogView.swift";
+			sourceTree = "<group>";
+		};
+		CF8CEC20AD9EF3AA69E31EB6 = {
+			isa = "PBXBuildFile";
+			fileRef = "72B61189CED54BE01615573D";
+		};
+		828BD8D8B5A6E50FFC4E3E4A = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			name = "RecipeDetailView.swift";
+			path = "Features/Recipes/RecipeDetailView.swift";
+			sourceTree = "<group>";
+		};
+		7347E271064661AFE179CA3A = {
+			isa = "PBXBuildFile";
+			fileRef = "828BD8D8B5A6E50FFC4E3E4A";
+		};
+		170322A32F3C35B2C61576A5 = {
+			isa = "PBXFileReference";
+			lastKnownFileType = "text.plist.xml";
+			path = "Resources/Info.plist";
+			sourceTree = "<group>";
+		};
+		5652941471EEF5B25819CDC3 = {
+			isa = "PBXGroup";
+			path = "GourMeet";
+			children = (
+				"D53F389973E28E9DF7962AF2",
+				"6F71A7822D93A1DE140680D0",
+				"1AD764192A0FC2CA577A84B3",
+				"7A48A0389388F39948645D01",
+				"72B61189CED54BE01615573D",
+				"828BD8D8B5A6E50FFC4E3E4A",
+				"170322A32F3C35B2C61576A5",
+			);
+			sourceTree = "<group>";
+		};
+		A8792157CB4F27FB949C035F = {
+			isa = "PBXFileReference";
+			explicitFileType = "wrapper.application";
+			includeInIndex = 0;
+			path = "GourMeet.app";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		0A3E27B8CA818264D75C8D81 = {
+			isa = "PBXGroup";
+			name = "Products";
+			children = (
+				"A8792157CB4F27FB949C035F",
+			);
+			sourceTree = "<group>";
+		};
+		0D6E4079E36703EBD37C0072 = {
+			isa = "PBXGroup";
+			children = (
+				"5652941471EEF5B25819CDC3",
+				"0A3E27B8CA818264D75C8D81",
+			);
+			sourceTree = "<group>";
+		};
+		878A52FC5FF6A57D50B7B870 = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = 2147483647;
+			files = (
+				"E7744682A23F74A92F1CF7A8",
+				"D8C27407ED172AC3583781B5",
+				"21073B28CE20081A0DCF22BD",
+				"D05202B5A5BEEEACA82C8D2E",
+				"CF8CEC20AD9EF3AA69E31EB6",
+				"7347E271064661AFE179CA3A",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E2AA269EB967A8853A258BFA = {
+			isa = "PBXFrameworksBuildPhase";
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41D311A605520FC7B8B9A980 = {
+			isa = "PBXResourcesBuildPhase";
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		73EBF6644258C120893E685D = {
+			isa = "XCBuildConfiguration";
+			name = "Debug";
+			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				SDKROOT = "iphoneos";
+				SWIFT_VERSION = "5.0";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				ENABLE_TESTABILITY = "YES";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+			};
+		};
+		0B0C687DF8B6B8DC790B519C = {
+			isa = "XCBuildConfiguration";
+			name = "Release";
+			buildSettings = {
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				SDKROOT = "iphoneos";
+				SWIFT_VERSION = "5.0";
+				SWIFT_COMPILATION_MODE = "wholemodule";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+			};
+		};
+		AAB2723FF2C8E6D1C298C1E4 = {
+			isa = "XCConfigurationList";
+			buildConfigurations = (
+				"73EBF6644258C120893E685D",
+				"0B0C687DF8B6B8DC790B519C",
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release";
+		};
+		6C7EFF6369083C8E1F2B1994 = {
+			isa = "XCBuildConfiguration";
+			name = "Debug";
+			buildSettings = {
+				PRODUCT_NAME = "GourMeet";
+				PRODUCT_BUNDLE_IDENTIFIER = "mx.com.gourmeet.ios";
+				GENERATE_INFOPLIST_FILE = "YES";
+				INFOPLIST_FILE = "GourMeet/Resources/Info.plist";
+				INFOPLIST_KEY_UILaunchScreen_Generation = "YES";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = "YES";
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = "0.1.0";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				CODE_SIGN_STYLE = "Automatic";
+			};
+		};
+		DD75E2CB1C510A828AC72D96 = {
+			isa = "XCBuildConfiguration";
+			name = "Release";
+			buildSettings = {
+				PRODUCT_NAME = "GourMeet";
+				PRODUCT_BUNDLE_IDENTIFIER = "mx.com.gourmeet.ios";
+				GENERATE_INFOPLIST_FILE = "YES";
+				INFOPLIST_FILE = "GourMeet/Resources/Info.plist";
+				INFOPLIST_KEY_UILaunchScreen_Generation = "YES";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = "YES";
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = "0.1.0";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				CODE_SIGN_STYLE = "Automatic";
+			};
+		};
+		04229C262AC03CB8C1234C52 = {
+			isa = "XCConfigurationList";
+			buildConfigurations = (
+				"6C7EFF6369083C8E1F2B1994",
+				"DD75E2CB1C510A828AC72D96",
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release";
+		};
+		34A04005BCAF206EEC990BD9 = {
+			isa = "PBXNativeTarget";
+			name = "GourMeet";
+			productName = "GourMeet";
+			productReference = "A8792157CB4F27FB949C035F";
+			productType = "com.apple.product-type.application";
+			buildConfigurationList = "04229C262AC03CB8C1234C52";
+			buildPhases = (
+				"878A52FC5FF6A57D50B7B870",
+				"E2AA269EB967A8853A258BFA",
+				"41D311A605520FC7B8B9A980",
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+		};
+		244210E48437B6556980A702 = {
+			isa = "PBXProject";
+			attributes = {
+				LastUpgradeCheck = "1600";
+			};
+			buildConfigurationList = "AAB2723FF2C8E6D1C298C1E4";
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = "es";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				"es",
+				"Base",
+			);
+			mainGroup = "0D6E4079E36703EBD37C0072";
+			productRefGroup = "0A3E27B8CA818264D75C8D81";
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				"34A04005BCAF206EEC990BD9",
+			);
+		};
+	};
+	rootObject = "244210E48437B6556980A702";
+}

@@ -1,8 +1,8 @@
-# Preparación de la versión iOS
+# Plan de la versión iOS
 
 ## 1. Acordar el entorno
 
-Confirmar versión mínima de iOS, Swift/SwiftUI como base, nombre e identificador, firma y cuenta de desarrollo. Crear el proyecto de Xcode dentro de ios cuando se apruebe empezar. Mantener los archivos personales de Xcode y las credenciales fuera de Git.
+El proyecto de Xcode usa SwiftUI, iOS 17 como mínimo y el identificador de desarrollo `mx.com.gourmeet.ios`. Queda por confirmar la cuenta de desarrollo y la firma para distribución.
 
 ## 2. Cerrar el contrato con el servidor
 
@@ -12,7 +12,7 @@ Preparar servidor de pruebas por HTTPS, con datos ficticios y configuración sep
 
 ## 3. Empezar por lectura de recetas
 
-Construir navegación, listado, búsqueda y detalle con cargas, errores y reintentos visibles. Usar la tipografía del sistema, tamaño de texto adaptable, áreas seguras y teclado. Contrastar el resultado con las pantallas Android y con los patrones propios de iOS.
+La app ya tiene navegación, listado, búsqueda por nombre y detalle, con modo demostración y conexión al laboratorio. Queda por validar la interfaz en el simulador y en un iPhone.
 
 ## 4. Incorporar la cuenta y los datos personales
 
@@ -24,10 +24,8 @@ Agregar hogar, invitaciones, planeador y lista de compras con el esquema oficial
 
 ## 6. Resolver integraciones de la plataforma
 
-Definir compartir, calendario, permisos y compras para iOS. El guardado de un evento en el calendario no implica sincronización con el planeador del backend. Acordar ese comportamiento antes de implementarlo.
+Compartir como texto ya está en el detalle de la receta. Queda por definir calendario, permisos y compras para iOS. El guardado de un evento en el calendario no implica sincronización con el planeador del backend. Acordar ese comportamiento antes de implementarlo.
 
 ## 7. Validar antes de distribuir
 
 Probar en simuladores y un iPhone físico, con distintos tamaños de texto, teclado y estados de red. Verificar recuperación de sesión, persistencia, permisos y ausencia de secretos en el paquete. Preparar la distribución de pruebas cuando el equipo acuerde iniciarla.
-
-Esta lista define el orden de trabajo futuro. No implica que esas funciones estén implementadas ni que exista una compilación iOS.

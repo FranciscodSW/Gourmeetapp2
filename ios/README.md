@@ -1,40 +1,16 @@
 # GourMeet para iOS
 
-Dejé esta estructura para preparar una futura versión de iOS sin mezclarla con el proyecto Android. Todavía no hay una aplicación ejecutable ni un proyecto de Xcode.
+La primera versión en SwiftUI incluye el catálogo de **Qué cocinar**, búsqueda por nombre y el detalle con ingredientes, porciones, preparación y la opción de compartir como texto. El modo demostración usa dos recetas de ejemplo y funciona sin conexión.
 
-La idea inicial es trabajar con Swift y SwiftUI. Antes de empezar hay que acordar la versión mínima de iOS, el identificador de la aplicación, la firma y el acceso al servidor de pruebas. No fijé esas decisiones todavía.
+## Cómo probarla
 
-## Organización
+1. Abre `GourMeet.xcodeproj` en Xcode y elige el esquema **GourMeet**.
+2. Selecciona un iPhone simulado con iOS 17 o posterior y pulsa **Run**. La app abre en modo demostración.
+3. Para usar el laboratorio, arranca PHP y MariaDB en el Mac. En **Product → Scheme → Edit Scheme → Run → Arguments**, habilita `GOURMEET_API_URL`. El valor del esquema apunta a `http://127.0.0.1:8081/api/` para el simulador.
+4. En un iPhone físico, selecciona tu equipo de firma en **Signing & Capabilities**. Para usar el servidor desde el teléfono, pon la URL HTTPS de pruebas, con el prefijo `/api/`, en la misma variable y ejecuta desde Xcode.
 
-| Carpeta | Uso previsto |
-| --- | --- |
-| `GourMeet/App` | Inicio de la aplicación y navegación |
-| `GourMeet/Core/Networking` | Cliente HTTP, configuración de entorno y errores |
-| `GourMeet/Core/Session` | Estado de sesión y almacenamiento seguro de credenciales |
-| `GourMeet/Core/DesignSystem` | Colores, tipografía y componentes compartidos por las pantallas iOS |
-| `GourMeet/Features/Account` | Acceso, cuenta y perfil |
-| `GourMeet/Features/Recipes` | Búsqueda, detalle, compartir y calendario |
-| `GourMeet/Features/Pantry` | Alacena e ingredientes |
-| `GourMeet/Features/Household` | Hogares, miembros e invitaciones |
-| `GourMeet/Features/Planner` | Planeador semanal |
-| `GourMeet/Features/ShoppingList` | Lista de compras |
-| `GourMeet/Features/Collections` | Colecciones y favoritos |
-| `GourMeet/Resources` | Recursos propios de iOS |
-| `Tests` | Pruebas de contratos, reglas y navegación cuando exista implementación |
-| `Documentation` | Plan e inventario de API |
+El identificador de desarrollo es `mx.com.gourmeet.ios`. El servidor del laboratorio usa datos ficticios. Si la API falla, la app muestra un error con la opción de reintentar.
 
-Las carpetas vacías se conservan con `.gitkeep`. Los colores de `Core/DesignSystem/tokens.json` toman como referencia el diseño que dejé en Android. Los tamaños son referencias de diseño; habrá que adaptarlos a iOS y a sus opciones de accesibilidad.
+## Siguiente etapa
 
-## Qué se puede aprovechar
-
-El backend PHP/MariaDB, los contratos de API y los datos ficticios pueden servir a las dos aplicaciones. Las vistas XML, las Activities y el código de interfaz Kotlin quedan en Android; no se copiaron como implementación de iOS.
-
-`Documentation/api-inventory.json` enumera las rutas declaradas actualmente en ApiService, con sus parámetros y tipos Android de referencia. No es un SDK Swift, una especificación OpenAPI ni una garantía de que todas las rutas estén completas o protegidas.
-
-## Antes de implementar
-
-Hay que confirmar la autenticación y autorización del backend, el esquema definitivo y una URL HTTPS de pruebas. La colección de datos del laboratorio no es el catálogo real. La tabla provisional de cocineros y las migraciones faltantes de compras siguen pendientes de revisión con Fran.
-
-La integración con el calendario y las compras de iOS se resolverá para esa plataforma. El calendario del teléfono y el planeador semanal del servidor son funciones distintas; hay que definir si se conectarán y cómo.
-
-El orden propuesto está en `Documentation/PLAN.md`. Esta preparación no cambia la compilación ni el comportamiento de Android.
+Cuenta, favoritos sincronizados, alacena, lista de compras y planeador requieren conectar los flujos autenticados. El orden está en [PLAN.md](Documentation/PLAN.md). El [inventario de API](Documentation/api-inventory.json) recoge las rutas de Android que se pueden revisar para esa integración.
