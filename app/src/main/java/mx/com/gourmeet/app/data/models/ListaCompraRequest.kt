@@ -3,5 +3,8 @@ import com.google.gson.annotations.SerializedName
 
 data class ListaCompraRequest(
     @SerializedName("PLA_ID")
-    val plaId: Int
+    val plaId: Int,
+
+    @SerializedName("CLI_ID")
+    val cliId: Int
 )

@@ -2,7 +2,7 @@ package mx.com.gourmeet.app.data.models
 
 
 data class GuardarRecetaPlaneadorRequest(
-    val HOG_ID: Int,
+    val HOG_ID: Int?,
     val CLI_ID: Int,
     val REC_ID: Int,
     val TPC_ID: Int,
@@ -29,7 +29,7 @@ data class EspacioRecetaGuardada(
 )
 
 data class ActualizarHoraEspacioRequest(
-    val HOG_ID: Int,
+    val HOG_ID: Int?,
     val CLI_ID: Int,
     val ECM_ID: Int,
     val ECM_HORA: String?

@@ -3,6 +3,7 @@ package mx.com.gourmeet.app.data.models
 import com.google.gson.annotations.SerializedName
 
 data class SincronizarListaResponse(
+
     @SerializedName("success")
     val success: Boolean,
 
@@ -17,6 +18,9 @@ data class SincronizarListaResponse(
 
     @SerializedName("HOG_ID")
     val hogId: Int?,
+
+    @SerializedName("MODALIDAD")
+    val modalidad: String? = null,
 
     @SerializedName("total_ingredientes")
     val totalIngredientes: Int?,

@@ -42,6 +42,7 @@ class ListaDeComprasActivity : AppCompatActivity() {
     private lateinit var adapterCategorias: CategoriaListaCompraAdapter
 
     private val actualizacionesEnCurso = mutableSetOf<Int>()
+    private var cargaEnCurso: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +54,9 @@ class ListaDeComprasActivity : AppCompatActivity() {
         hogId = intent.getIntExtra("HOG_ID", -1)
         cliId = intent.getIntExtra("CLI_ID", -1)
 
-        if (plaId <= 0 || hogId <= 0 || cliId <= 0) {
+        // HOG_ID es opcional: -1 representa el planeador individual.
+        // PLA_ID y CLI_ID sí son obligatorios en ambas modalidades.
+        if (plaId <= 0 || cliId <= 0) {
             Toast.makeText(
                 this,
                 "No se recibieron correctamente los datos del planeador.",
@@ -66,7 +69,7 @@ class ListaDeComprasActivity : AppCompatActivity() {
 
         Log.d(
             "ListaDeCompras",
-            "PLA_ID=$plaId, HOG_ID=$hogId, CLI_ID=$cliId"
+            "PLA_ID=$plaId, modalidad=${if (hogId > 0) "HOGAR" else "INDIVIDUAL"}, HOG_ID=${hogId.takeIf { it > 0 }}, CLI_ID=$cliId"
         )
 
         configurarPantalla()
@@ -107,12 +110,16 @@ class ListaDeComprasActivity : AppCompatActivity() {
 
     private fun cargarListaCompras() {
 
+        if (cargaEnCurso) return
+        cargaEnCurso = true
+
         lifecycleScope.launch {
 
             try {
 
                 val request = ListaCompraRequest(
-                    plaId = plaId
+                    plaId = plaId,
+                    cliId = cliId
                 )
 
                 // 1. OBTENER O CREAR LISTA
@@ -160,6 +167,8 @@ class ListaDeComprasActivity : AppCompatActivity() {
                 mostrarMensaje(
                     "Error al cargar la lista: ${e.message}"
                 )
+            } finally {
+                cargaEnCurso = false
             }
         }
     }
@@ -171,7 +180,8 @@ class ListaDeComprasActivity : AppCompatActivity() {
     private suspend fun consultarIngredientes() {
 
         val request = ListaCompraRequest(
-            plaId = plaId
+            plaId = plaId,
+            cliId = cliId
         )
 
         val respuesta = ApiClient.apiService
@@ -241,7 +251,8 @@ class ListaDeComprasActivity : AppCompatActivity() {
 
                 val request = ActualizarEstadoCompraRequest(
                     lciId = lciId,
-                    comprado = nuevoEstado
+                    comprado = nuevoEstado,
+                    cliId = cliId
                 )
 
                 val respuesta = ApiClient.apiService
@@ -310,7 +321,8 @@ class ListaDeComprasActivity : AppCompatActivity() {
 
                 // Consultar los ingredientes actualizados del servidor.
                 val request = ListaCompraRequest(
-                    plaId = plaId
+                    plaId = plaId,
+                    cliId = cliId
                 )
 
                 val respuesta = ApiClient.apiService
@@ -424,3 +436,4 @@ class ListaDeComprasActivity : AppCompatActivity() {
     }
 
 }
+

@@ -459,11 +459,42 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <include
-            android:id="@+id/includePlaneador"
-            layout="@layout/item_planeador_semanal"
+        <!-- Estado cuando el usuario todavía no tiene hogar -->
+        <LinearLayout
+            android:id="@+id/estadoSinHogar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/imgSinHogar"
+                android:layout_width="match_parent"
+                android:layout_height="260dp"
+                android:src="@drawable/ic_no_cuentas_con_hogar"
+                android:scaleType="fitCenter"
+                android:contentDescription="No cuentas con un hogar" />
+
+            <Button
+                android:id="@+id/btnCrearHogar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="CREAR UN HOGAR"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/azulgourmeet" />
+
+        </LinearLayout>
+
+        <!-- Contenedor exclusivo del PlaneadorSemanalFragment -->
+        <FrameLayout
+            android:id="@+id/contenedorFragmentoPlaneador"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
 
     </FrameLayout>
 

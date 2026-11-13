@@ -15,6 +15,8 @@ import mx.com.gourmeet.app.databinding.ActivityTrancicionDeCargaParaMenuFreeBind
 
 class Trancicion_de_carga_para_menu_free : AppCompatActivity() {
     private lateinit var binding: ActivityTrancicionDeCargaParaMenuFreeBinding
+    private val handler = Handler(Looper.getMainLooper())
+    private var navegacionEjecutada = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -46,6 +48,60 @@ class Trancicion_de_carga_para_menu_free : AppCompatActivity() {
             } catch (e: Exception) {
                 Log.e("TEST", "ERROR al abrir nueva interfaz: ${e.message}")
             }
+        }
+        // Configurar botón Continuar
+        binding.btnContinuar.setOnClickListener {
+            abrirMenuPrincipal()
+        }
+
+// Si el usuario no pulsa el botón en 2 segundos,
+// iniciar automáticamente
+        handler.postDelayed({
+
+            abrirMenuPrincipal()
+
+        }, 5000)
+    }
+    override fun onDestroy() {
+        handler.removeCallbacksAndMessages(null)
+        super.onDestroy()
+    }
+    private fun abrirMenuPrincipal() {
+
+        // Evitar ejecutar la navegación más de una vez
+        if (navegacionEjecutada) return
+
+        navegacionEjecutada = true
+
+        // Cancelar la ejecución automática pendiente
+        handler.removeCallbacksAndMessages(null)
+
+        try {
+
+            val intent = Intent(
+                this,
+                Menu_principal_free::class.java
+            )
+
+            startActivity(intent)
+
+            Log.d(
+                "TRANSICION",
+                "Abriendo Menu_principal_free"
+            )
+
+            // Cerrar la pantalla de transición
+            finish()
+
+        } catch (e: Exception) {
+
+            navegacionEjecutada = false
+
+            Log.e(
+                "TRANSICION",
+                "Error al abrir menú: ${e.message}",
+                e
+            )
         }
     }
     private fun iniciarAnimacionSubida() {
