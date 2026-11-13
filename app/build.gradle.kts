@@ -13,8 +13,8 @@ android {
         applicationId = "mx.com.gourmeet.app"
         minSdk = 33
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.7"
+        versionCode = 9
+        versionName = "1.8"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
