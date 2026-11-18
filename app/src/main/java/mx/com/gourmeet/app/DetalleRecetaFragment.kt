@@ -877,19 +877,6 @@ class DetalleRecetaFragment : Fragment() {
     private fun ocultarTodosLosPasos() {
         mostrandoTodosLosPasos = false
         binding.btnVerTodo.text = "Ver todo"
-        binding.btnVerTodo.setBackgroundColor(
-            ContextCompat.getColor(
-                requireContext(),
-                android.R.color.white
-            )
-        )
-        binding.btnVerTodo.setTextColor(
-            ContextCompat.getColor(
-                requireContext(),
-                R.color.azulgourmeet
-            )
-        )
-
         binding.containerTodosLosPasos.visibility = View.GONE
 
         binding.containerTodosLosPasos.removeAllViews()
@@ -900,20 +887,6 @@ class DetalleRecetaFragment : Fragment() {
         mostrandoTodosLosPasos = true
 
         binding.btnVerTodo.text = "Ver menos"
-
-        binding.btnVerTodo.setBackgroundColor(
-            ContextCompat.getColor(
-                requireContext(),
-                R.color.azulgourmeet
-            )
-        )
-
-        binding.btnVerTodo.setTextColor(
-            ContextCompat.getColor(
-                requireContext(),
-                android.R.color.white
-            )
-        )
 
         binding.containerTodosLosPasos.removeAllViews()
 
@@ -933,12 +906,7 @@ class DetalleRecetaFragment : Fragment() {
                 20
             )
 
-            txtPaso.setTextColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    android.R.color.black
-                )
-            )
+            txtPaso.setTextColor(ContextCompat.getColor(requireContext(), R.color.recipe_ink))
 
             binding.containerTodosLosPasos.addView(txtPaso)
 

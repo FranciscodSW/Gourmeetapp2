@@ -110,7 +110,20 @@ class RecipeInteractionsTest {
             val root = fragment.requireView()
             val title = root.findViewById<TextView>(R.id.txtTitulo)
             assertFalse(title is mx.com.gourmeet.app.views.StrokeTextView)
-            assertTrue(androidx.core.graphics.ColorUtils.calculateContrast(title.currentTextColor, android.graphics.Color.WHITE) >= 4.5)
+            val background = (root.background as android.graphics.drawable.ColorDrawable).color
+            val night = root.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
+            if (night == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+                assertTrue(androidx.core.graphics.ColorUtils.calculateLuminance(background) < 0.1)
+            }
+            assertTrue(androidx.core.graphics.ColorUtils.calculateContrast(title.currentTextColor, background) >= 4.5)
+            val preparation = root.findViewById<androidx.cardview.widget.CardView>(R.id.cardPreparacion)
+            root.findViewById<View>(R.id.btnVerTodo).performClick()
+            val steps = root.findViewById<ViewGroup>(R.id.containerTodosLosPasos)
+            val firstStep = steps.getChildAt(0) as TextView
+            assertTrue(androidx.core.graphics.ColorUtils.calculateContrast(
+                firstStep.currentTextColor, preparation.cardBackgroundColor.defaultColor
+            ) >= 4.5)
+            root.findViewById<View>(R.id.btnVerTodo).performClick()
             assertEquals(0, root.findViewById<View>(R.id.txtCoincidencia).visibility.let { if (it == View.GONE) 0 else 1 })
             for (id in listOf(R.id.layoutCompartir, R.id.layoutPlaneador, R.id.layoutColeccion, R.id.layoutFavoritos)) {
                 val action = root.findViewById<View>(id)

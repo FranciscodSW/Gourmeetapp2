@@ -1,0 +1,8 @@
+<resources>
+    <color name="recipe_surface">#F7F8FA</color>
+    <color name="recipe_card">#FFFFFF</color>
+    <color name="recipe_ink">#172337</color>
+    <color name="recipe_muted">#596579</color>
+    <color name="recipe_border">#E5E9F0</color>
+    <color name="recipe_link">#145CC5</color>
+</resources>
