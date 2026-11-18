@@ -8,7 +8,8 @@ import mx.com.gourmeet.app.data.models.*
 import mx.com.gourmeet.app.databinding.ItemIngredienteMiniBinding
 
 class IngredientesMiniAdapter(
-    private val lista: List<IngredienteReceta>
+    private val lista: List<IngredienteReceta>,
+    @androidx.annotation.ColorRes private val colorNombre: Int = R.color.black
 ) : RecyclerView.Adapter<IngredientesMiniAdapter.ViewHolder>() {
 
     inner class ViewHolder(
@@ -41,6 +42,7 @@ class IngredientesMiniAdapter(
                 false
             )
 
+        binding.txtIngrediente.setTextColor(androidx.core.content.ContextCompat.getColor(parent.context, colorNombre))
         return ViewHolder(binding)
 
     }

@@ -220,18 +220,15 @@
             app:cornerRadius="12dp"/>
         <!-- Separador -->
 
-
-
-            <ImageButton
-                android:id="@+id/btnGoogle"
-                android:layout_gravity="center"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/ic_gmail"
-                android:contentDescription="Google"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_gmail" />
+        <ImageButton
+            android:id="@+id/btnGoogle"
+            android:layout_width="240dp"
+            android:layout_height="50dp"
+            android:layout_margin="8dp"
+            android:layout_gravity="center"
+            android:background="@drawable/ic_gmail"
+            android:contentDescription="Continuar con Google"
+            android:scaleType="fitCenter" />
 
 
 

@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="200dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    android:minHeight="88dp"
+    android:background="@drawable/gm_detail_section"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:padding="14dp">
+    <TextView
+        android:id="@+id/nombreProductoCercano"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/recipe_ink"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/tiendaProductoCercano"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/recipe_muted"
+        android:textSize="14sp" />
+</LinearLayout>

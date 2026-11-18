@@ -174,7 +174,7 @@
             <!-- Botón login -->
             <Button
                 android:id="@+id/btnLogin"
-                android:text="Iniciar seción"
+                android:text="Iniciar sesión"
                 android:fontFamily="@font/caviardreams"
                 android:textColor="#FFFFFF"
                 android:layout_gravity="center_horizontal"

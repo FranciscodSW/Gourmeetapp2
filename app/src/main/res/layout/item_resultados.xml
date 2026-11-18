@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/containerCoincidencia" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="12dp">
+<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/containerCoincidencia" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="12dp">
     <LinearLayout android:id="@+id/headerCoincidencia" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:orientation="horizontal" android:gravity="center_vertical">
-        <TextView android:id="@+id/txtCoincidencia" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Coincidencia" android:textStyle="bold" android:textSize="20sp" android:textColor="@color/gm_ink" android:fontFamily="sans-serif-medium" />
-        <ImageView android:id="@+id/btnToggleCoincidencia" android:layout_width="48dp" android:layout_height="48dp" android:src="@drawable/ic_flecha_abajo" android:padding="15dp" android:contentDescription="Mostrar u ocultar recetas" />
+        <TextView android:id="@+id/txtCoincidencia" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Coincidencia" android:textStyle="bold" android:textSize="20sp" android:textColor="@color/recipe_ink" android:fontFamily="sans-serif-medium" />
+        <ImageView android:id="@+id/btnToggleCoincidencia" android:layout_width="48dp" android:layout_height="48dp" android:src="@drawable/ic_flecha_abajo" app:tint="@color/recipe_link" android:padding="15dp" android:contentDescription="Mostrar u ocultar recetas" />
     </LinearLayout>
     <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvCoincidencia" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" />
 </LinearLayout>

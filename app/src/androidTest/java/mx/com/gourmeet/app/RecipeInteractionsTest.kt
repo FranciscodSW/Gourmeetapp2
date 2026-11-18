@@ -104,6 +104,20 @@ class RecipeInteractionsTest {
         }
     }
 
+    @Test fun cookingHomeStartsWithPantryRecommendations() {
+        val recipes = menu.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvPrincipal)
+        waitUntil("Pantry recommendations did not reach the first section") {
+            recipes.findViewHolderForAdapterPosition(0)?.itemView
+                ?.findViewById<TextView>(R.id.txtCoincidencia)?.text == "Con lo que tienes en la alacena"
+        }
+        main {
+            val header = menu.findViewById<TextView>(R.id.txtTitulo)
+            val background = androidx.core.content.ContextCompat.getColor(menu, R.color.recipe_surface)
+            assertTrue(androidx.core.graphics.ColorUtils.calculateContrast(header.currentTextColor, background) >= 4.5)
+        }
+        capture("cooking-home")
+    }
+
     @Test fun detailHasReadableContentAndActions() {
         val fragment = openRecipe()
         main {

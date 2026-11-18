@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import mx.com.gourmeet.app.data.models.SeccionProductosProveedor
 import mx.com.gourmeet.app.databinding.ItemSeccionProductosProveedorBinding
@@ -222,12 +223,15 @@ class ProductosProveedorAdapter(
             // CONFIGURAR RECYCLER DE RECETAS
             // ======================================
 
+
             holder.binding.rvRecetasSeccion.apply {
 
+                // Scroll horizontal exclusivo para recetas
                 layoutManager =
-                    GridLayoutManager(
+                    LinearLayoutManager(
                         context,
-                        2
+                        LinearLayoutManager.HORIZONTAL,
+                        false
                     )
 
                 adapter =
@@ -238,9 +242,13 @@ class ProductosProveedorAdapter(
                 isNestedScrollingEnabled =
                     false
 
+                clipToPadding = false
+                clipChildren = false
+
                 overScrollMode =
                     View.OVER_SCROLL_NEVER
             }
+
         }
     }
 

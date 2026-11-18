@@ -42,7 +42,7 @@
             android:title="Vuélvete Premium"/>
         <item
             android:id="@+id/cerrar_sesion"
-            android:icon="@drawable/ic_premium"
+            android:icon="@drawable/ic_cerrar_sesion_negativo"
             android:title="Cerrar sesion"/>
 
     </group>

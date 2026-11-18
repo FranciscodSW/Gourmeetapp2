@@ -5,4 +5,7 @@
     <color name="recipe_muted">#B4C2D6</color>
     <color name="recipe_border">#35455E</color>
     <color name="recipe_link">#9BC5FF</color>
+    <color name="recipe_selection">#263E60</color>
+    <color name="recipe_warning">#FFD277</color>
+    <color name="recipe_danger">#FFB3B5</color>
 </resources>

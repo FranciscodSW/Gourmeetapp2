@@ -4,5 +4,5 @@ data class EliminarIngredienteEspacioRequest(
     val ECM_ID: Int,
     val PLA_ID: Int,
     val CLI_ID: Int,
-    val HOG_ID: Int
+    val HOG_ID: Int?
 )

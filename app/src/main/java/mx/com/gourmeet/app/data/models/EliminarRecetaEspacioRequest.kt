@@ -5,5 +5,5 @@ data class EliminarRecetaEspacioRequest(
     val ECM_ID: Int,
     val PLA_ID: Int,
     val CLI_ID: Int,
-    val HOG_ID: Int
+    val HOG_ID: Int?
 )

@@ -83,7 +83,8 @@ class CoincidenciaAdapter(
             // ✅ Adapter
             rvIngredientes.adapter =
                 IngredientesMiniAdapter(
-                    receta.Ingredientes ?: emptyList()
+                    receta.Ingredientes ?: emptyList(),
+                    R.color.recipe_ink
                 )
 
             itemView.setOnClickListener {

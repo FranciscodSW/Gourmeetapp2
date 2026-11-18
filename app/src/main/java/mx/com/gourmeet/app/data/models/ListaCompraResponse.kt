@@ -23,8 +23,14 @@ data class DatosListaCompra(
     @SerializedName("PLA_ID")
     val plaId: Int,
 
+    @SerializedName("CLI_ID")
+    val cliId: Int? = null,
+
     @SerializedName("HOG_ID")
     val hogId: Int?,
+
+    @SerializedName("MODALIDAD")
+    val modalidad: String? = null,
 
     @SerializedName("LCO_FECHA_CREACION")
     val fechaCreacion: String?,

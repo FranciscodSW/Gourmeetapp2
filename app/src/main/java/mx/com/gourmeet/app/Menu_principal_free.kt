@@ -73,8 +73,16 @@ import kotlin.collections.emptyList
 import kotlin.toString
 import android.view.GestureDetector
 import android.view.MotionEvent
+import kotlinx.coroutines.Job
+import kotlin.coroutines.cancellation.CancellationException
 
 class Menu_principal_free : AppCompatActivity() {
+    private var autocompleteJob: Job? = null
+    private var resultadosJob: Job? = null
+
+    private var versionAutocomplete = 0
+    private var versionResultados = 0
+    private var regresarDeCrearHogar = false
     private var gestoDeslizado = false
     private lateinit var detectorGestosBarra: GestureDetector
     private var menuAbierto = false
@@ -313,10 +321,6 @@ class Menu_principal_free : AppCompatActivity() {
         configurarPreferenciasCuenta()
         configurarNotificaciones()
         actualizarNavegacionPrincipal()
-        fusedLocationClient =
-            LocationServices.getFusedLocationProviderClient(this)
-        inicializarProveedores()
-        configurarBusquedaProveedores()
         // =========================================================
         // UBICACIÓN
         // =========================================================
@@ -531,13 +535,9 @@ class Menu_principal_free : AppCompatActivity() {
 
         adapterResultados =
             AdapterResultados(
-                mutableListOf()
-            ) { receta ->
-
-                abrirDetalleReceta(
-                    receta.REC_ID
-                )
-            }
+                onClick = { receta -> abrirDetalleReceta(receta.REC_ID) },
+                onProductoClick = ::abrirDetalleProveedor
+            )
 
 
         // =========================================================
@@ -700,35 +700,37 @@ class Menu_principal_free : AppCompatActivity() {
 
         binding.opModo.setOnClickListener {
 
-            if (
-                modoActual == Modo.INGREDIENTES
-            ) {
+            // Evitar conservar resultados del modo anterior
+            limpiarResultadosAlCambiarModo()
 
-                modoActual = Modo.RECETAS
-
-                binding.txtTitulo.text =
-                    "Recetas"
-
-                buscarRecetas(
-                    textoBusqueda
-                )
-
-            } else {
-
-                modoActual = Modo.INGREDIENTES
-
-                binding.txtTitulo.text =
-                    "Ingredientes"
-
-                buscarIngredientes(
-                    textoBusqueda
-                )
+            modoActual = when (modoActual) {
+                Modo.INGREDIENTES -> Modo.RECETAS
+                Modo.RECETAS -> Modo.INGREDIENTES
             }
 
+            // Actualizar encabezados
+            binding.txtTitulo.text = when (modoActual) {
+                Modo.INGREDIENTES -> "Ingredientes"
+                Modo.RECETAS -> "Recetas"
+            }
 
             actualizarModo()
-
             actualizarTextoBuscador()
+
+            // Recuperar la búsqueda en el modo nuevo
+            if (textoBusqueda.length >= 2) {
+
+                when (modoActual) {
+
+                    Modo.INGREDIENTES -> {
+                        buscarIngredientes(textoBusqueda)
+                    }
+
+                    Modo.RECETAS -> {
+                        buscarRecetas(textoBusqueda)
+                    }
+                }
+            }
 
             actualizarBusquedaCategoria()
         }
@@ -1038,17 +1040,22 @@ class Menu_principal_free : AppCompatActivity() {
         // INGREDIENTES SELECCIONADOS
         // =========================================================
 
+
         seleccionadosAdapter =
             SeleccionadosAdapter(
                 ingredientesSeleccionados
             ) { ingrediente ->
 
-                ingredientesSeleccionados.remove(
-                    ingrediente
-                )
+                // Eliminar ingrediente
+                ingredientesSeleccionados.remove(ingrediente)
 
+                // Actualizar lista visual
                 seleccionadosAdapter.notifyDataSetChanged()
+
+                // Actualizar las recetas según el estado actual
+                actualizarBusquedaCategoria()
             }
+
 
 
         binding.rvSeleccionados.layoutManager =
@@ -1196,18 +1203,16 @@ class Menu_principal_free : AppCompatActivity() {
         navegarSeccion(1)
     }
     private fun mostrarSeccionAlacena() {
-
         binding.rvPrincipal.visibility = View.GONE
         binding.panelingredietes.visibility = View.GONE
         binding.panelBusqueda.visibility = View.GONE
-
+        binding.panelPlaneador.visibility = View.GONE
         binding.panelAlacena.visibility = View.VISIBLE
-
         binding.panelAlacena.bringToFront()
         binding.barraInferior.bringToFront()
-
         cargarAlacenas()
     }
+
     private fun ocultarSeccionAlacena() {
 
         binding.panelAlacena.visibility =
@@ -1215,23 +1220,20 @@ class Menu_principal_free : AppCompatActivity() {
     }
     private fun mostrarSeccionBuscador() {
 
-        // ==========================================
-        // OCULTAR ALACENA
-        // ==========================================
+        // Ocultar los demás paneles.
+        binding.panelAlacena.visibility = View.GONE
+        binding.panelPlaneador.visibility = View.GONE
 
-        binding.panelAlacena.visibility =
-            View.GONE
+        // Mostrar el buscador.
+        binding.rvPrincipal.visibility = View.VISIBLE
+        binding.panelBusqueda.visibility = View.VISIBLE
 
+        // Mantener los elementos del buscador al frente.
+        binding.rvPrincipal.bringToFront()
+        binding.panelBusqueda.bringToFront()
 
-        // ==========================================
-        // MOSTRAR BUSCADOR
-        // ==========================================
-
-        binding.rvPrincipal.visibility =
-            View.VISIBLE
-
-        binding.panelBusqueda.visibility =
-            View.VISIBLE
+        // La barra inferior siempre debe permanecer visible.
+        binding.barraInferior.bringToFront()
     }
     private fun actualizarTextoBuscador() {
         binding.editBusqueda.setHint(
@@ -1263,8 +1265,8 @@ class Menu_principal_free : AppCompatActivity() {
         binding.btnCocinar.isSelected = !proveedoresVisible && seccionActual == Seccion.BUSCADOR
         binding.cardCentro.isSelected = !proveedoresVisible && seccionActual == Seccion.ALACENA
         binding.btnProveedores.isSelected = proveedoresVisible
-        val accent = androidx.core.content.ContextCompat.getColor(this, R.color.gm_accent)
-        val muted = androidx.core.content.ContextCompat.getColor(this, R.color.gm_muted)
+        val accent = androidx.core.content.ContextCompat.getColor(this, R.color.recipe_link)
+        val muted = androidx.core.content.ContextCompat.getColor(this, R.color.recipe_muted)
         binding.txtNavProveedores.setTextColor(if (proveedoresVisible) accent else muted)
         binding.iconBtnProveedores.setColorFilter(if (proveedoresVisible) accent else muted)
         binding.txtNavCocinar.setTextColor(if (binding.btnCocinar.isSelected) accent else muted)
@@ -1302,16 +1304,39 @@ class Menu_principal_free : AppCompatActivity() {
             .start()
     }
     private fun buscarIngredientes(texto: String) {
-        lifecycleScope.launch {
+
+        val version = ++versionAutocomplete
+
+        autocompleteJob?.cancel()
+
+        autocompleteJob = lifecycleScope.launch {
+
             try {
-                val respuesta = ApiClient.apiService.autocompleteIngredientes(texto)
+
+                val respuesta =
+                    ApiClient.apiService.autocompleteIngredientes(texto)
+
+                // Ignorar respuestas antiguas
+                if (version != versionAutocomplete) return@launch
+
+                if (modoActual != Modo.INGREDIENTES) return@launch
+
                 if (respuesta.success) {
+
+                    binding.rvResultados.adapter = adapter
+
                     binding.rvResultados.visibility = View.VISIBLE
                     binding.panelingredietes.visibility = View.VISIBLE
+
                     adapter.updateData(respuesta.ingredientes)
                 }
+
+            } catch (e: CancellationException) {
+                throw e
+
             } catch (e: Exception) {
-                e.printStackTrace()
+
+                Log.e("BUSQUEDA", "Error buscando ingredientes", e)
             }
         }
     }
@@ -1357,29 +1382,75 @@ class Menu_principal_free : AppCompatActivity() {
             cargarRecetasPorIngredientes()
         }
     }
+    private val ordenRecetasInicio = kotlin.random.Random.nextInt()
+    private var mostrandoInicioRecetas = false
+
     private fun cargarRecetasInicio() {
-        lifecycleScope.launch {
+        mostrandoInicioRecetas = true
+        resultadosJob?.cancel()
+        val categoria = categoriaSeleccionada ?: 0
+        resultadosJob = lifecycleScope.launch {
             try {
-                val request = RecetasInicioRequest(categoriaId = categoriaSeleccionada ?: 0)
-                val response = ApiClient.apiService.getRecetasInicio(request)
-                if (response.success) {
-                    val secciones = listOf(
-                        SeccionResultados("Más recientes", response.coincidencia),
-                        SeccionResultados("Menos calorías", response.calorias),
-                        SeccionResultados("Preparación rápida", response.tiempo),
-                        SeccionResultados("Más económicas", response.gasto),
-                        SeccionResultados("Sin lácteos", response.sin_lacteos),
-                        SeccionResultados("Sin azúcar", response.sin_azucar),
-                        SeccionResultados("Difíciles", response.dificultad))
-                    adapterResultados.actualizar(secciones)
+                val response = ApiClient.apiService.getRecetasInicio(RecetasInicioRequest(categoriaId = categoria))
+                if (!response.success) return@launch
+
+                val sugerencias = response.coincidencia.distinctBy { it.REC_ID }
+                    .shuffled(kotlin.random.Random(ordenRecetasInicio))
+                val secciones = listOf(
+                    SeccionResultados("Ideas para cocinar", sugerencias),
+                    SeccionResultados("Menos calorías", response.calorias),
+                    SeccionResultados("Preparación rápida", response.tiempo),
+                    SeccionResultados("Más económicas", response.gasto),
+                    SeccionResultados("Sin lácteos", response.sin_lacteos),
+                    SeccionResultados("Sin azúcar", response.sin_azucar),
+                    SeccionResultados("Difíciles", response.dificultad)
+                ).filter { it.recetas.isNotEmpty() }
+                val desdeAlacena = try {
+                    cargarRecomendacionesAlacena(categoria)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Log.w("RECETAS", "No se pudo consultar la alacena", error)
+                    emptyList()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
+                val inicio = if (desdeAlacena.isEmpty()) secciones else
+                    listOf(SeccionResultados("Con lo que tienes en la alacena", desdeAlacena)) + secciones
+                adapterResultados.actualizar(inicio, incluirProductos = true)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.w("RECETAS", "No se pudieron actualizar las recomendaciones", error)
             }
         }
     }
+
+    private suspend fun cargarRecomendacionesAlacena(categoria: Int): List<RecetaconFiltro> {
+        val cliente = SesionUsuario.obtenerId(this)
+        if (cliente <= 0) return emptyList()
+        val alacena = alacenaSeleccionada ?: ApiClient.apiService
+            .listarAlacenas(ListarAlacenasRequest(cliente))
+            .takeIf { it.success }?.alacenas?.firstOrNull() ?: return emptyList()
+        val inventario = ApiClient.apiService.listarIngredientesAlacena(
+            ListarIngredientesAlacenaRequest(
+                ALC_ID = alacena.ALC_ID,
+                ALC_CLI_ID = alacena.ALC_CLI_ID.takeIf { alacena.HOG_ID == null },
+                HOG_ID = alacena.HOG_ID
+            )
+        )
+        if (!inventario.success) return emptyList()
+        val ingredientes = inventario.ingredientes.filter {
+            it.AI_CANTIDAD > 0 && !it.AI_ESTADO.equals("descompuesto", ignoreCase = true) &&
+                !it.AI_ESTADO.equals("pasado", ignoreCase = true)
+        }.map { it.ING_ID }.distinct()
+        if (ingredientes.isEmpty()) return emptyList()
+        val sugerencias = ApiClient.apiService.getFiltrosRecetas(FiltrosRecetasRequest(ingredientes, categoria))
+        return if (sugerencias.success) sugerencias.coincidencia else emptyList()
+    }
+
     private fun cargarRecetasPorIngredientes() {
-        lifecycleScope.launch {
+        mostrandoInicioRecetas = false
+        resultadosJob?.cancel()
+        resultadosJob = lifecycleScope.launch {
             try {
                 val request = FiltrosRecetasRequest(
                     ingredientes = ingredientesSeleccionados.map { it.id },
@@ -1404,7 +1475,9 @@ class Menu_principal_free : AppCompatActivity() {
         }
     }
     private fun cargarRecetasPorNombre(nombreReceta: String) {
-        lifecycleScope.launch {
+        mostrandoInicioRecetas = false
+        resultadosJob?.cancel()
+        resultadosJob = lifecycleScope.launch {
             try {
                 val request =
                     FiltrosRecetasNombreRequest(
@@ -1523,35 +1596,8 @@ class Menu_principal_free : AppCompatActivity() {
             .commit()
     }
     private fun cerrarDetalleProveedor() {
-
-        // ==========================================
-        // OCULTAR DETALLE DEL PROVEEDOR
-        // ==========================================
-
-        binding.containerDetalleProveedor.visibility =
-            View.GONE
-
-
-        // ==========================================
-        // MOSTRAR PANEL DE PROVEEDORES
-        // ==========================================
-
-        binding.panelProveedores.visibility =
-            View.VISIBLE
-
-
-        // ==========================================
-        // ELIMINAR FRAGMENT DEL DETALLE
-        // ==========================================
-
-        supportFragmentManager.findFragmentById(
-            R.id.containerDetalleProveedor
-        )?.let { fragment ->
-
-            supportFragmentManager.beginTransaction()
-                .remove(fragment)
-                .commit()
-        }
+        binding.containerDetalleProveedor.visibility = View.GONE
+        supportFragmentManager.popBackStack()
     }
     private fun cargarUsuario() {
 
@@ -1569,21 +1615,43 @@ class Menu_principal_free : AppCompatActivity() {
                 .into(binding.imgUsuario)
         }
     }
+
     private fun actualizarBusquedaCategoria() {
-        if (modoActual == Modo.INGREDIENTES) {
-            if (ingredientesSeleccionados.isNotEmpty()) {
-                cargarRecetasPorIngredientes()
-            }
-        } else {
-            if (recetasSeleccionadas.isNotEmpty()) {
-                cargarRecetasPorNombre(
-                    recetasSeleccionadas.last().nombre
-                )
 
+        when (modoActual) {
+
+            Modo.INGREDIENTES -> {
+
+                if (ingredientesSeleccionados.isNotEmpty()) {
+
+                    // Buscar con los ingredientes seleccionados
+                    cargarRecetasPorIngredientes()
+
+                } else {
+
+                    // Sin ingredientes: mostrar recetas de inicio
+                    cargarRecetasInicio()
+                }
             }
 
+            Modo.RECETAS -> {
+
+                if (recetasSeleccionadas.isNotEmpty()) {
+
+                    // Buscar por la última receta seleccionada
+                    cargarRecetasPorNombre(
+                        recetasSeleccionadas.last().nombre
+                    )
+
+                } else {
+
+                    // Sin recetas seleccionadas: mostrar recetas de inicio
+                    cargarRecetasInicio()
+                }
+            }
         }
     }
+
     private fun cargarInformacionUsuario() {
 
         val encabezado = binding.navigationView.getHeaderView(0)
@@ -2020,6 +2088,37 @@ class Menu_principal_free : AppCompatActivity() {
 
         configurarRecyclerProveedores()
     }
+    private var productosCercanosJob: Job? = null
+
+    private fun cargarProductosCercanos(ubicacion: Location) {
+        productosCercanosJob?.cancel()
+        productosCercanosJob = lifecycleScope.launch {
+            try {
+                val respuesta = ApiClient.apiService.listarProveedores()
+                if (!respuesta.success) return@launch
+                val productos = respuesta.proveedores.mapNotNull { proveedor ->
+                    val latitud = proveedor.Pro_Latitud?.toDoubleOrNull() ?: return@mapNotNull null
+                    val longitud = proveedor.Pro_Longitud?.toDoubleOrNull() ?: return@mapNotNull null
+                    if (latitud !in -90.0..90.0 || longitud !in -180.0..180.0) return@mapNotNull null
+                    val destino = Location("proveedor").apply {
+                        latitude = latitud
+                        longitude = longitud
+                    }
+                    val distancia = ubicacion.distanceTo(destino)
+                    if (distancia <= 10_000f) proveedor to distancia else null
+                }.sortedBy { it.second }.flatMap { (proveedor, _) ->
+                    proveedor.INGREDIENTES.orEmpty().filter { !it.NOMBRE.isNullOrBlank() }
+                        .take(3).map { ProductoRecomendado(it, proveedor) }
+                }.take(12)
+                adapterResultados.actualizarProductos(productos)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.w("PROVEEDORES", "No se pudieron cargar los productos cercanos", error)
+            }
+        }
+    }
+
     private fun cargarProveedores() {
 
         lifecycleScope.launch {
@@ -2159,10 +2258,8 @@ class Menu_principal_free : AppCompatActivity() {
                         "Ubicación obtenida: $latitudUsuario, $longitudUsuario"
                     )
 
-                    adapterSeccionesProveedores.actualizarUbicacion(
-                        latitudUsuario!!,
-                        longitudUsuario!!
-                    )
+                    adapterSeccionesProveedores.actualizarUbicacion(location.latitude, location.longitude)
+                    cargarProductosCercanos(location)
                 }
             }
             // ==========================================
@@ -7689,6 +7786,7 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
                 if (respuesta.success) {
 
                     val todosLosIngredientes = respuesta.ingredientes
+                    if (mostrandoInicioRecetas && alacenaSeleccionada?.ALC_ID == alcId) cargarRecetasInicio()
 
                     Log.d(
                         "ALACENA_ING",
@@ -9227,7 +9325,8 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
 
         val seccionesDisponibles = listOf(
             Seccion.BUSCADOR,
-            Seccion.ALACENA
+            Seccion.ALACENA,
+            Seccion.PLANEADOR
         )
 
         val indiceActual = seccionesDisponibles.indexOf(seccionActual)
@@ -9249,6 +9348,10 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             Seccion.ALACENA -> {
                 binding.txtSeccionActual.setText(R.string.nav_pantry)
                 mostrarSeccionAlacena()
+            }
+            Seccion.PLANEADOR -> {
+                binding.txtSeccionActual.text = "Planeador semanal"
+                mostrarSeccionPlaneador()
             }
 
             else -> Unit
@@ -9343,5 +9446,174 @@ ABASTECIMIENTO: ${request.AI_TIPO_ABASTECIMIENTO}
             }
         }
     }
+    private fun mostrarSeccionPlaneador() {
+
+        binding.rvPrincipal.visibility = View.GONE
+        binding.panelingredietes.visibility = View.GONE
+        binding.panelBusqueda.visibility = View.GONE
+        binding.panelAlacena.visibility = View.GONE
+
+        binding.panelPlaneador.visibility = View.VISIBLE
+        binding.panelPlaneador.bringToFront()
+
+        val cliId = SesionUsuario.obtenerId(this)
+
+        if (cliId <= 0) {
+            Toast.makeText(
+                this,
+                "No se pudo identificar al usuario.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        lifecycleScope.launch {
+            try {
+
+                val response = ApiClient.apiService
+                    .obtenerHogarUsuario(cliId)
+
+                if (!response.success) {
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        response.mensaje,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@launch
+                }
+
+                // El usuario todavía no tiene hogar.
+                if (!response.tiene_hogar || response.hogar == null) {
+                    mostrarEstadoSinHogar()
+                    return@launch
+                }
+
+                // El usuario sí tiene hogar.
+                val hogar = response.hogar
+
+                if (hogar.HOG_USU_ID <= 0) {
+                    Toast.makeText(
+                        this@Menu_principal_free,
+                        "No se pudo identificar tu membresía del hogar.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@launch
+                }
+
+                mostrarPlaneador(
+                    cliId = cliId,
+                    hogId = hogar.HOG_ID,
+                    hogUsuId = hogar.HOG_USU_ID
+                )
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    "MENU_PLANEADOR",
+                    "Error al consultar el hogar",
+                    e
+                )
+
+                Toast.makeText(
+                    this@Menu_principal_free,
+                    "Error al abrir el planeador: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+    private fun mostrarEstadoSinHogar() {
+
+        // Ocultar el contenedor del fragmento.
+        binding.contenedorFragmentoPlaneador.visibility = View.GONE
+
+        // Si había un fragmento anterior, lo retiramos.
+        val fragment = supportFragmentManager
+            .findFragmentByTag("PLANEADOR_SEMANAL")
+
+        if (fragment != null) {
+            supportFragmentManager.beginTransaction()
+                .remove(fragment)
+                .commit()
+        }
+
+        // Mostrar imagen y botón.
+        binding.estadoSinHogar.visibility = View.VISIBLE
+
+        binding.btnCrearHogar.setOnClickListener {
+
+            regresarDeCrearHogar = true
+
+            val intent = Intent(
+                this@Menu_principal_free,
+                MiHogarActivity::class.java
+            )
+
+            startActivity(intent)
+        }
+    }
+    private fun mostrarPlaneador(
+        cliId: Int,
+        hogId: Int,
+        hogUsuId: Int
+    ) {
+
+        // Ocultar el estado sin hogar.
+        binding.estadoSinHogar.visibility = View.GONE
+
+        // Mostrar el contenedor del fragmento.
+        binding.contenedorFragmentoPlaneador.visibility = View.VISIBLE
+
+        val fragment = supportFragmentManager
+            .findFragmentByTag("PLANEADOR_SEMANAL")
+
+        if (fragment == null) {
+
+            supportFragmentManager.beginTransaction()
+                .replace(
+                    R.id.contenedorFragmentoPlaneador,
+                    PlaneadorSemanalFragment.newInstance(
+                        cliId = cliId,
+                        hogId = hogId,
+                        hogUsuId = hogUsuId
+                    ),
+                    "PLANEADOR_SEMANAL"
+                )
+                .commit()
+
+        }
+    }
+    private fun limpiarResultadosAlCambiarModo() {
+        mostrandoInicioRecetas = false
+
+        // Invalidar respuestas anteriores
+        versionAutocomplete++
+        versionResultados++
+
+        // Cancelar consultas pendientes
+        autocompleteJob?.cancel()
+        autocompleteJob = null
+
+        resultadosJob?.cancel()
+        resultadosJob = null
+
+        // Limpiar resultados principales
+        adapterResultados.actualizar(emptyList())
+
+        // Limpiar autocompletado
+        adapter.updateData(emptyList())
+
+        // Desvincular el adaptador anterior
+        binding.rvResultados.adapter = null
+
+        // Ocultar panel de resultados
+        binding.rvResultados.visibility = View.GONE
+        binding.panelingredietes.visibility = View.GONE
+
+        // Mantener el contenido seleccionado del usuario
+    }
+
+
+
 
 }
