@@ -156,7 +156,6 @@ object SesionUsuario {
         context: Context,
         edad: Int
     ) {
-
         context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
             .edit()
             .putInt("edad", edad)
