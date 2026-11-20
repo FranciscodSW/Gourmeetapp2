@@ -5,18 +5,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
 
     android:layout_width="match_parent"
-    android:layout_height="82dp"
+    android:layout_height="wrap_content"
+    android:minHeight="82dp"
 
     android:layout_marginHorizontal="4dp"
     android:layout_marginVertical="4dp"
 
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/white">
+    app:cardBackgroundColor="@color/recipe_card">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:padding="6dp">
@@ -64,7 +65,7 @@
 
                 android:text="ABULÓN"
 
-                android:textColor="@color/black"
+                android:textColor="@color/recipe_ink"
                 android:textSize="14sp"
                 android:textStyle="bold"
 
@@ -86,13 +87,12 @@
 
                 android:text="Abulon Fresco"
 
-                android:textColor="@color/azulgourmeet"
+                android:textColor="@color/recipe_link"
                 android:textSize="11sp"
 
                 android:fontFamily="@font/caviardreams"
 
-                android:maxLines="2"
-                android:ellipsize="end"/>
+                />
 
         </LinearLayout>
 

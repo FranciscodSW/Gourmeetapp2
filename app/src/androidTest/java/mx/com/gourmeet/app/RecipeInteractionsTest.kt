@@ -50,7 +50,8 @@ class RecipeInteractionsTest {
     }
 
     @Before fun openLocalMenu() {
-        require(ApiClient.BASE_URL.startsWith("http://127.0.0.1:") || ApiClient.BASE_URL.startsWith("http://10.0.2.2:"))
+        require(ApiClient.BASE_URL.startsWith("http://127.0.0.1:") || ApiClient.BASE_URL.startsWith("http://10.0.2.2:") ||
+            (BuildConfig.LOCAL_ONLY && ApiClient.BASE_URL.startsWith("http://192.168.1.17:3001/")))
         instrumentation.targetContext.getSharedPreferences("user", Context.MODE_PRIVATE).edit()
             .putInt("id", 1).putString("nombre", "Usuario de pruebas")
             .putString("correo", "local@example.invalid").putInt("nivel", 1).commit()
@@ -98,6 +99,8 @@ class RecipeInteractionsTest {
     private fun capture(label: String) {
         val phase = InstrumentationRegistry.getArguments().getString("phase") ?: "recipe-review"
         val directory = File(instrumentation.targetContext.getExternalFilesDir(null), "ui-evidence").apply { mkdirs() }
+        instrumentation.waitForIdleSync()
+        Thread.sleep(450)
         requireNotNull(instrumentation.uiAutomation.takeScreenshot()).let { bitmap ->
             File(directory, "$phase-$label.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
             bitmap.recycle()
@@ -116,6 +119,88 @@ class RecipeInteractionsTest {
             assertTrue(androidx.core.graphics.ColorUtils.calculateContrast(header.currentTextColor, background) >= 4.5)
         }
         capture("cooking-home")
+    }
+
+    @Test fun nearbySupplierShowsPriceAndAcceptsReport() {
+        val location = android.location.Location("laboratorio").apply { latitude = 0.0; longitude = 0.0 }
+        main {
+            Menu_principal_free::class.java.getDeclaredMethod("cargarProductosCercanos", android.location.Location::class.java)
+                .apply { isAccessible = true }.invoke(menu, location)
+        }
+        val list = menu.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvPrincipal)
+        waitUntil("Supplier recommendation was not added") {
+            list.scrollToPosition(2)
+            list.findViewHolderForAdapterPosition(2)?.itemView?.findViewById<TextView>(R.id.txtCoincidencia)?.text ==
+                "Productos de nuestros proveedores"
+        }
+        waitUntil("Supplier price was not visible") {
+            list.findViewHolderForAdapterPosition(2)?.itemView
+                ?.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvCoincidencia)
+                ?.findViewHolderForAdapterPosition(0)?.itemView
+                ?.findViewById<TextView>(R.id.tiendaProductoCercano)?.text?.contains("25.50") == true
+        }
+        capture("supplier-products")
+        main {
+            list.findViewHolderForAdapterPosition(2)!!.itemView
+                .findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvCoincidencia)
+                .findViewHolderForAdapterPosition(0)!!.itemView.performClick()
+        }
+        lateinit var supplier: DetalleProveedorFragment
+        waitUntil("Supplier profile did not load") {
+            val fragment = menu.supportFragmentManager.findFragmentById(R.id.containerDetalleProveedor)
+            if (fragment is DetalleProveedorFragment && fragment.view?.findViewById<View>(R.id.btnReportarProveedor)?.isEnabled == true) {
+                supplier = fragment
+                true
+            } else false
+        }
+        waitUntil("Supplier name did not update") {
+            supplier.requireView().findViewById<TextView>(R.id.txtNombreProveedor).text == "Tienda de pruebas GourMeet"
+        }
+        waitUntil("Supplier products are missing") {
+            val sections = supplier.requireView().findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvProductosProveedor)
+            val prices = sections.findViewHolderForAdapterPosition(0)?.itemView
+                ?.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvIngredientesSeccion)
+            prices?.findViewHolderForAdapterPosition(0)?.itemView
+                ?.findViewById<TextView>(R.id.txtDescripcionIngrediente)?.text?.contains("25.50") == true
+        }
+        capture("supplier-profile")
+        main { supplier.requireView().findViewById<View>(R.id.btnReportarProveedor).performClick() }
+        val description = node(id = R.id.reportProviderDescription)
+        assertTrue(description.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT,
+            Bundle().apply { putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
+                "Prueba automática Pixel: validar el precio publicado con el proveedor ficticio.") }))
+        capture("supplier-report")
+        assertTrue(node(text = "Enviar reporte").performAction(AccessibilityNodeInfo.ACTION_CLICK))
+        waitUntil("Report dialog did not close") {
+            menu.window.decorView.hasWindowFocus()
+        }
+    }
+
+    @Test fun readingPausesMicrophoneAndIgnoresOldCompletion() {
+        val fragment = openRecipe()
+        fun value(name: String) = DetalleRecetaFragment::class.java.getDeclaredField(name)
+            .apply { isAccessible = true }.get(fragment)
+        waitUntil("Speech engine did not initialize") { value("sintetizadorListo") == true }
+        instrumentation.uiAutomation.grantRuntimePermission(instrumentation.targetContext.packageName,
+            android.Manifest.permission.RECORD_AUDIO)
+        main {
+            fragment.requireView().findViewById<View>(R.id.btnVoz).performClick()
+            fragment.requireView().findViewById<View>(R.id.btnParlante).performClick()
+            assertNotNull("Reading must reserve the audio turn", value("lecturaId"))
+            assertEquals(false, value("reconocimientoEnCurso"))
+            val active = value("lecturaId")
+            DetalleRecetaFragment::class.java.getDeclaredMethod("terminarLectura", String::class.java)
+                .apply { isAccessible = true }.invoke(fragment, "lectura-anterior")
+            assertEquals(active, value("lecturaId"))
+        }
+        main {
+            fragment.requireView().findViewById<View>(R.id.btnParlante).performClick()
+            fragment.requireView().findViewById<View>(R.id.btnVoz).performClick()
+            assertNull(value("lecturaId"))
+            assertEquals(false, value("escuchaContinua"))
+        }
+        Thread.sleep(900)
+        main { assertEquals(false, value("reconocimientoEnCurso")) }
     }
 
     @Test fun detailHasReadableContentAndActions() {

@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import mx.com.gourmeet.app.data.models.precioVisible
 import mx.com.gourmeet.app.data.models.IngredienteProveedor
 import mx.com.gourmeet.app.data.models.Proveedor
 import mx.com.gourmeet.app.data.models.RecetaconFiltro
@@ -86,7 +87,7 @@ class AdapterResultados(
         override fun onBindViewHolder(holder: ProductoHolder, position: Int) {
             val producto = productos[position]
             holder.nombre.text = producto.ingrediente.NOMBRE
-            holder.tienda.text = producto.proveedor.Pro_nombre
+            holder.tienda.text = listOfNotNull(producto.proveedor.Pro_nombre, producto.ingrediente.precioVisible()).joinToString("\n")
             holder.itemView.setOnClickListener { onClick(producto.proveedor) }
         }
 

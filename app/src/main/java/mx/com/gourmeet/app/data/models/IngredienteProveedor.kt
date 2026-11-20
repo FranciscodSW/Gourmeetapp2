@@ -6,5 +6,7 @@ data class IngredienteProveedor(
     val NOMBRE: String?,
     val DESCRIPCION: String?,
     val FOTO: String?,
-    val CATEGORIA: String?
+    val CATEGORIA: String?,
+    val PRECIO: Double? = null,
+    val UNIDAD: String? = null
 )

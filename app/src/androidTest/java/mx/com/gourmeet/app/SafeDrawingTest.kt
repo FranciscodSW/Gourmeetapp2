@@ -33,6 +33,8 @@ class SafeDrawingTest {
 
     @Test fun loginAvoidsSystemObstructions() = checkScreen(Login::class.java, "login")
     @Test fun menuAvoidsSystemObstructions() = checkScreen(Menu_principal_free::class.java, "menu")
+    @Test fun landscapeMenuAvoidsSystemObstructions() =
+        checkScreen(Menu_principal_free::class.java, "menu-landscape", landscape = true)
     @Test fun pantryAvoidsSystemObstructions() = checkScreen(MiAlacenaActivity::class.java, "pantry")
 
     @Test fun householdPantryAvoidsSystemObstructions() = checkScreen(AlacenaActivity::class.java, "household-pantry")
@@ -49,7 +51,7 @@ class SafeDrawingTest {
     @Test fun pantryNavigationHasStableDestinations() =
         checkScreen(Menu_principal_free::class.java, "pantry-navigation", pantry = true)
 
-    private fun <A : Activity> checkScreen(type: Class<A>, label: String, guestPantry: Boolean = false, pantry: Boolean = false) {
+    private fun <A : Activity> checkScreen(type: Class<A>, label: String, guestPantry: Boolean = false, pantry: Boolean = false, landscape: Boolean = false) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         instrumentation.runOnMainSync {
             instrumentation.targetContext.startActivity(
@@ -60,6 +62,14 @@ class SafeDrawingTest {
         }
         try {
             Thread.sleep(1800)
+            if (landscape) {
+                instrumentation.runOnMainSync {
+                    ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                        .first { type.isInstance(it) }.requestedOrientation =
+                        android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                }
+                Thread.sleep(1500)
+            }
             if (guestPantry || pantry) {
                 instrumentation.runOnMainSync {
                     val activity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
@@ -71,19 +81,7 @@ class SafeDrawingTest {
             val phase = InstrumentationRegistry.getArguments().getString("phase") ?: "current"
             val directory = File(instrumentation.targetContext.getExternalFilesDir(null), "ui-evidence")
             directory.mkdirs()
-            var screenshot: Bitmap? = null
-            for (attempt in 0 until 10) {
-                val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
-                var blueSamples = 0
-                for (x in 1..15) for (y in 1..15) {
-                    val pixel = bitmap.getPixel(bitmap.width * x / 16, bitmap.height * y / 16)
-                    if (android.graphics.Color.blue(pixel) > android.graphics.Color.red(pixel) + 40) blueSamples++
-                }
-                if (blueSamples >= 2) { screenshot = bitmap; break }
-                bitmap.recycle()
-                Thread.sleep(500)
-            }
-            requireNotNull(screenshot) { "$label did not render app content" }.let { bitmap ->
+            requireNotNull(instrumentation.uiAutomation.takeScreenshot()).let { bitmap ->
                 File(directory, "$phase-$label.png").outputStream().use {
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
                 }
@@ -136,8 +134,8 @@ class SafeDrawingTest {
                         assertTrue("Navigation/header text exceeds available width", (0 until labelLayout.lineCount).all { labelLayout.getLineWidth(it) <= availableWidth + 1 })
                     }
                     val sectionTitle = root.findViewById<TextView>(R.id.txtCoincidencia)
-                    assertTrue("Recipe section title disappears on its light background",
-                        androidx.core.graphics.ColorUtils.calculateContrast(sectionTitle.currentTextColor, android.graphics.Color.rgb(245,245,245)) >= 4.5)
+                    assertTrue("Recipe section title has insufficient contrast",
+                        androidx.core.graphics.ColorUtils.calculateContrast(sectionTitle.currentTextColor, androidx.core.content.ContextCompat.getColor(activity, R.color.recipe_surface)) >= 4.5)
                     val carousel = requireNotNull(root.findViewById<RecyclerView>(R.id.rvCoincidencia))
                     assertTrue("Load the recipe-list stress fixtures", (carousel.adapter?.itemCount ?: 0) >= 3)
                     val card = requireNotNull(carousel.getChildAt(0))

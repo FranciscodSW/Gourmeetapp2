@@ -6,4 +6,7 @@
         name="tag_tamano_texto_original"
         type="id"/>
 
+    <item name="reportProviderProduct" type="id"/>
+    <item name="reportProviderPrice" type="id"/>
+    <item name="reportProviderDescription" type="id"/>
 </resources>

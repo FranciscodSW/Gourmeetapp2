@@ -1,4 +1,8 @@
 package mx.com.gourmeet.app
+import mx.com.gourmeet.app.data.models.conPrecios
+import mx.com.gourmeet.app.data.models.precioVisible
+import mx.com.gourmeet.app.data.models.ReportarProveedorRequest
+
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapShader
@@ -48,22 +52,6 @@ class DetalleProveedorFragment : Fragment(), OnMapReadyCallback {
     private lateinit var productosProveedorAdapter: ProductosProveedorAdapter
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var galeriaProveedorAdapter: GaleriaProveedorAdapter
-    private val categoriasIngredientes = listOf(
-        "Carne",
-        "Verduras",
-        "Frutas",
-        "Lacteos",
-        "Cereales",
-        "Leguminosas",
-        "Especias",
-        "Pastas",
-        "Semillas",
-        "Abarrotes",
-        "Licores y destilados",
-        "Industrializados",
-        "Embutidos",
-        "Hierbas aromáticas"
-    )
 
     private var coleccionSeleccionadaId: Int? = null
     private var recetasProveedor = emptyList<RecetaconFiltro>()
@@ -134,6 +122,92 @@ class DetalleProveedorFragment : Fragment(), OnMapReadyCallback {
 
             return fragment
         }
+    }
+
+    private fun reportarProveedor() {
+        val tienda = proveedor ?: return
+        val contexto = requireContext()
+        val espacio = (16 * resources.displayMetrics.density).toInt()
+        val formulario = android.widget.LinearLayout(contexto).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(espacio, espacio, espacio, espacio)
+        }
+        val productos = tienda.INGREDIENTES
+        val selector = android.widget.Spinner(contexto).apply {
+            id = R.id.reportProviderProduct
+            adapter = android.widget.ArrayAdapter(contexto, android.R.layout.simple_spinner_dropdown_item,
+                listOf("Reporte general") + productos.map { "${it.NOMBRE} · ${it.precioVisible()}" })
+        }
+        val precio = android.widget.EditText(contexto).apply {
+            id = R.id.reportProviderPrice
+            hint = "Precio cobrado en MXN (opcional)"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+        }
+        val nota = android.widget.EditText(contexto).apply {
+            id = R.id.reportProviderDescription
+            hint = "Cuéntanos qué pasó (mínimo 10 caracteres)"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            minLines = 3
+            filters = arrayOf(android.text.InputFilter.LengthFilter(1000))
+        }
+        formulario.addView(selector)
+        formulario.addView(precio)
+        formulario.addView(nota)
+        val scroll = android.widget.ScrollView(contexto).apply { addView(formulario) }
+        val solicitud = java.util.UUID.randomUUID().toString()
+        val dialogo = com.google.android.material.dialog.MaterialAlertDialogBuilder(contexto)
+            .setTitle("Reportar proveedor")
+            .setView(scroll)
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Enviar reporte", null)
+            .create()
+        dialogo.setOnShowListener {
+            val enviar = dialogo.getButton(android.content.DialogInterface.BUTTON_POSITIVE)
+            enviar.setOnClickListener {
+                val descripcion = nota.text.toString().trim()
+                if (descripcion.length < 10) {
+                    nota.error = "Escribe al menos 10 caracteres"
+                    return@setOnClickListener
+                }
+                val importe = precio.text.toString().trim().replace(',', '.')
+                val cobrado = importe.toDoubleOrNull()
+                if (importe.isNotEmpty() && (cobrado == null || !cobrado.isFinite() || cobrado < 0 || cobrado > 99999999.99)) {
+                    precio.error = "Escribe un precio válido"
+                    return@setOnClickListener
+                }
+                enviar.isEnabled = false
+                nota.isEnabled = false
+                precio.isEnabled = false
+                selector.isEnabled = false
+                viewLifecycleOwner.lifecycleScope.launch {
+                    try {
+                        val respuesta = ApiClient.apiService.reportarProveedor(ReportarProveedorRequest(
+                            PRO_ID = tienda.Id_Proveedor.toInt(),
+                            PI_ID = productos.getOrNull(selector.selectedItemPosition - 1)?.PI_ID?.toIntOrNull(),
+                            PRECIO_COBRADO = cobrado,
+                            DESCRIPCION = descripcion,
+                            SOLICITUD = solicitud
+                        ))
+                        if (respuesta.success) {
+                            android.widget.Toast.makeText(contexto, "Recibimos tu reporte para revisarlo.", android.widget.Toast.LENGTH_LONG).show()
+                            dialogo.dismiss()
+                        } else {
+                            nota.error = respuesta.message
+                        }
+                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                        throw cancelled
+                    } catch (_: Exception) {
+                        nota.error = "No se pudo enviar. Intenta nuevamente."
+                    } finally {
+                        enviar.isEnabled = true
+                        nota.isEnabled = true
+                        precio.isEnabled = true
+                        selector.isEnabled = true
+                    }
+                }
+            }
+        }
+        dialogo.show()
     }
 
     override fun onCreateView(
@@ -252,11 +326,23 @@ class DetalleProveedorFragment : Fragment(), OnMapReadyCallback {
                     respuesta.proveedor != null
                 ) {
 
-                    proveedor =
-                        respuesta.proveedor
+                    val precios = try {
+                        ApiClient.apiService.preciosProveedor(idProveedor)
+                            .takeIf { it.success }?.precios.orEmpty()
+                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                        throw cancelled
+                    } catch (_: Exception) {
+                        emptyList()
+                    }
+                    val detalle = respuesta.proveedor.copy(
+                        INGREDIENTES = respuesta.proveedor.INGREDIENTES.conPrecios(precios)
+                    )
+                    proveedor = detalle
+                    binding.btnReportarProveedor.isEnabled = true
+                    binding.btnReportarProveedor.setOnClickListener { reportarProveedor() }
 
                     mostrarInformacionProveedor(
-                        respuesta.proveedor,
+                        detalle,
                         latitudUsuario,
                         longitudUsuario
                     )
@@ -1494,33 +1580,16 @@ class DetalleProveedorFragment : Fragment(), OnMapReadyCallback {
         // INGREDIENTES
         // ==========================================
 
-        for (categoria in categoriasIngredientes) {
-
-            val ingredientesCategoria =
-                proveedor.INGREDIENTES.filter { ingrediente ->
-
-                    ingrediente.CATEGORIA
-                        ?.trim()
-                        ?.equals(
-                            categoria.trim(),
-                            ignoreCase = true
-                        ) == true
-                }
-
-            if (ingredientesCategoria.isNotEmpty()) {
-
-                secciones.add(
-                    SeccionProductosProveedor(
-                        titulo = categoria,
-                        ingredientes = ingredientesCategoria,
-                        recetas = emptyList(),
-                        esRecetas = false,
-                        nombreColeccion = categoria
-
-                    )
-                )
+        proveedor.INGREDIENTES.groupBy { it.CATEGORIA?.trim()?.takeIf(String::isNotEmpty) ?: "Otros productos" }
+            .forEach { (categoria, ingredientes) ->
+                secciones.add(SeccionProductosProveedor(
+                    titulo = categoria,
+                    ingredientes = ingredientes,
+                    recetas = emptyList(),
+                    esRecetas = false,
+                    nombreColeccion = categoria
+                ))
             }
-        }
 
         // ==========================================
         // RECETAS DEL PROVEEDOR

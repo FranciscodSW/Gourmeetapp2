@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import mx.com.gourmeet.app.data.models.IngredienteProveedor
+import mx.com.gourmeet.app.data.models.precioVisible
 import mx.com.gourmeet.app.databinding.ItemIngredienteProveedorBinding
 
 class IngredientesPatrocinadosProveedorAdapter(
@@ -55,8 +56,8 @@ class IngredientesPatrocinadosProveedorAdapter(
         // ==========================================
 
         holder.binding.txtDescripcionIngrediente.text =
-            ingrediente.DESCRIPCION
-                ?: ""
+            listOfNotNull(ingrediente.DESCRIPCION?.takeIf { it.isNotBlank() }, ingrediente.precioVisible())
+                .joinToString("\n")
 
 
         // ==========================================

@@ -133,5 +133,5 @@
     <FrameLayout android:id="@+id/panelFiltrosProveedores" android:layout_width="match_parent" android:layout_height="350dp" android:elevation="30dp" android:layout_marginTop="440dp" android:visibility="gone" app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
         <include layout="@layout/panel_filtros_proveedores" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="bottom" />
     </FrameLayout>
-    <FrameLayout android:id="@+id/containerDetalleProveedor" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" android:background="@color/white" android:elevation="30dp" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+    <FrameLayout android:id="@+id/containerDetalleProveedor" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" android:background="@color/recipe_card" android:elevation="30dp" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
 </androidx.drawerlayout.widget.DrawerLayout>

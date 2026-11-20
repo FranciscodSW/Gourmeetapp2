@@ -151,7 +151,7 @@ class ProductosProveedorAdapter(
                 layoutManager =
                     GridLayoutManager(
                         context,
-                        2
+                        if (context.resources.configuration.screenWidthDp >= 600) 2 else 1
                     )
 
                 adapter =

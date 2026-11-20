@@ -36,4 +36,13 @@
         <item name="colorControlActivated">@color/azulgourmeet</item>
         <item name="colorControlHighlight">@color/azulgourmeet</item>
     </style>
+    <style name="Theme.Gourmeet2.Cooking" parent="Theme.Gourmeet2">
+        <item name="android:colorBackground">@color/recipe_surface</item>
+        <item name="android:textColorPrimary">@color/recipe_ink</item>
+        <item name="android:textColorSecondary">@color/recipe_muted</item>
+        <item name="colorSurface">@color/recipe_card</item>
+        <item name="colorOnSurface">@color/recipe_ink</item>
+        <item name="colorPrimary">@color/recipe_link</item>
+        <item name="colorOnPrimary">@color/recipe_surface</item>
+    </style>
 </resources>

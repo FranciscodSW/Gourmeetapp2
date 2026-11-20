@@ -135,6 +135,12 @@ interface ApiService {
     suspend fun listarRecetasRealizadas(
         @Body request: RecetasRealizadasRequest
     ): RecetasRealizadasResponse
+    @GET("proveedores/precios.php")
+    suspend fun preciosProveedor(@Query("ID_PROVEEDOR") id: Int): PreciosProveedorResponse
+
+    @POST("proveedores/reportar.php")
+    suspend fun reportarProveedor(@Body datos: ReportarProveedorRequest): ReportarProveedorResponse
+
     @GET("proveedores/listar_proveedores.php")
     suspend fun listarProveedores(): ProveedoresResponse
     @GET("proveedores/detalle_proveedor.php")

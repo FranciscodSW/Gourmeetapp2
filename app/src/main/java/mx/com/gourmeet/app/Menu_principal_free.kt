@@ -1,4 +1,5 @@
 package mx.com.gourmeet.app
+import mx.com.gourmeet.app.data.models.conPrecios
 import mx.com.gourmeet.app.ui.applySafeDrawingInsets
 
 import android.content.pm.PackageManager
@@ -201,6 +202,15 @@ class Menu_principal_free : AppCompatActivity() {
 
         setContentView(binding.root)
         applySafeDrawingInsets(includeIme = true)
+        val modoNoche = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        androidx.core.view.WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !modoNoche
+            isAppearanceLightNavigationBars = !modoNoche
+        }
+        findViewById<View>(android.R.id.content).setBackgroundColor(
+            androidx.core.content.ContextCompat.getColor(this, R.color.recipe_surface)
+        )
 
         // =========================================================
         // BOTÓN ATRÁS
@@ -1391,7 +1401,7 @@ class Menu_principal_free : AppCompatActivity() {
         val categoria = categoriaSeleccionada ?: 0
         resultadosJob = lifecycleScope.launch {
             try {
-                val response = ApiClient.apiService.getRecetasInicio(RecetasInicioRequest(categoriaId = categoria))
+                val response = ApiClient.apiService.getRecetasInicio(RecetasInicioRequest(categoriaId = categoria, aleatorio = true))
                 if (!response.success) return@launch
 
                 val sugerencias = response.coincidencia.distinctBy { it.REC_ID }
@@ -2110,7 +2120,21 @@ class Menu_principal_free : AppCompatActivity() {
                     proveedor.INGREDIENTES.orEmpty().filter { !it.NOMBRE.isNullOrBlank() }
                         .take(3).map { ProductoRecomendado(it, proveedor) }
                 }.take(12)
-                adapterResultados.actualizarProductos(productos)
+                val preciosPorProveedor = productos.map { it.proveedor }.distinctBy { it.Id_Proveedor }
+                    .associate { proveedor ->
+                        val precios = try {
+                            ApiClient.apiService.preciosProveedor(proveedor.Id_Proveedor.toInt())
+                                .takeIf { it.success }?.precios.orEmpty()
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (_: Exception) {
+                            emptyList()
+                        }
+                        proveedor.Id_Proveedor to proveedor.INGREDIENTES.conPrecios(precios).associateBy { it.PI_ID }
+                    }
+                adapterResultados.actualizarProductos(productos.map {
+                    it.copy(ingrediente = preciosPorProveedor[it.proveedor.Id_Proveedor]?.get(it.ingrediente.PI_ID) ?: it.ingrediente)
+                })
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {

@@ -73,6 +73,7 @@
             android:exported="false" />
         <activity
             android:name=".Menu_principal_free"
+            android:theme="@style/Theme.Gourmeet2.Cooking"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
         <activity
