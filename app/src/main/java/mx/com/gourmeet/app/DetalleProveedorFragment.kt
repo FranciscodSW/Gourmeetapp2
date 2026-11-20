@@ -135,16 +135,36 @@ class DetalleProveedorFragment : Fragment(), OnMapReadyCallback {
         val productos = tienda.INGREDIENTES
         val selector = android.widget.Spinner(contexto).apply {
             id = R.id.reportProviderProduct
-            adapter = android.widget.ArrayAdapter(contexto, android.R.layout.simple_spinner_dropdown_item,
-                listOf("Reporte general") + productos.map { "${it.NOMBRE} · ${it.precioVisible()}" })
+            setPopupBackgroundDrawable(android.graphics.drawable.ColorDrawable(
+                androidx.core.content.ContextCompat.getColor(contexto, R.color.recipe_card)
+            ))
+            adapter = object : android.widget.ArrayAdapter<String>(
+                contexto, android.R.layout.simple_spinner_dropdown_item,
+                listOf("Reporte general") + productos.map { "${it.NOMBRE} · ${it.precioVisible()}" }
+            ) {
+                override fun getView(position: Int, convertView: View?, parent: ViewGroup): View =
+                    (super.getView(position, convertView, parent) as android.widget.TextView).apply {
+                        setTextColor(ContextCompat.getColor(contexto, R.color.recipe_ink))
+                    }
+
+                override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View =
+                    (super.getDropDownView(position, convertView, parent) as android.widget.TextView).apply {
+                        setTextColor(ContextCompat.getColor(contexto, R.color.recipe_ink))
+                        setBackgroundColor(ContextCompat.getColor(contexto, R.color.recipe_card))
+                    }
+            }
         }
         val precio = android.widget.EditText(contexto).apply {
             id = R.id.reportProviderPrice
+            setTextColor(ContextCompat.getColor(contexto, R.color.recipe_ink))
+            setHintTextColor(ContextCompat.getColor(contexto, R.color.recipe_muted))
             hint = "Precio cobrado en MXN (opcional)"
             inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
         }
         val nota = android.widget.EditText(contexto).apply {
             id = R.id.reportProviderDescription
+            setTextColor(ContextCompat.getColor(contexto, R.color.recipe_ink))
+            setHintTextColor(ContextCompat.getColor(contexto, R.color.recipe_muted))
             hint = "Cuéntanos qué pasó (mínimo 10 caracteres)"
             inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
             minLines = 3
