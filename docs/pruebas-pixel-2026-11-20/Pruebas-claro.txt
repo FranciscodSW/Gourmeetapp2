@@ -1,0 +1,10 @@
+
+mx.com.gourmeet.ExampleInstrumentedTest:.
+mx.com.gourmeet.app.RecipeInteractionsTest:.........
+mx.com.gourmeet.app.SafeDrawingTest:..........
+
+Time: 55.374
+
+OK (20 tests)
+
+

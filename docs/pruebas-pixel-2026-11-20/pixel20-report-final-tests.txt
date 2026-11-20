@@ -1,0 +1,8 @@
+
+mx.com.gourmeet.app.RecipeInteractionsTest:.
+
+Time: 5.179
+
+OK (1 test)
+
+
