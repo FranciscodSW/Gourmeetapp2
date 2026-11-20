@@ -81,11 +81,13 @@ class SafeDrawingTest {
             val phase = InstrumentationRegistry.getArguments().getString("phase") ?: "current"
             val directory = File(instrumentation.targetContext.getExternalFilesDir(null), "ui-evidence")
             directory.mkdirs()
-            requireNotNull(instrumentation.uiAutomation.takeScreenshot()).let { bitmap ->
-                File(directory, "$phase-$label.png").outputStream().use {
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+            if (type != Login::class.java) {
+                requireNotNull(instrumentation.uiAutomation.takeScreenshot()).let { bitmap ->
+                    File(directory, "$phase-$label.png").outputStream().use {
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+                    }
+                    bitmap.recycle()
                 }
-                bitmap.recycle()
             }
             instrumentation.runOnMainSync {
                 val activity = ActivityLifecycleMonitorRegistry.getInstance()
